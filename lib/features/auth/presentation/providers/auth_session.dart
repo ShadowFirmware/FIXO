@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -39,4 +40,11 @@ class AuthSession extends ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+}
+
+/// Cierra la sesión y regresa al login sin dejar pantallas atrás.
+Future<void> signOutAndGoToLogin(BuildContext context) async {
+  await AuthSession.instance.signOut();
+  if (!context.mounted) return;
+  Navigator.pushNamedAndRemoveUntil(context, RouteNames.login, (_) => false);
 }

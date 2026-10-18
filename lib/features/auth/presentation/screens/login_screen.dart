@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     AuthSession.instance.start(user);
-    Navigator.pushReplacementNamed(context, RouteNames.residentShell);
+    Navigator.pushReplacementNamed(context, RouteNames.homeFor(user.role));
   }
 
   String? _validateEmail(String? value) {

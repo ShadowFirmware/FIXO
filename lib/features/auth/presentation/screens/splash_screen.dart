@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     Navigator.pushReplacementNamed(
       context,
-      user == null ? RouteNames.login : RouteNames.residentShell,
+      user == null ? RouteNames.login : RouteNames.homeFor(user.role),
     );
   }
 

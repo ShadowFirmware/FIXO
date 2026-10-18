@@ -9,12 +9,6 @@ import '../../../auth/presentation/providers/auth_session.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Future<void> _signOut(BuildContext context) async {
-    await AuthSession.instance.signOut();
-    if (!context.mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, RouteNames.login, (_) => false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +20,10 @@ class ProfileScreen extends StatelessWidget {
             'Modificar perfil',
             () => Navigator.pushNamed(context, RouteNames.editProfile),
           ),
-          PlaceholderAction('Cerrar sesión', () => _signOut(context)),
+          PlaceholderAction(
+            'Cerrar sesión',
+            () => signOutAndGoToLogin(context),
+          ),
         ],
       ),
     );
