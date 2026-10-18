@@ -11,8 +11,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthSession.instance.currentUser;
+
     return Scaffold(
-      appBar: const FixoAppBar(title: 'Perfil'),
+      appBar: FixoAppBar(title: 'Perfil', subtitle: user?.name),
       body: PlaceholderView(
         title: 'Perfil del residente',
         actions: [

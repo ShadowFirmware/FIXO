@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
+import '../../features/auth/domain/entities/app_user.dart';
+import '../../features/auth/presentation/providers/auth_session.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
@@ -13,7 +15,30 @@ import '../../features/technician/presentation/screens/technician_home_screen.da
 import 'route_names.dart';
 
 abstract final class AppRouter {
+  /// Rutas que no requieren sesión.
+  static const _publicRoutes = {
+    RouteNames.splash,
+    RouteNames.login,
+    RouteNames.forgotPassword,
+  };
+
+  /// Roles que pueden abrir cada ruta protegida.
+  static const _allowedRoles = <String, Set<UserRole>>{
+    RouteNames.residentShell: {UserRole.resident},
+    RouteNames.registerIncident: {UserRole.resident},
+    RouteNames.incidentDetail: {UserRole.resident},
+    RouteNames.editProfile: {UserRole.resident},
+    RouteNames.technicianHome: {UserRole.technician},
+    RouteNames.adminHome: {UserRole.admin},
+    RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
+  };
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    final redirect = _redirectFor(settings.name);
+    if (redirect != null) {
+      return onGenerateRoute(RouteSettings(name: redirect));
+    }
+
     switch (settings.name) {
       case RouteNames.splash:
         return _page(const SplashScreen(), settings);
@@ -49,6 +74,19 @@ abstract final class AppRouter {
           settings,
         );
     }
+  }
+
+  /// Sin sesión se va al login; con un rol que no corresponde, a su propio
+  /// inicio. Devuelve `null` si puede abrir la ruta.
+  static String? _redirectFor(String? route) {
+    if (_publicRoutes.contains(route)) return null;
+    final allowed = _allowedRoles[route];
+    if (allowed == null) return null;
+
+    final user = AuthSession.instance.currentUser;
+    if (user == null) return RouteNames.login;
+    if (!allowed.contains(user.role)) return RouteNames.homeFor(user.role);
+    return null;
   }
 
   static MaterialPageRoute<dynamic> _page(
