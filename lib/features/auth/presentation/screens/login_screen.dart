@@ -28,8 +28,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _submit() {
     FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
-    // TODO: conectar con el caso de uso de login.
+    // TODO: validar el formulario y conectar con el caso de uso de login.
+    // Mientras no hay backend, se entra directo como residente.
+    Navigator.pushReplacementNamed(context, RouteNames.residentShell);
   }
 
   String? _validateEmail(String? value) {
