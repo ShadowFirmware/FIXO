@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../providers/login_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,19 +18,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _viewModel = LoginViewModel();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
-    // TODO: validar el formulario y conectar con el caso de uso de login.
-    // Mientras no hay backend, se entra directo como residente.
+    if (_viewModel.isLoading || !_formKey.currentState!.validate()) return;
+
+    final user = await _viewModel.signIn(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+    if (!mounted) return;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(_viewModel.errorMessage!)));
+      return;
+    }
+
     Navigator.pushReplacementNamed(context, RouteNames.residentShell);
   }
 
@@ -177,19 +193,30 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                elevation: 4,
-                shadowColor: AppColors.primary.withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+            ListenableBuilder(
+              listenable: _viewModel,
+              builder: (context, _) => ElevatedButton(
+                onPressed: _viewModel.isLoading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  elevation: 4,
+                  shadowColor: AppColors.primary.withValues(alpha: 0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Iniciar sesión',
-                style: TextStyle(fontSize: 16),
+                child: _viewModel.isLoading
+                    ? const SizedBox.square(
+                        dimension: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: AppColors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Iniciar sesión',
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ),
           ],
