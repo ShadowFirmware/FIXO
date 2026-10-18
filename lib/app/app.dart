@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_theme.dart';
 import 'routes/app_router.dart';
 import 'routes/route_names.dart';
-import 'theme/app_theme.dart';
 
 class FixoApp extends StatelessWidget {
   const FixoApp({super.key});

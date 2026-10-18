@@ -50,10 +50,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       : null,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _submit,
-                  child: const Text('Enviar'),
-                ),
+                ElevatedButton(onPressed: _submit, child: const Text('Enviar')),
               ],
             ),
           ),
