@@ -27,14 +27,26 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AppUser?> restoreSession() async {
+    final uid = _remote.currentUid;
+    if (uid == null) return null;
+    try {
+      return await _loadProfile(uid);
+    } on Exception {
+      return null;
+    }
+  }
+
+  @override
   Future<void> signOut() => _remote.signOut();
 
   /// Cierra la sesión de Firebase si la cuenta existe en Authentication pero
-  /// no tiene un perfil válido en `usuarios`.
+  /// no tiene un perfil válido en `usuarios` o no tiene acceso.
   Future<AppUser> _loadProfile(String uid) async {
     try {
       final user = await _remote.fetchUser(uid);
       if (user == null) throw AuthFailure.notRegistered;
+      _ensureCanAccess(user);
       return user;
     } on FormatException {
       await _remote.signOut();
@@ -45,6 +57,23 @@ class AuthRepositoryImpl implements AuthRepository {
     } on FirebaseException {
       await _remote.signOut();
       rethrow;
+    }
+  }
+
+  /// Una suspensión temporal cuyo plazo ya terminó no bloquea el acceso
+  /// (HU-7.4).
+  void _ensureCanAccess(AppUser user) {
+    switch (user.accountStatus) {
+      case AccountStatus.active:
+        return;
+      case AccountStatus.removed:
+        throw AuthFailure.accountRemoved;
+      case AccountStatus.disabled:
+        throw AuthFailure.accountDisabled;
+      case AccountStatus.suspended:
+        final until = user.suspendedUntil;
+        if (until != null && DateTime.now().isAfter(until)) return;
+        throw AuthFailure.accountSuspended(until);
     }
   }
 

@@ -19,6 +19,20 @@ class AuthFailure implements Exception {
   static const unknown = AuthFailure(
     'Ocurrió un error inesperado. Inténtalo de nuevo.',
   );
+  static const accountRemoved = AuthFailure(
+    'Tu cuenta fue dada de baja y ya no tiene acceso al sistema.',
+  );
+  static const accountDisabled = AuthFailure(
+    'Tu cuenta está deshabilitada. Contacta al administrador.',
+  );
+
+  factory AuthFailure.accountSuspended(DateTime? until) {
+    if (until == null) return const AuthFailure('Tu cuenta está suspendida.');
+    final date =
+        '${until.day.toString().padLeft(2, '0')}/'
+        '${until.month.toString().padLeft(2, '0')}/${until.year}';
+    return AuthFailure('Tu cuenta está suspendida hasta el $date.');
+  }
 
   @override
   String toString() => message;

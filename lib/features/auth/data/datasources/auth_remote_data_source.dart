@@ -25,6 +25,9 @@ class AuthRemoteDataSource {
     return credential.user!.uid;
   }
 
+  /// UID de la sesión guardada por Firebase, o `null` si no hay sesión.
+  String? get currentUid => _auth.currentUser?.uid;
+
   /// Devuelve `null` si no existe el documento del usuario.
   Future<UserModel?> fetchUser(String uid) async {
     final doc = await _firestore

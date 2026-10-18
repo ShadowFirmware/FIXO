@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../providers/auth_session.dart';
 import '../providers/login_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -46,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    AuthSession.instance.start(user);
     Navigator.pushReplacementNamed(context, RouteNames.residentShell);
   }
 

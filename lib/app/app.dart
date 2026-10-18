@@ -13,8 +13,8 @@ class FixoApp extends StatelessWidget {
       title: 'FIXO',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      initialRoute: RouteNames.login,
-      // Evita que Flutter apile una ruta '/' inexistente debajo del login,
+      initialRoute: RouteNames.splash,
+      // Evita que Flutter apile una ruta '/' inexistente debajo del arranque,
       // lo que provocaba una flecha de regreso sin destino.
       onGenerateInitialRoutes: (initialRoute) => [
         AppRouter.onGenerateRoute(RouteSettings(name: initialRoute)),

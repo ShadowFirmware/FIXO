@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/communication/presentation/screens/incident_chat_screen.dart';
 import '../../features/resident/presentation/screens/edit_profile_screen.dart';
 import '../../features/resident/presentation/screens/incident_detail_screen.dart';
@@ -12,6 +13,8 @@ import 'route_names.dart';
 abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case RouteNames.splash:
+        return _page(const SplashScreen(), settings);
       case RouteNames.login:
         return _page(const LoginScreen(), settings);
       case RouteNames.forgotPassword:
