@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Reglas de desarrollo: cualquier usuario con sesión iniciada puede leer y
+// escribir. Antes de la entrega hay que restringirlas por rol.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /{document=**} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

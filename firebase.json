@@ -1,1 +1,24 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"fixo-a7763","appId":"1:322034326921:android:7b0cdc6abb344855ea1558","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"fixo-a7763","configurations":{"android":"1:322034326921:android:7b0cdc6abb344855ea1558"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fixo-a7763",
+          "appId": "1:322034326921:android:7b0cdc6abb344855ea1558",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fixo-a7763",
+          "configurations": {
+            "android": "1:322034326921:android:7b0cdc6abb344855ea1558"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
