@@ -27,7 +27,10 @@ class UserModel extends AppUser {
     if (data == null) {
       throw FormatException('El usuario ${doc.id} no existe');
     }
+    return UserModel.fromMap(doc.id, data);
+  }
 
+  factory UserModel.fromMap(String uid, Map<String, dynamic> data) {
     final role = UserRole.fromValue(data['rol'] as String?);
     if (role == null) {
       throw FormatException('Rol no válido: ${data['rol']}');
@@ -43,7 +46,7 @@ class UserModel extends AppUser {
     }
 
     return UserModel(
-      uid: doc.id,
+      uid: uid,
       name: data['nombre'] as String? ?? '',
       email: data['correo'] as String? ?? '',
       phone: data['telefono'] as String? ?? '',

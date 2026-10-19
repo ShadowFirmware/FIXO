@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../providers/auth_session.dart';
 import '../providers/login_view_model.dart';
 
@@ -14,8 +15,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -49,18 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     AuthSession.instance.start(user);
     Navigator.pushReplacementNamed(context, RouteNames.homeFor(user.role));
-  }
-
-  String? _validateEmail(String? value) {
-    final email = value?.trim() ?? '';
-    if (email.isEmpty) return 'Ingresa tu correo';
-    if (!_emailRegex.hasMatch(email)) return 'Correo no válido';
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
-    return null;
   }
 
   @override
@@ -159,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 labelText: 'Correo electrónico',
                 prefixIcon: Icon(Icons.email_outlined),
               ),
-              validator: _validateEmail,
+              validator: Validators.email,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -184,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              validator: _validatePassword,
+              validator: Validators.requiredPassword,
             ),
             Align(
               alignment: Alignment.centerRight,

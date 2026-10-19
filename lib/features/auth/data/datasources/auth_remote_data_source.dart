@@ -7,11 +7,17 @@ import '../models/user_model.dart';
 /// Acceso a Firebase Authentication y a la colección `usuarios`.
 class AuthRemoteDataSource {
   AuthRemoteDataSource({FirebaseAuth? auth, FirebaseFirestore? firestore})
-    : _auth = auth ?? FirebaseAuth.instance,
-      _firestore = firestore ?? FirebaseFirestore.instance;
+    : _authOverride = auth,
+      _firestoreOverride = firestore;
 
-  final FirebaseAuth _auth;
-  final FirebaseFirestore _firestore;
+  final FirebaseAuth? _authOverride;
+  final FirebaseFirestore? _firestoreOverride;
+
+  // Se resuelven al usarse para que crear la clase no requiera Firebase
+  // inicializado (por ejemplo, en pruebas de widgets).
+  FirebaseAuth get _auth => _authOverride ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore =>
+      _firestoreOverride ?? FirebaseFirestore.instance;
 
   /// Devuelve el UID del usuario autenticado.
   Future<String> signIn({
