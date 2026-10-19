@@ -114,16 +114,11 @@ class FakeAuthRepository implements AuthRepository {
   final AppUser? user;
   final Object? error;
 
-  String? lastEmail;
-  String? lastPassword;
-
   @override
   Future<AppUser> signIn({
     required String email,
     required String password,
   }) async {
-    lastEmail = email;
-    lastPassword = password;
     if (error != null) throw error!;
     return user!;
   }

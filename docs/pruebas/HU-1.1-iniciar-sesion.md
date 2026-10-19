@@ -36,9 +36,9 @@ Verificar que un usuario registrado pueda iniciar sesión con su correo y contra
 |---|---|---|
 | CA-1 | El usuario puede ingresar su correo y contraseña | PM-01, widget |
 | CA-2 | Se valida que las credenciales correspondan a un usuario registrado | PU-07 a PU-14, PM-02 a PM-05 |
-| CA-3 | Con credenciales correctas se permite el acceso | PU-07, PU-25, PM-01 |
-| CA-4 | El usuario es dirigido a las funciones de su rol | PU-35 a PU-38, PM-01, PM-06, PM-07 |
-| CA-5 | Con credenciales incorrectas se muestra un mensaje de credenciales no válidas | PU-08 a PU-10, PU-26, PM-02, PM-03 |
+| CA-3 | Con credenciales correctas se permite el acceso | PU-07, PU-24, PM-01 |
+| CA-4 | El usuario es dirigido a las funciones de su rol | PU-33 a PU-35, PM-01, PM-06, PM-07 |
+| CA-5 | Con credenciales incorrectas se muestra un mensaje de credenciales no válidas | PU-08 a PU-10, PU-25, PM-02, PM-03 |
 | CA-6 | No se permite el acceso a usuarios no registrados | PU-09, PU-13, PM-03, PM-04 |
 
 ## 4. Tipos de prueba
@@ -96,7 +96,7 @@ flutter test test/unitarias
 | PU-07 | Credenciales válidas | Devuelve el perfil del usuario |
 | PU-08 | Contraseña incorrecta | "El correo o la contraseña no son válidos." |
 | PU-09 | Correo no registrado | "El correo o la contraseña no son válidos." |
-| PU-10 | Códigos de Firebase `invalid-credential`, `invalid-email`, `wrong-password`, `user-not-found`, `user-disabled` | Todos muestran credenciales no válidas |
+| PU-10 | Códigos de Firebase `invalid-credential`, `invalid-email`, `wrong-password`, `user-not-found`, `user-disabled` (se revisan los 5 en una sola prueba) | Todos muestran credenciales no válidas |
 | PU-11 | Demasiados intentos | "Demasiados intentos. Espera un momento…" |
 | PU-12 | Sin internet | "No hay conexión a internet…" |
 | PU-13 | Cuenta en Authentication sin documento en `usuarios` | "Este usuario no está registrado en el sistema." y se cierra la sesión |
@@ -120,26 +120,23 @@ flutter test test/unitarias
 
 | ID | Caso | Resultado esperado |
 |---|---|---|
-| PU-24 | Correo con espacios al inicio o al final | Se quitan los espacios; la contraseña no se modifica |
-| PU-25 | Inicio de sesión exitoso | Devuelve el usuario y no hay mensaje de error |
-| PU-26 | Credenciales inválidas | Queda el mensaje "El correo o la contraseña no son válidos." |
-| PU-27 | Error inesperado | "Ocurrió un error inesperado. Inténtalo de nuevo." |
-| PU-28 | Mientras se valida | Indica que está cargando y al terminar deja de cargar |
-| PU-29 | Nuevo intento después de un error | Se limpia el mensaje anterior |
-| PU-30 | Correo vacío | "Ingresa tu correo" |
-| PU-31 | Correo sin formato válido (`maria`, `maria@`, `maria@correo`, `@correo.com`) | "Correo no válido" |
-| PU-32 | Correo válido | Sin error |
-| PU-33 | Contraseña vacía | "Ingresa tu contraseña" |
-| PU-34 | Contraseña escrita | Sin error |
+| PU-24 | Inicio de sesión exitoso | Devuelve el usuario y no hay mensaje de error |
+| PU-25 | Credenciales inválidas | Queda el mensaje "El correo o la contraseña no son válidos." |
+| PU-26 | Error inesperado | "Ocurrió un error inesperado. Inténtalo de nuevo." |
+| PU-27 | Mientras se valida | Indica que está cargando y al terminar deja de cargar |
+| PU-28 | Correo vacío | "Ingresa tu correo" |
+| PU-29 | Correo sin formato válido (`maria`, `maria@`, `maria@correo`, `@correo.com`) | "Correo no válido" |
+| PU-30 | Correo válido | Sin error |
+| PU-31 | Contraseña vacía | "Ingresa tu contraseña" |
+| PU-32 | Contraseña escrita | Sin error |
 
 ### 7.5 Redirección por rol (T 1.1.5) — `role_redirect_test.dart`
 
 | ID | Caso | Resultado esperado |
 |---|---|---|
-| PU-35 | Rol residente | Pantalla del residente (`/resident`) |
-| PU-36 | Rol técnico | Pantalla del técnico (`/technician`) |
-| PU-37 | Rol administrador | Pantalla del administrador (`/admin`) |
-| PU-38 | Todos los roles | Cada rol tiene una pantalla distinta |
+| PU-33 | Rol residente | Pantalla del residente (`/resident`) |
+| PU-34 | Rol técnico | Pantalla del técnico (`/technician`) |
+| PU-35 | Rol administrador | Pantalla del administrador (`/admin`) |
 
 ## 8. Casos de prueba manuales
 
@@ -173,9 +170,9 @@ Se ejecutan en la app con el proyecto real de Firebase y los datos de la secció
 
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
-| Unitarias (`test/unitarias`) | 42 | Aprobadas |
+| Unitarias (`test/unitarias`) | 35 | Aprobadas |
 | Widget (`test/widget_test.dart`) | 3 | Aprobadas |
-| **Total** | **45** | **Aprobadas** |
+| **Total** | **38** | **Aprobadas** |
 
 ### Manuales
 

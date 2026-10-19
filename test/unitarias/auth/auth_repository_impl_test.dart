@@ -59,29 +59,30 @@ void main() {
       );
     });
 
-    for (final code in [
-      'invalid-credential',
-      'invalid-email',
-      'wrong-password',
-      'user-not-found',
-      'user-disabled',
-    ]) {
-      test(
-        'PU-10 el código "$code" se muestra como credenciales no válidas',
-        () {
+    test(
+      'PU-10 los errores de credenciales de Firebase muestran el mismo mensaje',
+      () async {
+        for (final code in [
+          'invalid-credential',
+          'invalid-email',
+          'wrong-password',
+          'user-not-found',
+          'user-disabled',
+        ]) {
           final repository = AuthRepositoryImpl(
             remote: FakeAuthRemoteDataSource(
               signInError: FirebaseAuthException(code: code),
             ),
           );
 
-          expect(
+          await expectLater(
             repository.signIn(email: 'a@b.com', password: 'x'),
             throwsA(AuthFailure.invalidCredentials),
+            reason: code,
           );
-        },
-      );
-    }
+        }
+      },
+    );
 
     test('PU-11 demasiados intentos muestra el mensaje correspondiente', () {
       final repository = AuthRepositoryImpl(
