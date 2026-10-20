@@ -35,4 +35,5 @@ abstract final class AppColors {
   static const Color textOnPrimary = white;
   static const Color border = Color(0xFFD6DCE8);
   static const Color error = Color(0xFFD32F2F);
+  static const Color success = Color(0xFF2E7D32);
 }

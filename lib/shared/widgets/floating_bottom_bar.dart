@@ -21,16 +21,19 @@ class FloatingBottomBarItem {
 /// Barra de navegación inferior flotante con indicador animado.
 ///
 /// Usar junto con `Scaffold(extendBody: true)` para que el contenido se vea
-/// detrás de la barra. Las pantallas con scroll deben dejar al final un
-/// espacio de [FloatingBottomBar.reservedHeight].
+/// detrás de la barra. Dentro de ese `Scaffold`, el espacio que ocupa la barra
+/// llega a las pantallas como `MediaQuery.paddingOf(context).bottom`; las
+/// pantallas con scroll deben dejarlo libre al final.
 class FloatingBottomBar extends StatelessWidget {
   const FloatingBottomBar({
     super.key,
     required this.items,
     required this.selectedIndex,
     required this.onSelected,
+    this.visible = true,
   });
 
+  static const Duration _hideDuration = Duration(milliseconds: 250);
   static const double _barHeight = 68;
   static const double _margin = 16;
   static const double _innerPadding = 8;
@@ -45,8 +48,24 @@ class FloatingBottomBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
+  /// Si es `false`, la barra se desliza hacia abajo hasta salir de la
+  /// pantalla.
+  final bool visible;
+
   @override
   Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !visible,
+      child: AnimatedSlide(
+        duration: _hideDuration,
+        curve: Curves.easeOutCubic,
+        offset: visible ? Offset.zero : const Offset(0, 1.2),
+        child: _buildBar(),
+      ),
+    );
+  }
+
+  Widget _buildBar() {
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(_margin, 0, _margin, _margin),
       child: Container(
