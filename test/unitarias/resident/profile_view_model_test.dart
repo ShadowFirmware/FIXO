@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:fixo/features/auth/domain/entities/app_user.dart';
 import 'package:fixo/features/auth/presentation/providers/auth_session.dart';
+import 'package:fixo/features/housing/domain/entities/housing.dart';
 import 'package:fixo/features/resident/presentation/providers/profile_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../auth/fakes.dart';
+import '../housing/fakes.dart';
 
 /// HU-2.1 Consultar perfil.
 void main() {
   late AuthSession session;
+  late FakeHousingRepository housings;
   late ProfileViewModel viewModel;
 
   AppUser residentWith({
@@ -30,19 +35,21 @@ void main() {
 
   setUp(() {
     session = AuthSession.withRepository(FakeAuthRepository());
-    viewModel = ProfileViewModel(session: session);
+    housings = FakeHousingRepository();
+    viewModel = ProfileViewModel(session: session, housings: housings);
   });
 
   tearDown(() => viewModel.dispose());
 
   test('PU-36 muestra los datos personales y la vivienda del residente '
-      'autenticado', () {
+      'autenticado', () async {
     session.start(residentWith());
+    await pumpEventQueue();
 
     expect(viewModel.name, 'María López Hernández');
     expect(viewModel.email, 'maria@correo.com');
     expect(viewModel.phone, '7771112233');
-    expect(viewModel.housing, 'vivienda-4b');
+    expect(viewModel.housing, 'Torre A – 4B');
   });
 
   test('PU-37 las iniciales usan las dos primeras palabras del nombre', () {
@@ -108,7 +115,79 @@ void main() {
 
       await session.signOut();
       expect(viewModel.name, 'Sin registrar');
-      expect(notifications, 3);
+      // Además de los 3 cambios de sesión, puede avisar al cargar la vivienda.
+      expect(notifications, greaterThanOrEqualTo(3));
     },
   );
+
+  group('Vivienda asignada', () {
+    test(
+      'PU-47 muestra "Cargando…" mientras se consulta la vivienda',
+      () async {
+        housings.gate = Completer<void>();
+        session.start(residentWith());
+
+        expect(viewModel.housing, 'Cargando…');
+
+        housings.gate!.complete();
+        await pumpEventQueue();
+        expect(viewModel.housing, 'Torre A – 4B');
+      },
+    );
+
+    test('PU-48 si la vivienda no existe se muestra "No disponible"', () async {
+      session.start(residentWith(housingId: 'vivienda-borrada'));
+      await pumpEventQueue();
+
+      expect(viewModel.housing, 'No disponible');
+    });
+
+    test('PU-49 si falla la consulta se muestra "No disponible"', () async {
+      final failing = FakeHousingRepository(error: StateError('sin red'));
+      final vm = ProfileViewModel(session: session, housings: failing);
+      addTearDown(vm.dispose);
+
+      session.start(residentWith());
+      await pumpEventQueue();
+
+      expect(vm.housing, 'No disponible');
+    });
+
+    test(
+      'PU-50 al cambiar de residente se consulta su nueva vivienda',
+      () async {
+        final otherHousings = FakeHousingRepository(
+          housings: const {
+            'vivienda-4b': torreA4B,
+            'casa-12': Housing(
+              id: 'casa-12',
+              type: HousingType.house,
+              number: '12',
+            ),
+          },
+        );
+        final vm = ProfileViewModel(session: session, housings: otherHousings);
+        addTearDown(vm.dispose);
+
+        session.start(residentWith());
+        await pumpEventQueue();
+        session.start(residentWith(housingId: 'casa-12'));
+        await pumpEventQueue();
+
+        expect(vm.housing, 'Casa 12');
+        expect(otherHousings.requestedIds, ['vivienda-4b', 'casa-12']);
+      },
+    );
+
+    test('PU-51 una respuesta tardía de otra sesión no se muestra', () async {
+      housings.gate = Completer<void>();
+      session.start(residentWith());
+      await session.signOut();
+
+      housings.gate!.complete();
+      await pumpEventQueue();
+
+      expect(viewModel.housing, 'Sin registrar');
+    });
+  });
 }
