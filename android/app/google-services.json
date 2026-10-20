@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "322034326921",
+    "firebase_url": "https://fixo-a7763-default-rtdb.firebaseio.com",
+    "project_id": "fixo-a7763",
+    "storage_bucket": "fixo-a7763.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:322034326921:android:7b0cdc6abb344855ea1558",
+        "android_client_info": {
+          "package_name": "com.example.fixo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBARaHt8qWX5uxJ8NS-rDDBPsAPfUZemEs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

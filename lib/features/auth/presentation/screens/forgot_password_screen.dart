@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/fixo_app_bar.dart';
+
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -25,7 +27,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Recuperar contraseña')),
+      appBar: const FixoAppBar(title: 'Recuperar contraseña'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -50,10 +52,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       : null,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _submit,
-                  child: const Text('Enviar'),
-                ),
+                ElevatedButton(onPressed: _submit, child: const Text('Enviar')),
               ],
             ),
           ),
