@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
@@ -23,7 +24,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _nameController.text = _viewModel.initialName;
     _phoneController.text = _viewModel.initialPhone;
+    _nameController.addListener(_onEdited);
+    _phoneController.addListener(_onEdited);
   }
+
+  void _onEdited() => _viewModel.edit(
+    name: _nameController.text,
+    phone: _phoneController.text,
+  );
 
   @override
   void dispose() {
@@ -36,6 +44,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _submit() {
     FocusScope.of(context).unfocus();
   }
+
+  /// Oculta el contador de caracteres que agrega `maxLength`.
+  static Widget? _hideCounter(
+    BuildContext context, {
+    required int currentLength,
+    required bool isFocused,
+    required int? maxLength,
+  }) => null;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +84,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,
                         textInputAction: TextInputAction.next,
+                        maxLength: EditProfileViewModel.maxNameLength,
+                        buildCounter: _hideCounter,
                         autofillHints: const [AutofillHints.name],
                         decoration: const InputDecoration(
                           labelText: 'Nombre completo',
@@ -80,6 +98,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.done,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(
+                            EditProfileViewModel.phoneLength,
+                          ),
+                        ],
                         autofillHints: const [AutofillHints.telephoneNumber],
                         onFieldSubmitted: (_) => _submit(),
                         decoration: const InputDecoration(
@@ -102,13 +126,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 32),
-                  ElevatedButton.icon(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
+                  ListenableBuilder(
+                    listenable: _viewModel,
+                    builder: (context, _) => ElevatedButton.icon(
+                      onPressed: _viewModel.hasChanges ? _submit : null,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      icon: const Icon(Icons.check_rounded),
+                      label: const Text('Guardar cambios'),
                     ),
-                    icon: const Icon(Icons.check_rounded),
-                    label: const Text('Guardar cambios'),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton(
