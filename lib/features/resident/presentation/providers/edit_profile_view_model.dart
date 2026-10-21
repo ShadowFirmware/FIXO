@@ -105,11 +105,16 @@ class EditProfileViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final name = _normalizedName;
+      final phone = _phone.trim();
       await _profiles.updateContactInfo(
         uid: user.uid,
-        name: _normalizedName,
-        phone: _phone.trim(),
+        name: name,
+        phone: phone,
       );
+      // La consulta del perfil escucha la sesión y se actualiza sola.
+      _session.update(user.copyWith(name: name, phone: phone));
+      _hasChanges = false;
       return true;
     } on ProfileFailure catch (e) {
       _errorMessage = e.message;

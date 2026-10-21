@@ -95,4 +95,21 @@ class AppUser {
   final bool? available;
 
   final DateTime? createdAt;
+
+  /// Copia con los datos que el residente puede modificar (HU-2.2).
+  AppUser copyWith({String? name, String? phone}) => AppUser(
+    uid: uid,
+    name: name ?? this.name,
+    email: email,
+    phone: phone ?? this.phone,
+    role: role,
+    accountStatus: accountStatus,
+    conductStatus: conductStatus,
+    validatedReports: validatedReports,
+    suspendedUntil: suspendedUntil,
+    housingId: housingId,
+    specialty: specialty,
+    available: available,
+    createdAt: createdAt,
+  );
 }
