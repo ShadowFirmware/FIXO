@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../incidents/domain/entities/incident.dart';
+import '../providers/register_incident_view_model.dart';
 
 /// HU-2.3 Registrar incidencia.
 class RegisterIncidentScreen extends StatefulWidget {
@@ -15,13 +17,34 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _viewModel = RegisterIncidentViewModel();
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(
+      () => _viewModel.title = _titleController.text,
+    );
+    _descriptionController.addListener(
+      () => _viewModel.description = _descriptionController.text,
+    );
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
+
+  /// Oculta el contador de caracteres que agrega `maxLength` en el título.
+  static Widget? _hideCounter(
+    BuildContext context, {
+    required int currentLength,
+    required bool isFocused,
+    required int? maxLength,
+  }) => null;
 
   void _submit() {
     FocusScope.of(context).unfocus();
@@ -58,6 +81,8 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                         controller: _titleController,
                         textCapitalization: TextCapitalization.sentences,
                         textInputAction: TextInputAction.next,
+                        maxLength: RegisterIncidentViewModel.maxTitleLength,
+                        buildCounter: _hideCounter,
                         decoration: const InputDecoration(
                           labelText: 'Título',
                           hintText: 'Ej. Fuga en el baño',
@@ -67,7 +92,13 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                       const SizedBox(height: 20),
                       const _FieldLabel('Tipo de incidencia'),
                       const SizedBox(height: 8),
-                      const _TypeSelector(),
+                      ListenableBuilder(
+                        listenable: _viewModel,
+                        builder: (context, _) => _TypeSelector(
+                          selected: _viewModel.type,
+                          onSelected: _viewModel.selectType,
+                        ),
+                      ),
                       const SizedBox(height: 20),
                       TextFormField(
                         key: const Key('registerIncident.description'),
@@ -75,6 +106,8 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                         textCapitalization: TextCapitalization.sentences,
                         minLines: 4,
                         maxLines: 8,
+                        maxLength:
+                            RegisterIncidentViewModel.maxDescriptionLength,
                         decoration: const InputDecoration(
                           labelText: 'Descripción',
                           hintText: 'Describe el problema con detalle',
@@ -110,14 +143,17 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
 
 /// Tipos de incidencia como fichas seleccionables.
 class _TypeSelector extends StatelessWidget {
-  const _TypeSelector();
+  const _TypeSelector({required this.selected, required this.onSelected});
 
-  static const _types = [
-    (Icons.lightbulb_outline_rounded, 'Luz'),
-    (Icons.water_drop_outlined, 'Agua'),
-    (Icons.foundation_rounded, 'Estructura'),
-    (Icons.more_horiz_rounded, 'Otros'),
-  ];
+  final IncidentType? selected;
+  final ValueChanged<IncidentType> onSelected;
+
+  static IconData _iconFor(IncidentType type) => switch (type) {
+    IncidentType.electricity => Icons.lightbulb_outline_rounded,
+    IncidentType.water => Icons.water_drop_outlined,
+    IncidentType.structure => Icons.foundation_rounded,
+    IncidentType.other => Icons.more_horiz_rounded,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -125,12 +161,13 @@ class _TypeSelector extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (final (icon, label) in _types)
+        for (final type in IncidentType.values)
           ChoiceChip(
-            avatar: Icon(icon, size: 18),
-            label: Text(label),
-            selected: false,
-            onSelected: (_) {},
+            key: Key('registerIncident.type.${type.value}'),
+            avatar: Icon(_iconFor(type), size: 18),
+            label: Text(type.label),
+            selected: selected == type,
+            onSelected: (_) => onSelected(type),
           ),
       ],
     );
