@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/bars_visibility.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
 import '../../../notifications/presentation/screens/notifications_screen.dart';
 import '../providers/resident_shell_view_model.dart';
@@ -55,19 +56,27 @@ class _ResidentShellScreenState extends State<ResidentShellScreen> {
         final tab = _viewModel.currentTab;
         return Scaffold(
           extendBody: true,
-          body: IndexedStack(
-            index: tab.index,
-            children: [
-              ResidentHomeScreen(
-                onSeeHistory: () => _viewModel.selectTab(ResidentTab.history),
+          body: BarsVisibilityScope(
+            visible: _viewModel.barsVisible,
+            child: HideBarsOnScroll(
+              onVisibilityChanged: _viewModel.setBarsVisible,
+              child: IndexedStack(
+                index: tab.index,
+                children: [
+                  ResidentHomeScreen(
+                    onSeeHistory: () =>
+                        _viewModel.selectTab(ResidentTab.history),
+                  ),
+                  const IncidentHistoryScreen(),
+                  const NotificationsScreen(),
+                  const ProfileScreen(),
+                ],
               ),
-              const IncidentHistoryScreen(),
-              const NotificationsScreen(),
-              const ProfileScreen(),
-            ],
+            ),
           ),
           bottomNavigationBar: FloatingBottomBar(
             items: _items,
+            visible: _viewModel.barsVisible,
             selectedIndex: tab.index,
             onSelected: (index) =>
                 _viewModel.selectTab(ResidentTab.values[index]),

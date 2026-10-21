@@ -13,6 +13,10 @@ import '../../domain/repositories/auth_repository.dart';
 class AuthSession extends ChangeNotifier {
   AuthSession._(this._repository);
 
+  /// Crea una sesión independiente con otro repositorio, solo para pruebas.
+  @visibleForTesting
+  AuthSession.withRepository(AuthRepository repository) : this._(repository);
+
   static final AuthSession instance = AuthSession._(AuthRepositoryImpl());
 
   final AuthRepository _repository;
