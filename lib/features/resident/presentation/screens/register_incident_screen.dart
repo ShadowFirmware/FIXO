@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../providers/register_incident_view_model.dart';
 
@@ -117,10 +120,18 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const _FormSection(
+                  _FormSection(
                     title: 'Evidencias',
-                    footnote: 'Agrega fotografías o videos del problema.',
-                    children: [_EvidencePlaceholder()],
+                    footnote:
+                        'Agrega fotografías o videos del problema. Los videos '
+                        'pueden durar hasta 1 minuto.',
+                    children: [
+                      ListenableBuilder(
+                        listenable: _viewModel,
+                        builder: (context, _) =>
+                            _EvidenceSection(viewModel: _viewModel),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
@@ -174,17 +185,178 @@ class _TypeSelector extends StatelessWidget {
   }
 }
 
-/// Botón para agregar evidencias.
-class _EvidencePlaceholder extends StatelessWidget {
-  const _EvidencePlaceholder();
+/// Miniaturas de las evidencias elegidas y botón para agregar más.
+class _EvidenceSection extends StatelessWidget {
+  const _EvidenceSection({required this.viewModel});
+
+  final RegisterIncidentViewModel viewModel;
+
+  Future<void> _showSources(BuildContext context) async {
+    final vm = viewModel;
+    final action = await showModalBottomSheet<Future<void> Function()>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _SourceTile(
+              icon: Icons.photo_camera_outlined,
+              label: 'Tomar foto',
+              action: () => vm.addPhotos(fromCamera: true),
+            ),
+            _SourceTile(
+              icon: Icons.photo_library_outlined,
+              label: 'Elegir fotos de la galería',
+              action: () => vm.addPhotos(fromCamera: false),
+            ),
+            _SourceTile(
+              icon: Icons.videocam_outlined,
+              label: 'Grabar video (máx. 1 min)',
+              action: () => vm.addVideo(fromCamera: true),
+            ),
+            _SourceTile(
+              icon: Icons.video_library_outlined,
+              label: 'Elegir video de la galería',
+              action: () => vm.addVideo(fromCamera: false),
+            ),
+          ],
+        ),
+      ),
+    );
+    await action?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: () {},
-      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-      icon: const Icon(Icons.add_a_photo_outlined),
-      label: const Text('Agregar evidencia'),
+    final evidence = viewModel.evidence;
+    final message = viewModel.evidenceMessage;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (evidence.isNotEmpty) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final file in evidence)
+                _EvidenceThumbnail(
+                  file: file,
+                  onRemove: () => viewModel.removeEvidence(file),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+        OutlinedButton.icon(
+          key: const Key('registerIncident.addEvidence'),
+          onPressed: viewModel.canAddEvidence
+              ? () => _showSources(context)
+              : null,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+          icon: const Icon(Icons.add_a_photo_outlined),
+          label: Text(
+            'Agregar evidencia (${evidence.length}/'
+            '${RegisterIncidentViewModel.maxEvidence})',
+          ),
+        ),
+        if (message != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: AppColors.error),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _SourceTile extends StatelessWidget {
+  const _SourceTile({
+    required this.icon,
+    required this.label,
+    required this.action,
+  });
+
+  final IconData icon;
+  final String label;
+  final Future<void> Function() action;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(label),
+      // Se cierra la hoja antes de abrir la cámara o la galería.
+      onTap: () => Navigator.pop(context, action),
+    );
+  }
+}
+
+/// Miniatura cuadrada de una foto o video, con botón para quitarla.
+class _EvidenceThumbnail extends StatelessWidget {
+  const _EvidenceThumbnail({required this.file, required this.onRemove});
+
+  final EvidenceFile file;
+  final VoidCallback onRemove;
+
+  static const _size = 88.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: _size,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: file.isVideo
+                ? const ColoredBox(
+                    color: AppColors.navy,
+                    child: Icon(
+                      Icons.play_circle_outline_rounded,
+                      color: AppColors.white,
+                      size: 36,
+                    ),
+                  )
+                : Image.file(
+                    File(file.path),
+                    fit: BoxFit.cover,
+                    cacheWidth: 200,
+                    errorBuilder: (_, _, _) => const ColoredBox(
+                      color: AppColors.surfaceAlt,
+                      child: Icon(Icons.broken_image_outlined),
+                    ),
+                  ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Material(
+              color: AppColors.darkGray.withValues(alpha: 0.7),
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onRemove,
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 16,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
