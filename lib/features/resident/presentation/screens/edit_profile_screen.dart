@@ -116,12 +116,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 24),
                   _FormSection(
                     title: 'Datos de la cuenta',
-                    footnote: 'El correo no se puede modificar desde aquí.',
+                    footnote:
+                        'El correo y la vivienda no se pueden modificar desde '
+                        'aquí. Solo un administrador puede cambiar tu '
+                        'vivienda asignada.',
                     children: [
                       _ReadOnlyField(
                         icon: Icons.email_outlined,
                         label: 'Correo electrónico',
                         value: _viewModel.email,
+                      ),
+                      const SizedBox(height: 16),
+                      ListenableBuilder(
+                        listenable: _viewModel,
+                        builder: (context, _) => _ReadOnlyField(
+                          icon: Icons.apartment_rounded,
+                          label: 'Vivienda asignada',
+                          value: _viewModel.housing,
+                        ),
                       ),
                     ],
                   ),

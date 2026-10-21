@@ -2,16 +2,49 @@ import 'package:flutter/foundation.dart';
 
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
+import '../../../housing/data/repositories/housing_repository_impl.dart';
+import '../../../housing/domain/repositories/housing_repository.dart';
 
 /// ViewModel de la pantalla para modificar el perfil del residente (HU-2.2).
 class EditProfileViewModel extends ChangeNotifier {
-  EditProfileViewModel({AuthSession? session})
-    : _session = session ?? AuthSession.instance;
+  EditProfileViewModel({AuthSession? session, HousingRepository? housings})
+    : _session = session ?? AuthSession.instance,
+      _housings = housings ?? HousingRepositoryImpl() {
+    _loadHousing();
+  }
 
   static const maxNameLength = 80;
   static const phoneLength = 10;
 
   final AuthSession _session;
+  final HousingRepository _housings;
+  bool _disposed = false;
+
+  /// Nombre de la vivienda asignada. Es de solo lectura: solo un
+  /// administrador puede cambiarla.
+  String _housing = 'Cargando…';
+  String get housing => _housing;
+
+  Future<void> _loadHousing() async {
+    final id = _user?.housingId?.trim() ?? '';
+    if (id.isEmpty) {
+      _housing = 'Sin registrar';
+      return;
+    }
+    try {
+      final housing = await _housings.getById(id);
+      _housing = housing?.label ?? 'No disponible';
+    } catch (_) {
+      _housing = 'No disponible';
+    }
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   AppUser? get _user => _session.currentUser;
 
