@@ -28,15 +28,18 @@ class IncidentRemoteDataSource {
   String newId() => _incidents.doc().id;
 
   /// Crea el documento `incidencias/{id}` con el siguiente folio, en una
-  /// sola transacción con el contador.
+  /// sola transacción con el contador. [alsoWrite] agrega otras escrituras
+  /// a la misma transacción, como los avisos al administrador.
   Future<IncidentModel> create({
     required String id,
     required IncidentModel Function(int folio) build,
+    void Function(Transaction transaction, IncidentModel incident)? alsoWrite,
   }) {
     return _firestore.runTransaction((transaction) async {
       final folio = await reserveFolio(transaction);
       final incident = build(folio);
       transaction.set(_incidents.doc(id), incident.toFirestore());
+      alsoWrite?.call(transaction, incident);
       return incident;
     });
   }

@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 
 import '../../../../core/errors/incident_failure.dart';
+import '../../../notifications/data/datasources/notification_remote_data_source.dart';
 import '../../domain/entities/incident.dart';
 import '../../domain/entities/new_incident.dart';
 import '../../domain/repositories/incident_repository.dart';
@@ -12,11 +13,14 @@ class IncidentRepositoryImpl implements IncidentRepository {
   IncidentRepositoryImpl({
     IncidentRemoteDataSource? remote,
     EvidenceStorageDataSource? storage,
+    NotificationRemoteDataSource? notifications,
   }) : _remote = remote ?? IncidentRemoteDataSource(),
-       _storage = storage ?? EvidenceStorageDataSource();
+       _storage = storage ?? EvidenceStorageDataSource(),
+       _notifications = notifications ?? NotificationRemoteDataSource();
 
   final IncidentRemoteDataSource _remote;
   final EvidenceStorageDataSource _storage;
+  final NotificationRemoteDataSource _notifications;
 
   @override
   Future<Incident> register({
@@ -38,6 +42,7 @@ class IncidentRepositoryImpl implements IncidentRepository {
     }
 
     try {
+      final adminIds = await _notifications.activeAdminIds();
       return await _remote.create(
         id: id,
         build: (folio) => IncidentModel(
@@ -52,6 +57,16 @@ class IncidentRepositoryImpl implements IncidentRepository {
           status: IncidentStatus.pending,
           evidenceBefore: urls,
         ),
+        // El administrador recibe el aviso de que hay una incidencia
+        // pendiente de asignar.
+        alsoWrite: (transaction, incident) =>
+            _notifications.addNewIncidentNotices(
+              transaction,
+              adminIds: adminIds,
+              incidentId: incident.id,
+              reportNumber: incident.reportNumber,
+              title: incident.title,
+            ),
       );
     } on FirebaseException catch (e) {
       throw _failureFor(e);
