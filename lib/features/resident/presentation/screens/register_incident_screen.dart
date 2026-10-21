@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
@@ -51,6 +52,10 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
 
   void _submit() {
     FocusScope.of(context).unfocus();
+    // Se validan todos para marcar cada error, no solo el primero.
+    final fieldsValid = _formKey.currentState!.validate();
+    final restValid = _viewModel.validate() == null;
+    if (!fieldsValid || !restValid) return;
   }
 
   @override
@@ -73,6 +78,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -86,6 +92,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                         textInputAction: TextInputAction.next,
                         maxLength: RegisterIncidentViewModel.maxTitleLength,
                         buildCounter: _hideCounter,
+                        validator: Validators.incidentTitle,
                         decoration: const InputDecoration(
                           labelText: 'Título',
                           hintText: 'Ej. Fuga en el baño',
@@ -97,9 +104,22 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                       const SizedBox(height: 8),
                       ListenableBuilder(
                         listenable: _viewModel,
-                        builder: (context, _) => _TypeSelector(
-                          selected: _viewModel.type,
-                          onSelected: _viewModel.selectType,
+                        builder: (context, _) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _TypeSelector(
+                              selected: _viewModel.type,
+                              onSelected: _viewModel.selectType,
+                            ),
+                            if (_viewModel.typeError != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                _viewModel.typeError!,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.error),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -111,6 +131,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                         maxLines: 8,
                         maxLength:
                             RegisterIncidentViewModel.maxDescriptionLength,
+                        validator: Validators.incidentDescription,
                         decoration: const InputDecoration(
                           labelText: 'Descripción',
                           hintText: 'Describe el problema con detalle',

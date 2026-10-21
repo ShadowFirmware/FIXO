@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/utils/validators.dart';
 import '../../../incidents/data/datasources/evidence_picker.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
@@ -12,6 +13,8 @@ class RegisterIncidentViewModel extends ChangeNotifier {
   static const maxTitleLength = 80;
   static const maxDescriptionLength = 500;
   static const maxEvidence = 5;
+  static const maxPhotoBytes = 10 * 1024 * 1024;
+  static const maxVideoBytes = 50 * 1024 * 1024;
 
   final EvidencePicker _picker;
   bool _disposed = false;
@@ -23,10 +26,25 @@ class RegisterIncidentViewModel extends ChangeNotifier {
   IncidentType? _type;
   IncidentType? get type => _type;
 
+  /// Se muestra si se intenta registrar sin elegir un tipo.
+  String? _typeError;
+  String? get typeError => _typeError;
+
   void selectType(IncidentType type) {
     if (_type == type) return;
     _type = type;
+    _typeError = null;
     notifyListeners();
+  }
+
+  /// Revisa los campos obligatorios y los datos ingresados. Devuelve el
+  /// primer error, o `null` si todo es válido.
+  String? validate() {
+    _typeError = _type == null ? 'Elige el tipo de incidencia' : null;
+    notifyListeners();
+    return Validators.incidentTitle(title) ??
+        _typeError ??
+        Validators.incidentDescription(description);
   }
 
   final List<EvidenceFile> _evidence = [];
@@ -64,13 +82,23 @@ class RegisterIncidentViewModel extends ChangeNotifier {
     }
     if (_disposed) return;
 
+    // Los archivos muy pesados tardarían mucho en subirse.
+    final accepted = picked.where(_fitsSizeLimit).toList();
+    if (accepted.length < picked.length) {
+      _evidenceMessage =
+          'Las fotos pueden pesar hasta 10 MB y los videos hasta 50 MB.';
+    }
+
     final room = maxEvidence - _evidence.length;
-    if (picked.length > room) {
+    if (accepted.length > room) {
       _evidenceMessage = 'Solo puedes adjuntar hasta $maxEvidence evidencias.';
     }
-    _evidence.addAll(picked.take(room));
+    _evidence.addAll(accepted.take(room));
     notifyListeners();
   }
+
+  static bool _fitsSizeLimit(EvidenceFile file) =>
+      file.sizeBytes <= (file.isVideo ? maxVideoBytes : maxPhotoBytes);
 
   @override
   void dispose() {
