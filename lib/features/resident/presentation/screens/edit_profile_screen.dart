@@ -29,10 +29,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneController.addListener(_onEdited);
   }
 
-  void _onEdited() => _viewModel.edit(
-    name: _nameController.text,
-    phone: _phoneController.text,
-  );
+  void _onEdited() =>
+      _viewModel.edit(name: _nameController.text, phone: _phoneController.text);
 
   @override
   void dispose() {
@@ -42,10 +40,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     // Si hay datos inválidos se marcan en el formulario y no se guarda nada.
-    if (!_formKey.currentState!.validate()) return;
+    if (_viewModel.isSaving || !_formKey.currentState!.validate()) return;
+
+    final saved = await _viewModel.save();
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    if (!saved) {
+      messenger.showSnackBar(SnackBar(content: Text(_viewModel.errorMessage!)));
+      return;
+    }
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Tu perfil se actualizó correctamente')),
+    );
+    Navigator.pop(context);
   }
 
   /// Oculta el contador de caracteres que agrega `maxLength`.
@@ -147,12 +158,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ListenableBuilder(
                     listenable: _viewModel,
                     builder: (context, _) => ElevatedButton.icon(
-                      onPressed: _viewModel.hasChanges ? _submit : null,
+                      onPressed: _viewModel.hasChanges && !_viewModel.isSaving
+                          ? _submit
+                          : null,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                       ),
-                      icon: const Icon(Icons.check_rounded),
-                      label: const Text('Guardar cambios'),
+                      icon: _viewModel.isSaving
+                          ? const SizedBox.square(
+                              dimension: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : const Icon(Icons.check_rounded),
+                      label: Text(
+                        _viewModel.isSaving ? 'Guardando…' : 'Guardar cambios',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -275,9 +298,8 @@ class _ReadOnlyField extends StatelessWidget {
       ),
       child: Text(
         value,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+        style: Theme.of(context).textTheme.bodyLarge
+            ?.copyWith(color: AppColors.textSecondary),
       ),
     );
   }
