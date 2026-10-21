@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../providers/edit_profile_view_model.dart';
 
 /// HU-2.2 Modificar perfil.
 class EditProfileScreen extends StatefulWidget {
@@ -15,11 +16,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _viewModel = EditProfileViewModel();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = _viewModel.initialName;
+    _phoneController.text = _viewModel.initialPhone;
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
@@ -80,14 +90,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const _FormSection(
+                  _FormSection(
                     title: 'Datos de la cuenta',
                     footnote: 'El correo no se puede modificar desde aquí.',
                     children: [
                       _ReadOnlyField(
                         icon: Icons.email_outlined,
                         label: 'Correo electrónico',
-                        value: '',
+                        value: _viewModel.email,
                       ),
                     ],
                   ),
