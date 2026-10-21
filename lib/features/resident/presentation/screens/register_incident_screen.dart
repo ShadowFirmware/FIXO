@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
@@ -50,12 +51,66 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
     required int? maxLength,
   }) => null;
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
+    if (_viewModel.isSaving) return;
     // Se validan todos para marcar cada error, no solo el primero.
     final fieldsValid = _formKey.currentState!.validate();
     final restValid = _viewModel.validate() == null;
     if (!fieldsValid || !restValid) return;
+
+    final incident = await _viewModel.register();
+    if (!mounted) return;
+
+    if (incident == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(_viewModel.errorMessage!)));
+      return;
+    }
+    await _showRegistered(incident);
+  }
+
+  /// Confirma el registro con el número de reporte y permite consultarlo.
+  Future<void> _showRegistered(Incident incident) async {
+    final seeDetail = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: const Icon(
+          Icons.check_circle_rounded,
+          color: AppColors.success,
+          size: 48,
+        ),
+        title: const Text('Incidencia registrada'),
+        content: Text(
+          'Tu reporte ${incident.reportNumber} quedó con estado '
+          '"${incident.status.label}". El administrador asignará un técnico.',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Volver'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ver incidencia'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+
+    if (seeDetail ?? false) {
+      Navigator.pushReplacementNamed(
+        context,
+        RouteNames.incidentDetail,
+        arguments: incident.id,
+      );
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -163,13 +218,30 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
                     ],
                   ),
                   const SizedBox(height: 32),
-                  ElevatedButton.icon(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
+                  ListenableBuilder(
+                    listenable: _viewModel,
+                    builder: (context, _) => ElevatedButton.icon(
+                      onPressed: _viewModel.isSaving || !_viewModel.hasHousing
+                          ? null
+                          : _submit,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      icon: _viewModel.isSaving
+                          ? const SizedBox.square(
+                              dimension: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : const Icon(Icons.send_rounded),
+                      label: Text(
+                        _viewModel.isSaving
+                            ? 'Registrando…'
+                            : 'Registrar incidencia',
+                      ),
                     ),
-                    icon: const Icon(Icons.send_rounded),
-                    label: const Text('Registrar incidencia'),
                   ),
                 ],
               ),

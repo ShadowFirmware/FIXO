@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
@@ -7,18 +8,74 @@ import '../../../housing/data/repositories/housing_repository_impl.dart';
 import '../../../housing/domain/repositories/housing_repository.dart';
 import '../../../incidents/data/datasources/evidence_picker.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
+import '../../../incidents/data/repositories/incident_repository_impl.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/domain/entities/new_incident.dart';
+import '../../../incidents/domain/repositories/incident_repository.dart';
+import '../../../incidents/domain/usecases/register_incident.dart';
 
 /// ViewModel de la pantalla para registrar una incidencia (HU-2.3).
 class RegisterIncidentViewModel extends ChangeNotifier {
   RegisterIncidentViewModel({
     AuthSession? session,
     HousingRepository? housings,
+    IncidentRepository? incidents,
     EvidencePicker? picker,
   }) : _session = session ?? AuthSession.instance,
        _housings = housings ?? HousingRepositoryImpl(),
+       _registerIncident = RegisterIncident(
+         incidents ?? IncidentRepositoryImpl(),
+       ),
        _picker = picker ?? EvidencePicker() {
     _loadHousing();
+  }
+
+  final RegisterIncident _registerIncident;
+
+  bool _isSaving = false;
+  bool get isSaving => _isSaving;
+
+  /// Motivo por el que no se registró, listo para mostrarse.
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  /// Registra la incidencia. Devuelve la incidencia guardada, o `null` si
+  /// los datos son inválidos o falló; en ese caso el motivo queda en
+  /// [errorMessage].
+  Future<Incident?> register() async {
+    final user = _user;
+    if (_isSaving || user == null) return null;
+
+    final invalid = validate();
+    if (invalid != null) {
+      _errorMessage = invalid;
+      notifyListeners();
+      return null;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      return await _registerIncident(
+        resident: user,
+        data: NewIncident(
+          title: title,
+          type: _type!,
+          description: description,
+          evidence: _evidence,
+        ),
+      );
+    } on IncidentFailure catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = IncidentFailure.unknown.message;
+    } finally {
+      _isSaving = false;
+      if (!_disposed) notifyListeners();
+    }
+    return null;
   }
 
   static const maxTitleLength = 80;
