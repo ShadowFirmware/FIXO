@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/edit_profile_view_model.dart';
 
@@ -43,6 +44,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _submit() {
     FocusScope.of(context).unfocus();
+    // Si hay datos inválidos se marcan en el formulario y no se guarda nada.
+    if (!_formKey.currentState!.validate()) return;
   }
 
   /// Oculta el contador de caracteres que agrega `maxLength`.
@@ -73,6 +76,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -86,6 +90,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         textInputAction: TextInputAction.next,
                         maxLength: EditProfileViewModel.maxNameLength,
                         buildCounter: _hideCounter,
+                        validator: Validators.name,
                         autofillHints: const [AutofillHints.name],
                         decoration: const InputDecoration(
                           labelText: 'Nombre completo',
@@ -106,6 +111,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ],
                         autofillHints: const [AutofillHints.telephoneNumber],
                         onFieldSubmitted: (_) => _submit(),
+                        validator: Validators.phone,
                         decoration: const InputDecoration(
                           labelText: 'Teléfono',
                           prefixIcon: Icon(Icons.phone_outlined),
