@@ -82,6 +82,14 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  ListenableBuilder(
+                    listenable: _viewModel,
+                    builder: (context, _) => _HousingBanner(
+                      housing: _viewModel.housing,
+                      hasHousing: _viewModel.hasHousing,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   _FormSection(
                     title: 'Datos de la incidencia',
                     children: [
@@ -375,6 +383,59 @@ class _EvidenceThumbnail extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Vivienda a la que se asociará la incidencia, de solo lectura.
+class _HousingBanner extends StatelessWidget {
+  const _HousingBanner({required this.housing, required this.hasHousing});
+
+  final String housing;
+  final bool hasHousing;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final color = hasHousing ? AppColors.primary : AppColors.error;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.apartment_rounded, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Se registrará para tu vivienda',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  housing,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.lock_outline_rounded,
+            size: 18,
+            color: AppColors.textSecondary,
           ),
         ],
       ),

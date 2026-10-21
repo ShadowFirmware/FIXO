@@ -1,14 +1,25 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/utils/validators.dart';
+import '../../../auth/domain/entities/app_user.dart';
+import '../../../auth/presentation/providers/auth_session.dart';
+import '../../../housing/data/repositories/housing_repository_impl.dart';
+import '../../../housing/domain/repositories/housing_repository.dart';
 import '../../../incidents/data/datasources/evidence_picker.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
 
 /// ViewModel de la pantalla para registrar una incidencia (HU-2.3).
 class RegisterIncidentViewModel extends ChangeNotifier {
-  RegisterIncidentViewModel({EvidencePicker? picker})
-    : _picker = picker ?? EvidencePicker();
+  RegisterIncidentViewModel({
+    AuthSession? session,
+    HousingRepository? housings,
+    EvidencePicker? picker,
+  }) : _session = session ?? AuthSession.instance,
+       _housings = housings ?? HousingRepositoryImpl(),
+       _picker = picker ?? EvidencePicker() {
+    _loadHousing();
+  }
 
   static const maxTitleLength = 80;
   static const maxDescriptionLength = 500;
@@ -16,8 +27,33 @@ class RegisterIncidentViewModel extends ChangeNotifier {
   static const maxPhotoBytes = 10 * 1024 * 1024;
   static const maxVideoBytes = 50 * 1024 * 1024;
 
+  final AuthSession _session;
+  final HousingRepository _housings;
   final EvidencePicker _picker;
   bool _disposed = false;
+
+  AppUser? get _user => _session.currentUser;
+
+  /// Vivienda a la que se asocia la incidencia. Es la del residente y no se
+  /// puede cambiar desde el formulario.
+  String _housing = 'Cargando…';
+  String get housing => _housing;
+
+  bool get hasHousing => (_user?.housingId?.trim() ?? '').isNotEmpty;
+
+  Future<void> _loadHousing() async {
+    if (!hasHousing) {
+      _housing = 'Sin vivienda asignada';
+      return;
+    }
+    try {
+      final housing = await _housings.getById(_user!.housingId!.trim());
+      _housing = housing?.label ?? 'No disponible';
+    } catch (_) {
+      _housing = 'No disponible';
+    }
+    if (!_disposed) notifyListeners();
+  }
 
   /// Lo que el residente escribe en el formulario.
   String title = '';
