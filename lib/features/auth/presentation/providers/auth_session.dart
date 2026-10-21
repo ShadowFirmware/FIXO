@@ -31,6 +31,14 @@ class AuthSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reemplaza los datos del usuario en sesión después de modificarlos, para
+  /// que las pantallas que escuchan la sesión muestren la información nueva.
+  void update(AppUser user) {
+    if (user.uid != _currentUser?.uid) return;
+    _currentUser = user;
+    notifyListeners();
+  }
+
   /// Devuelve el usuario de la sesión guardada, o `null` si hay que iniciar
   /// sesión de nuevo.
   Future<AppUser?> restore() async {
