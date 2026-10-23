@@ -37,4 +37,26 @@ abstract final class Validators {
     }
     return null;
   }
+
+  /// Título de una incidencia (HU-2.3).
+  static String? incidentTitle(String? value) {
+    final title = value?.trim() ?? '';
+    if (title.isEmpty) return 'Ingresa un título';
+    if (title.length < 5) return 'El título debe tener al menos 5 caracteres';
+    if (title.length > 80) return 'El título no debe pasar de 80 caracteres';
+    return null;
+  }
+
+  /// Descripción de una incidencia (HU-2.3).
+  static String? incidentDescription(String? value) {
+    final description = value?.trim() ?? '';
+    if (description.isEmpty) return 'Describe el problema';
+    if (description.length < 10) {
+      return 'La descripción debe tener al menos 10 caracteres';
+    }
+    if (description.length > 500) {
+      return 'La descripción no debe pasar de 500 caracteres';
+    }
+    return null;
+  }
 }

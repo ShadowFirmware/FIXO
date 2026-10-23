@@ -6,4 +6,7 @@ abstract final class FirestoreCollections {
   static const String messages = 'mensajes';
   static const String conductReports = 'reportesConducta';
   static const String notifications = 'notificaciones';
+
+  /// Contadores para números consecutivos, como el folio de incidencias.
+  static const String counters = 'contadores';
 }
