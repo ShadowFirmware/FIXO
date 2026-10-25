@@ -56,6 +56,8 @@ class Incident {
     this.technicianId,
     this.estimatedTime,
     this.rejectionComment,
+    this.rejectedAt,
+    this.solution,
     this.evidenceBefore = const [],
     this.evidenceAfter = const [],
     this.createdAt,
@@ -83,7 +85,13 @@ class Incident {
 
   /// Cuándo va a llegar el técnico.
   final DateTime? estimatedTime;
+
+  /// Motivo y fecha del rechazo, registrados por el administrador.
   final String? rejectionComment;
+  final DateTime? rejectedAt;
+
+  /// Descripción de la solución aplicada, registrada por el técnico.
+  final String? solution;
 
   /// URLs de las fotos y videos del problema (al registrar) y de la
   /// solución (al resolver).

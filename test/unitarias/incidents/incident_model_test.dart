@@ -62,4 +62,26 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('PU-88 lee la solución y el rechazo (HU-2.4)', () {
+    final resolved = IncidentModel.fromMap('inc-1', {
+      'tipo': 'agua',
+      'estado': 'resuelta',
+      'solucion': 'Se cambió el empaque',
+      'evidenciasDespues': ['https://despues.jpg'],
+      'fechaResolucion': Timestamp.fromDate(DateTime(2026, 10, 21)),
+    });
+    final rejected = IncidentModel.fromMap('inc-2', {
+      'tipo': 'luz',
+      'estado': 'rechazada',
+      'comentarioRechazo': 'Es del área común',
+      'fechaRechazo': Timestamp.fromDate(DateTime(2026, 10, 20)),
+    });
+
+    expect(resolved.solution, 'Se cambió el empaque');
+    expect(resolved.evidenceAfter, ['https://despues.jpg']);
+    expect(resolved.resolvedAt, DateTime(2026, 10, 21));
+    expect(rejected.rejectionComment, 'Es del área común');
+    expect(rejected.rejectedAt, DateTime(2026, 10, 20));
+  });
 }

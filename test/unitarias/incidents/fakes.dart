@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fixo/core/errors/incident_failure.dart';
+import 'package:fixo/features/auth/domain/entities/app_user.dart';
 import 'package:fixo/features/incidents/data/datasources/evidence_picker.dart';
 import 'package:fixo/features/incidents/data/datasources/evidence_storage_data_source.dart';
 import 'package:fixo/features/incidents/data/datasources/incident_remote_data_source.dart';
@@ -9,6 +12,7 @@ import 'package:fixo/features/incidents/domain/entities/incident.dart';
 import 'package:fixo/features/incidents/domain/entities/new_incident.dart';
 import 'package:fixo/features/incidents/domain/repositories/incident_repository.dart';
 import 'package:fixo/features/notifications/data/datasources/notification_remote_data_source.dart';
+import 'package:fixo/features/technician/domain/repositories/technician_repository.dart';
 
 const photo = EvidenceFile(path: '/fotos/fuga.jpg', isVideo: false);
 const video = EvidenceFile(path: '/videos/fuga.mp4', isVideo: true);
@@ -45,6 +49,12 @@ class FakeIncidentRemoteDataSource implements IncidentRemoteDataSource {
 
   @override
   Future<int> reserveFolio(Transaction transaction) async => ++lastFolio;
+
+  @override
+  Stream<IncidentModel?> watchById(String id) {
+    if (error != null) return Stream.error(error!);
+    return Stream.value(created.where((i) => i.id == id).firstOrNull);
+  }
 }
 
 /// Simula Firebase Storage: devuelve una URL por archivo.
@@ -115,6 +125,17 @@ class FakeIncidentRepository implements IncidentRepository {
       status: IncidentStatus.pending,
     );
   }
+
+  /// Controla lo que emite [watchById]: con `add` se simula un cambio en
+  /// Firestore y con `addError` una falla.
+  final changes = StreamController<Incident?>.broadcast();
+  final watchedIds = <String>[];
+
+  @override
+  Stream<Incident?> watchById(String id) {
+    watchedIds.add(id);
+    return changes.stream;
+  }
 }
 
 /// Simula la cámara y la galería.
@@ -130,4 +151,14 @@ class FakeEvidencePicker implements EvidencePicker {
 
   @override
   Future<EvidenceFile?> pickVideo({required bool fromCamera}) async => video;
+}
+
+/// Técnicos registrados en `usuarios`.
+class FakeTechnicianRepository implements TechnicianRepository {
+  FakeTechnicianRepository({this.technicians = const {}});
+
+  final Map<String, AppUser> technicians;
+
+  @override
+  Future<AppUser?> getById(String uid) async => technicians[uid];
 }
