@@ -8,6 +8,7 @@ import '../../../housing/data/repositories/housing_repository_impl.dart';
 import '../../../housing/domain/repositories/housing_repository.dart';
 import '../../../incidents/data/repositories/incident_repository_impl.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/domain/entities/incident_filter.dart';
 import '../../../incidents/domain/repositories/incident_repository.dart';
 import '../../../incidents/domain/usecases/watch_resident_incidents.dart';
 
@@ -43,6 +44,59 @@ class IncidentHistoryViewModel extends ChangeNotifier {
   /// antigua.
   List<Incident> _incidents = const [];
   List<Incident> get incidents => _incidents;
+
+  IncidentFilter _filter = IncidentFilter.none;
+  IncidentFilter get filter => _filter;
+
+  /// Incidencias que cumplen los filtros seleccionados.
+  List<Incident> get results => _filter.apply(_incidents);
+
+  void setQuery(String query) => _setFilter(
+    IncidentFilter(
+      query: query,
+      status: _filter.status,
+      type: _filter.type,
+      from: _filter.from,
+      to: _filter.to,
+    ),
+  );
+
+  void setStatus(IncidentStatus? status) => _setFilter(
+    IncidentFilter(
+      query: _filter.query,
+      status: status,
+      type: _filter.type,
+      from: _filter.from,
+      to: _filter.to,
+    ),
+  );
+
+  void setType(IncidentType? type) => _setFilter(
+    IncidentFilter(
+      query: _filter.query,
+      status: _filter.status,
+      type: type,
+      from: _filter.from,
+      to: _filter.to,
+    ),
+  );
+
+  void setDateRange({DateTime? from, DateTime? to}) => _setFilter(
+    IncidentFilter(
+      query: _filter.query,
+      status: _filter.status,
+      type: _filter.type,
+      from: from,
+      to: to,
+    ),
+  );
+
+  void clearFilters() => _setFilter(IncidentFilter.none);
+
+  void _setFilter(IncidentFilter filter) {
+    _filter = filter;
+    notifyListeners();
+  }
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;

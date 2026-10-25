@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/incident_history_view_model.dart';
 import '../widgets/incident_history_card.dart';
+import '../widgets/incident_history_filters.dart';
 
 /// HU-2.5 Consultar historial de incidencias.
 class IncidentHistoryScreen extends StatefulWidget {
@@ -53,6 +54,15 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
                   ),
                 ),
               ),
+              // Los filtros solo tienen sentido si hay incidencias.
+              if (vm.state == IncidentHistoryState.loaded &&
+                  vm.incidents.isNotEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: IncidentHistoryFilters(viewModel: vm),
+                  ),
+                ),
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(20, 16, 20, padding.bottom + 24),
                 sliver: switch (vm.state) {
@@ -76,10 +86,10 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
                       ),
                     ),
                   IncidentHistoryState.loaded => SliverList.separated(
-                    itemCount: vm.incidents.length,
+                    itemCount: vm.results.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) =>
-                        IncidentHistoryCard(incident: vm.incidents[index]),
+                        IncidentHistoryCard(incident: vm.results[index]),
                   ),
                 },
               ),
