@@ -4,11 +4,14 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/data/repositories/housing_repository_impl.dart';
 import '../../../housing/domain/repositories/housing_repository.dart';
 import '../../../incidents/data/repositories/incident_repository_impl.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/domain/repositories/incident_repository.dart';
+import '../../../technician/data/repositories/technician_repository_impl.dart';
+import '../../../technician/domain/repositories/technician_repository.dart';
 
 enum IncidentDetailState { loading, loaded, notFound, error }
 
@@ -21,8 +24,10 @@ class IncidentDetailViewModel extends ChangeNotifier {
     required String incidentId,
     IncidentRepository? incidents,
     HousingRepository? housings,
+    TechnicianRepository? technicians,
   }) : _incidents = incidents ?? IncidentRepositoryImpl(),
-       _housings = housings ?? HousingRepositoryImpl() {
+       _housings = housings ?? HousingRepositoryImpl(),
+       _technicians = technicians ?? TechnicianRepositoryImpl() {
     _subscription = _incidents
         .watchById(incidentId)
         .listen(_onIncident, onError: _onError);
@@ -32,6 +37,7 @@ class IncidentDetailViewModel extends ChangeNotifier {
 
   final IncidentRepository _incidents;
   final HousingRepository _housings;
+  final TechnicianRepository _technicians;
   late final StreamSubscription<Incident?> _subscription;
   bool _disposed = false;
 
@@ -61,6 +67,42 @@ class IncidentDetailViewModel extends ChangeNotifier {
     return date == null ? _noData : DateFormats.dateTime(date);
   }
 
+  /// El técnico se muestra desde que se asigna. En una incidencia rechazada
+  /// nunca se muestra, aunque el documento tenga datos de técnico.
+  bool get showTechnician => switch (_incident?.status) {
+    IncidentStatus.assigned ||
+    IncidentStatus.inProgress ||
+    IncidentStatus.resolved => _incident!.technicianId != null,
+    _ => false,
+  };
+
+  AppUser? _technician;
+  String? _loadedTechnicianId;
+  bool _technicianFailed = false;
+
+  String get technicianName {
+    if (_technician != null) return _technician!.name;
+    return _technicianFailed ? 'No disponible' : 'Cargando…';
+  }
+
+  String get technicianPhone {
+    final phone = _technician?.phone.trim() ?? '';
+    return phone.isEmpty ? _noData : phone;
+  }
+
+  String get technicianSpecialty {
+    final specialty = _technician?.specialty?.trim() ?? '';
+    if (specialty.isEmpty) return _noData;
+    return specialty[0].toUpperCase() + specialty.substring(1);
+  }
+
+  /// Hora estimada de llegada, solo si existe y el técnico se muestra.
+  String? get estimatedArrival {
+    final date = _incident?.estimatedTime;
+    if (!showTechnician || date == null) return null;
+    return DateFormats.dateTime(date);
+  }
+
   void _onIncident(Incident? incident) {
     _incident = incident;
     _errorMessage = null;
@@ -70,6 +112,26 @@ class IncidentDetailViewModel extends ChangeNotifier {
     if (incident != null && incident.housingId != _loadedHousingId) {
       _loadHousing(incident.housingId);
     }
+    final technicianId = showTechnician ? incident!.technicianId : null;
+    if (technicianId != _loadedTechnicianId) _loadTechnician(technicianId);
+    notifyListeners();
+  }
+
+  Future<void> _loadTechnician(String? technicianId) async {
+    _loadedTechnicianId = technicianId;
+    _technician = null;
+    _technicianFailed = false;
+    if (technicianId == null) return;
+
+    AppUser? technician;
+    try {
+      technician = await _technicians.getById(technicianId);
+    } catch (_) {
+      technician = null;
+    }
+    if (_disposed || technicianId != _loadedTechnicianId) return;
+    _technician = technician;
+    _technicianFailed = technician == null;
     notifyListeners();
   }
 

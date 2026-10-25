@@ -116,22 +116,35 @@ class _IncidentDetailBody extends StatelessWidget {
                 title: 'Evidencias',
                 children: [EvidenceGallery(urls: incident.evidenceBefore)],
               ),
-              const SizedBox(height: 24),
-              const DetailSection(
-                title: 'Técnico asignado',
-                children: [
-                  DetailRow(
-                    icon: Icons.engineering_outlined,
-                    label: 'Técnico',
-                    value: '—',
-                  ),
-                  DetailRow(
-                    icon: Icons.schedule_rounded,
-                    label: 'Hora estimada de llegada',
-                    value: '—',
-                  ),
-                ],
-              ),
+              if (viewModel.showTechnician) ...[
+                const SizedBox(height: 24),
+                DetailSection(
+                  title: 'Técnico asignado',
+                  children: [
+                    DetailRow(
+                      icon: Icons.engineering_outlined,
+                      label: 'Técnico',
+                      value: viewModel.technicianName,
+                    ),
+                    DetailRow(
+                      icon: Icons.phone_outlined,
+                      label: 'Teléfono',
+                      value: viewModel.technicianPhone,
+                    ),
+                    DetailRow(
+                      icon: Icons.handyman_outlined,
+                      label: 'Especialidad',
+                      value: viewModel.technicianSpecialty,
+                    ),
+                    if (viewModel.estimatedArrival case final arrival?)
+                      DetailRow(
+                        icon: Icons.schedule_rounded,
+                        label: 'Hora estimada de llegada',
+                        value: arrival,
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
