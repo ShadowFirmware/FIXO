@@ -5,11 +5,13 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/utils/date_formats.dart';
 import '../../../auth/domain/entities/app_user.dart';
+import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../housing/data/repositories/housing_repository_impl.dart';
 import '../../../housing/domain/repositories/housing_repository.dart';
 import '../../../incidents/data/repositories/incident_repository_impl.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/domain/repositories/incident_repository.dart';
+import '../../../incidents/domain/usecases/watch_resident_incident.dart';
 import '../../../technician/data/repositories/technician_repository_impl.dart';
 import '../../../technician/domain/repositories/technician_repository.dart';
 
@@ -22,15 +24,19 @@ enum IncidentDetailState { loading, loaded, notFound, error }
 class IncidentDetailViewModel extends ChangeNotifier {
   IncidentDetailViewModel({
     required String incidentId,
+    AuthSession? session,
     IncidentRepository? incidents,
     HousingRepository? housings,
     TechnicianRepository? technicians,
   }) : _incidents = incidents ?? IncidentRepositoryImpl(),
        _housings = housings ?? HousingRepositoryImpl(),
        _technicians = technicians ?? TechnicianRepositoryImpl() {
-    _subscription = _incidents
-        .watchById(incidentId)
-        .listen(_onIncident, onError: _onError);
+    // Solo se reciben los datos si la incidencia es del departamento del
+    // residente en sesión.
+    _subscription = WatchResidentIncident(_incidents)(
+      resident: (session ?? AuthSession.instance).currentUser,
+      id: incidentId,
+    ).listen(_onIncident, onError: _onError);
   }
 
   static const _noData = 'Sin registrar';
@@ -160,8 +166,14 @@ class IncidentDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// `true` si la incidencia es de otro departamento.
+  bool _accessDenied = false;
+  bool get isAccessDenied => _accessDenied;
+
   void _onError(Object error) {
+    // No se conserva nada de una incidencia que el residente no puede ver.
     _incident = null;
+    _accessDenied = identical(error, IncidentFailure.accessDenied);
     _errorMessage = error is IncidentFailure
         ? error.message
         : IncidentFailure.loadFailed.message;

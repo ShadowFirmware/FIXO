@@ -45,7 +45,9 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
             message: 'No se encontró la incidencia.',
           ),
           IncidentDetailState.error => _MessageView(
-            icon: Icons.error_outline_rounded,
+            icon: _viewModel.isAccessDenied
+                ? Icons.lock_outline_rounded
+                : Icons.error_outline_rounded,
             message: _viewModel.errorMessage!,
           ),
           IncidentDetailState.loaded => _IncidentDetailBody(
