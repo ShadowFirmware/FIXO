@@ -55,6 +55,15 @@ class FakeIncidentRemoteDataSource implements IncidentRemoteDataSource {
     if (error != null) return Stream.error(error!);
     return Stream.value(created.where((i) => i.id == id).firstOrNull);
   }
+
+  @override
+  Stream<List<IncidentModel>> watchByHousing(String housingId) {
+    if (error != null) return Stream.error(error!);
+    return Stream.value([
+      for (final incident in created)
+        if (incident.housingId == housingId) incident,
+    ]);
+  }
 }
 
 /// Simula Firebase Storage: devuelve una URL por archivo.
@@ -135,6 +144,16 @@ class FakeIncidentRepository implements IncidentRepository {
   Stream<Incident?> watchById(String id) {
     watchedIds.add(id);
     return changes.stream;
+  }
+
+  /// Controla lo que emite [watchByHousing], igual que [changes].
+  final housingChanges = StreamController<List<Incident>>.broadcast();
+  final watchedHousingIds = <String>[];
+
+  @override
+  Stream<List<Incident>> watchByHousing(String housingId) {
+    watchedHousingIds.add(housingId);
+    return housingChanges.stream;
   }
 }
 

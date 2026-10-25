@@ -2,10 +2,27 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../providers/incident_history_view_model.dart';
 
 /// HU-2.5 Consultar historial de incidencias.
-class IncidentHistoryScreen extends StatelessWidget {
-  const IncidentHistoryScreen({super.key});
+class IncidentHistoryScreen extends StatefulWidget {
+  const IncidentHistoryScreen({super.key, this.viewModel});
+
+  /// Solo para pruebas; normalmente la pantalla crea el suyo.
+  final IncidentHistoryViewModel? viewModel;
+
+  @override
+  State<IncidentHistoryScreen> createState() => _IncidentHistoryScreenState();
+}
+
+class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
+  late final _viewModel = widget.viewModel ?? IncidentHistoryViewModel();
+
+  @override
+  void dispose() {
+    if (widget.viewModel == null) _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,28 +35,62 @@ class IncidentHistoryScreen extends StatelessWidget {
       // toda la pantalla cuando las barras se ocultan al hacer scroll.
       extendBodyBehindAppBar: true,
       appBar: const FixoAppBar(title: 'Historial'),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(20, padding.top + 16, 20, 0),
-            sliver: const SliverToBoxAdapter(
-              child: _HistoryHeader(
-                title: 'Incidencias de tu departamento',
-                subtitle: 'Consulta los reportes y su estado.',
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) {
+          final vm = _viewModel;
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(20, padding.top + 16, 20, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _HistoryHeader(
+                    title: 'Incidencias de tu departamento',
+                    subtitle: vm.housing == null
+                        ? 'Consulta los reportes y su estado.'
+                        : 'Reportes de ${vm.housing}.',
+                  ),
+                ),
               ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, padding.bottom + 24),
-            sliver: const SliverFillRemaining(
-              hasScrollBody: false,
-              child: HistoryMessage(
-                icon: Icons.receipt_long_outlined,
-                message: 'Aún no hay incidencias registradas.',
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(20, 16, 20, padding.bottom + 24),
+                sliver: switch (vm.state) {
+                  IncidentHistoryState.loading => const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  IncidentHistoryState.error => SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: HistoryMessage(
+                      icon: Icons.error_outline_rounded,
+                      message: vm.errorMessage!,
+                    ),
+                  ),
+                  IncidentHistoryState.loaded when vm.incidents.isEmpty =>
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: HistoryMessage(
+                        icon: Icons.receipt_long_outlined,
+                        message: 'Aún no hay incidencias registradas.',
+                      ),
+                    ),
+                  IncidentHistoryState.loaded => SliverList.separated(
+                    itemCount: vm.incidents.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final incident = vm.incidents[index];
+                      return ListTile(
+                        tileColor: AppColors.white,
+                        title: Text(incident.title),
+                        subtitle: Text(incident.reportNumber),
+                      );
+                    },
+                  ),
+                },
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -69,9 +120,7 @@ class _HistoryHeader extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
@@ -114,9 +163,8 @@ class HistoryMessage extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+              style: Theme.of(context).textTheme.bodyLarge
+                  ?.copyWith(color: AppColors.textSecondary),
             ),
             if (action != null) ...[const SizedBox(height: 16), action!],
           ],
