@@ -27,6 +27,15 @@ class IncidentRemoteDataSource {
   /// evidencias a su carpeta antes de crear el documento.
   String newId() => _incidents.doc().id;
 
+  /// Escucha el documento `incidencias/{id}`: emite cada cambio, o `null`
+  /// si no existe.
+  Stream<IncidentModel?> watchById(String id) {
+    return _incidents
+        .doc(id)
+        .snapshots()
+        .map((doc) => doc.exists ? IncidentModel.fromFirestore(doc) : null);
+  }
+
   /// Crea el documento `incidencias/{id}` con el siguiente folio, en una
   /// sola transacción con el contador. [alsoWrite] agrega otras escrituras
   /// a la misma transacción, como los avisos al administrador.

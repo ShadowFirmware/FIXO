@@ -24,6 +24,13 @@ class IncidentFailure implements Exception {
     'No se pudo registrar la incidencia. Inténtalo de nuevo.',
   );
 
+  static const loadFailed = IncidentFailure(
+    'No se pudo cargar la incidencia. Inténtalo de nuevo.',
+  );
+  static const accessDenied = IncidentFailure(
+    'No tienes permiso para consultar esta incidencia.',
+  );
+
   @override
   String toString() => message;
 }

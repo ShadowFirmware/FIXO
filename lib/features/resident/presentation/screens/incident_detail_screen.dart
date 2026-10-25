@@ -2,91 +2,175 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../incidents/domain/entities/incident.dart';
+import '../providers/incident_detail_view_model.dart';
 
 /// HU-2.4 Consultar detalles de la incidencia.
-class IncidentDetailScreen extends StatelessWidget {
+class IncidentDetailScreen extends StatefulWidget {
   const IncidentDetailScreen({super.key, required this.incidentId});
 
   final String incidentId;
 
   @override
-  Widget build(BuildContext context) {
-    final padding = MediaQuery.paddingOf(context);
+  State<IncidentDetailScreen> createState() => _IncidentDetailScreenState();
+}
 
+class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
+  late final _viewModel = IncidentDetailViewModel(
+    incidentId: widget.incidentId,
+  );
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
       appBar: const FixoAppBar(title: 'Detalle de la incidencia'),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          padding.top + 16,
-          20,
-          padding.bottom + 24,
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _SummaryCard(reportNumber: '—', title: '—', status: '—'),
-                SizedBox(height: 24),
-                DetailSection(
-                  title: 'Información general',
-                  children: [
-                    DetailRow(
-                      icon: Icons.category_outlined,
-                      label: 'Tipo',
-                      value: '—',
-                    ),
-                    DetailRow(
-                      icon: Icons.apartment_rounded,
-                      label: 'Departamento',
-                      value: '—',
-                    ),
-                    DetailRow(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Fecha de creación',
-                      value: '—',
-                    ),
-                    DetailRow(
-                      icon: Icons.notes_rounded,
-                      label: 'Descripción',
-                      value: '—',
-                    ),
-                  ],
-                ),
-                SizedBox(height: 24),
-                DetailSection(
-                  title: 'Evidencias',
-                  children: [
-                    DetailRow(
-                      icon: Icons.photo_library_outlined,
-                      label: 'Fotografías y videos',
-                      value: '—',
-                    ),
-                  ],
-                ),
-                SizedBox(height: 24),
-                DetailSection(
-                  title: 'Técnico asignado',
-                  children: [
-                    DetailRow(
-                      icon: Icons.engineering_outlined,
-                      label: 'Técnico',
-                      value: '—',
-                    ),
-                    DetailRow(
-                      icon: Icons.schedule_rounded,
-                      label: 'Hora estimada de llegada',
-                      value: '—',
-                    ),
-                  ],
-                ),
-              ],
-            ),
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) => switch (_viewModel.state) {
+          IncidentDetailState.loading => const Center(
+            child: CircularProgressIndicator(),
           ),
+          IncidentDetailState.notFound => const _MessageView(
+            icon: Icons.search_off_rounded,
+            message: 'No se encontró la incidencia.',
+          ),
+          IncidentDetailState.error => _MessageView(
+            icon: Icons.error_outline_rounded,
+            message: _viewModel.errorMessage!,
+          ),
+          IncidentDetailState.loaded => _IncidentDetailBody(
+            incident: _viewModel.incident!,
+          ),
+        },
+      ),
+    );
+  }
+}
+
+class _IncidentDetailBody extends StatelessWidget {
+  const _IncidentDetailBody({required this.incident});
+
+  final Incident incident;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        padding.top + 16,
+        20,
+        padding.bottom + 24,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _SummaryCard(
+                reportNumber: incident.reportNumber,
+                title: incident.title,
+                status: incident.status.label,
+              ),
+              const SizedBox(height: 24),
+              const DetailSection(
+                title: 'Información general',
+                children: [
+                  DetailRow(
+                    icon: Icons.category_outlined,
+                    label: 'Tipo',
+                    value: '—',
+                  ),
+                  DetailRow(
+                    icon: Icons.apartment_rounded,
+                    label: 'Departamento',
+                    value: '—',
+                  ),
+                  DetailRow(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Fecha de creación',
+                    value: '—',
+                  ),
+                  DetailRow(
+                    icon: Icons.notes_rounded,
+                    label: 'Descripción',
+                    value: '—',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const DetailSection(
+                title: 'Evidencias',
+                children: [
+                  DetailRow(
+                    icon: Icons.photo_library_outlined,
+                    label: 'Fotografías y videos',
+                    value: '—',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const DetailSection(
+                title: 'Técnico asignado',
+                children: [
+                  DetailRow(
+                    icon: Icons.engineering_outlined,
+                    label: 'Técnico',
+                    value: '—',
+                  ),
+                  DetailRow(
+                    icon: Icons.schedule_rounded,
+                    label: 'Hora estimada de llegada',
+                    value: '—',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Mensaje centrado cuando no se puede mostrar la incidencia.
+class _MessageView extends StatelessWidget {
+  const _MessageView({required this.icon, required this.message});
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 56, color: AppColors.textSecondary),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton(
+              onPressed: () => Navigator.maybePop(context),
+              child: const Text('Volver'),
+            ),
+          ],
         ),
       ),
     );

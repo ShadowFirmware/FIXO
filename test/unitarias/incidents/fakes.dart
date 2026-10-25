@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fixo/core/errors/incident_failure.dart';
 import 'package:fixo/features/incidents/data/datasources/evidence_picker.dart';
@@ -45,6 +47,12 @@ class FakeIncidentRemoteDataSource implements IncidentRemoteDataSource {
 
   @override
   Future<int> reserveFolio(Transaction transaction) async => ++lastFolio;
+
+  @override
+  Stream<IncidentModel?> watchById(String id) {
+    if (error != null) return Stream.error(error!);
+    return Stream.value(created.where((i) => i.id == id).firstOrNull);
+  }
 }
 
 /// Simula Firebase Storage: devuelve una URL por archivo.
@@ -114,6 +122,17 @@ class FakeIncidentRepository implements IncidentRepository {
       createdBy: residentId,
       status: IncidentStatus.pending,
     );
+  }
+
+  /// Controla lo que emite [watchById]: con `add` se simula un cambio en
+  /// Firestore y con `addError` una falla.
+  final changes = StreamController<Incident?>.broadcast();
+  final watchedIds = <String>[];
+
+  @override
+  Stream<Incident?> watchById(String id) {
+    watchedIds.add(id);
+    return changes.stream;
   }
 }
 
