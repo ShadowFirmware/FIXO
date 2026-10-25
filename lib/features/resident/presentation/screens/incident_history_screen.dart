@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/incident_history_view_model.dart';
@@ -99,8 +100,18 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
                   IncidentHistoryState.loaded => SliverList.separated(
                     itemCount: vm.results.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) =>
-                        IncidentHistoryCard(incident: vm.results[index]),
+                    itemBuilder: (context, index) {
+                      final incident = vm.results[index];
+                      return IncidentHistoryCard(
+                        key: ValueKey(incident.id),
+                        incident: incident,
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          RouteNames.incidentDetail,
+                          arguments: incident.id,
+                        ),
+                      );
+                    },
                   ),
                 },
               ),
