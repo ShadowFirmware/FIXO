@@ -93,6 +93,18 @@ class IncidentHistoryViewModel extends ChangeNotifier {
 
   void clearFilters() => _setFilter(IncidentFilter.none);
 
+  static const noIncidentsMessage =
+      'Aún no hay incidencias registradas en tu departamento.';
+  static const noResultsMessage =
+      'No se encontraron incidencias con los filtros seleccionados.';
+
+  /// Mensaje cuando la lista queda vacía, o `null` si hay resultados.
+  String? get emptyMessage {
+    if (_state != IncidentHistoryState.loaded) return null;
+    if (_incidents.isEmpty) return noIncidentsMessage;
+    return results.isEmpty ? noResultsMessage : null;
+  }
+
   void _setFilter(IncidentFilter filter) {
     _filter = filter;
     notifyListeners();

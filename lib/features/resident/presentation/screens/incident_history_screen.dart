@@ -77,13 +77,24 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
                       message: vm.errorMessage!,
                     ),
                   ),
-                  IncidentHistoryState.loaded when vm.incidents.isEmpty =>
-                    const SliverFillRemaining(
+                  IncidentHistoryState.loaded when vm.emptyMessage != null =>
+                    SliverFillRemaining(
                       hasScrollBody: false,
-                      child: HistoryMessage(
-                        icon: Icons.receipt_long_outlined,
-                        message: 'Aún no hay incidencias registradas.',
-                      ),
+                      child: vm.incidents.isEmpty
+                          ? HistoryMessage(
+                              icon: Icons.receipt_long_outlined,
+                              message: vm.emptyMessage!,
+                            )
+                          : HistoryMessage(
+                              icon: Icons.search_off_rounded,
+                              message: vm.emptyMessage!,
+                              action: OutlinedButton.icon(
+                                key: const Key('history.clearFilters'),
+                                onPressed: vm.clearFilters,
+                                icon: const Icon(Icons.filter_alt_off_outlined),
+                                label: const Text('Limpiar filtros'),
+                              ),
+                            ),
                     ),
                   IncidentHistoryState.loaded => SliverList.separated(
                     itemCount: vm.results.length,
