@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Firebase, Cloudinary y la reproducción de evidencias necesitan red.
+         En debug Flutter lo agrega solo, pero en release hace falta aquí. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="fixo"
         android:name="${applicationName}"

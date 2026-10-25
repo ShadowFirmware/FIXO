@@ -39,6 +39,7 @@ dependencies:
   cloud_firestore: ^7.0.0
   image_picker: ^1.2.4
   http: ^1.6.0
+  video_player: ^2.14.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

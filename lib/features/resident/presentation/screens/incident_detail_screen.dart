@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
-import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../providers/incident_detail_view_model.dart';
 
 /// HU-2.4 Consultar detalles de la incidencia.
@@ -47,7 +47,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
             message: _viewModel.errorMessage!,
           ),
           IncidentDetailState.loaded => _IncidentDetailBody(
-            incident: _viewModel.incident!,
+            viewModel: _viewModel,
           ),
         },
       ),
@@ -56,12 +56,13 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
 }
 
 class _IncidentDetailBody extends StatelessWidget {
-  const _IncidentDetailBody({required this.incident});
+  const _IncidentDetailBody({required this.viewModel});
 
-  final Incident incident;
+  final IncidentDetailViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
+    final incident = viewModel.incident!;
     final padding = MediaQuery.paddingOf(context);
 
     return SingleChildScrollView(
@@ -83,41 +84,35 @@ class _IncidentDetailBody extends StatelessWidget {
                 status: incident.status.label,
               ),
               const SizedBox(height: 24),
-              const DetailSection(
+              DetailSection(
                 title: 'Información general',
                 children: [
                   DetailRow(
                     icon: Icons.category_outlined,
                     label: 'Tipo',
-                    value: '—',
+                    value: viewModel.type,
                   ),
                   DetailRow(
                     icon: Icons.apartment_rounded,
                     label: 'Departamento',
-                    value: '—',
+                    value: viewModel.housing,
                   ),
                   DetailRow(
                     icon: Icons.calendar_today_outlined,
                     label: 'Fecha de creación',
-                    value: '—',
+                    value: viewModel.createdAt,
                   ),
                   DetailRow(
                     icon: Icons.notes_rounded,
                     label: 'Descripción',
-                    value: '—',
+                    value: viewModel.description,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              const DetailSection(
+              DetailSection(
                 title: 'Evidencias',
-                children: [
-                  DetailRow(
-                    icon: Icons.photo_library_outlined,
-                    label: 'Fotografías y videos',
-                    value: '—',
-                  ),
-                ],
+                children: [EvidenceGallery(urls: incident.evidenceBefore)],
               ),
               const SizedBox(height: 24),
               const DetailSection(
