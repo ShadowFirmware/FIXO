@@ -103,6 +103,31 @@ class IncidentDetailViewModel extends ChangeNotifier {
     return DateFormats.dateTime(date);
   }
 
+  bool get isResolved => _incident?.status == IncidentStatus.resolved;
+  bool get isRejected => _incident?.status == IncidentStatus.rejected;
+
+  String get solution {
+    final text = _incident?.solution?.trim() ?? '';
+    return text.isEmpty ? _noData : text;
+  }
+
+  String get resolvedAt {
+    final date = _incident?.resolvedAt;
+    return date == null ? _noData : DateFormats.dateTime(date);
+  }
+
+  List<String> get evidenceAfter => _incident?.evidenceAfter ?? const [];
+
+  String get rejectionComment {
+    final text = _incident?.rejectionComment?.trim() ?? '';
+    return text.isEmpty ? _noData : text;
+  }
+
+  String get rejectedAt {
+    final date = _incident?.rejectedAt;
+    return date == null ? _noData : DateFormats.dateTime(date);
+  }
+
   void _onIncident(Incident? incident) {
     _incident = incident;
     _errorMessage = null;

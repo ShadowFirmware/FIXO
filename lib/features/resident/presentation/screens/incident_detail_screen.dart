@@ -145,6 +145,43 @@ class _IncidentDetailBody extends StatelessWidget {
                   ],
                 ),
               ],
+              if (viewModel.isResolved) ...[
+                const SizedBox(height: 24),
+                DetailSection(
+                  title: 'Solución',
+                  children: [
+                    DetailRow(
+                      icon: Icons.task_alt_rounded,
+                      label: 'Solución aplicada',
+                      value: viewModel.solution,
+                    ),
+                    DetailRow(
+                      icon: Icons.event_available_outlined,
+                      label: 'Fecha de resolución',
+                      value: viewModel.resolvedAt,
+                    ),
+                    EvidenceGallery(urls: viewModel.evidenceAfter),
+                  ],
+                ),
+              ],
+              if (viewModel.isRejected) ...[
+                const SizedBox(height: 24),
+                DetailSection(
+                  title: 'Motivo del rechazo',
+                  children: [
+                    DetailRow(
+                      icon: Icons.comment_outlined,
+                      label: 'Comentario del administrador',
+                      value: viewModel.rejectionComment,
+                    ),
+                    DetailRow(
+                      icon: Icons.event_busy_outlined,
+                      label: 'Fecha del rechazo',
+                      value: viewModel.rejectedAt,
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
