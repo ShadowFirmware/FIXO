@@ -77,10 +77,22 @@ class IncidentRepositoryImpl implements IncidentRepository {
   Stream<Incident?> watchById(String id) {
     return _remote.watchById(id).handleError((Object e) {
       throw switch (e) {
-        FirebaseException(code: 'unavailable') => IncidentFailure.network,
+        FirebaseException(code: 'unavailable') => IncidentFailure.offline,
         FirebaseException(code: 'permission-denied') =>
           IncidentFailure.accessDenied,
         _ => IncidentFailure.loadFailed,
+      };
+    });
+  }
+
+  @override
+  Stream<List<Incident>> watchByHousing(String housingId) {
+    return _remote.watchByHousing(housingId).handleError((Object e) {
+      throw switch (e) {
+        FirebaseException(code: 'unavailable') => IncidentFailure.offline,
+        FirebaseException(code: 'permission-denied') =>
+          IncidentFailure.historyAccessDenied,
+        _ => IncidentFailure.historyLoadFailed,
       };
     });
   }

@@ -30,6 +30,20 @@ class IncidentFailure implements Exception {
   static const accessDenied = IncidentFailure(
     'No tienes permiso para consultar esta incidencia.',
   );
+  static const offline = IncidentFailure(
+    'No hay conexión a internet. Revisa tu conexión e inténtalo de nuevo.',
+  );
+
+  static const historyLoadFailed = IncidentFailure(
+    'No se pudo cargar el historial. Inténtalo de nuevo.',
+  );
+  static const historyAccessDenied = IncidentFailure(
+    'Solo los residentes pueden consultar el historial de incidencias.',
+  );
+  static const historyNoHousing = IncidentFailure(
+    'No tienes una vivienda asignada, así que no hay historial que mostrar. '
+    'Contacta al administrador.',
+  );
 
   @override
   String toString() => message;

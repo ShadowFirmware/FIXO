@@ -36,6 +36,26 @@ class IncidentRemoteDataSource {
         .map((doc) => doc.exists ? IncidentModel.fromFirestore(doc) : null);
   }
 
+  /// Escucha las incidencias de la vivienda [housingId], sin importar qué
+  /// residente las reportó. Se ordenan en la app para no necesitar un
+  /// índice compuesto en Firestore.
+  Stream<List<IncidentModel>> watchByHousing(String housingId) {
+    return _incidents
+        .where('viviendaId', isEqualTo: housingId)
+        .snapshots()
+        .map((query) => [for (final doc in query.docs) ?_tryParse(doc)]);
+  }
+
+  /// Un documento con un tipo o estado que no existe (por ejemplo,
+  /// capturado a mano) se omite para no dejar sin historial al residente.
+  static IncidentModel? _tryParse(DocumentSnapshot<Map<String, dynamic>> doc) {
+    try {
+      return IncidentModel.fromFirestore(doc);
+    } on FormatException {
+      return null;
+    }
+  }
+
   /// Crea el documento `incidencias/{id}` con el siguiente folio, en una
   /// sola transacción con el contador. [alsoWrite] agrega otras escrituras
   /// a la misma transacción, como los avisos al administrador.

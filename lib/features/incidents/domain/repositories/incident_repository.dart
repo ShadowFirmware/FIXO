@@ -13,4 +13,8 @@ abstract interface class IncidentRepository {
   /// Emite la incidencia cada vez que cambia, o `null` si no existe. Los
   /// errores llegan como `IncidentFailure`.
   Stream<Incident?> watchById(String id);
+
+  /// Emite las incidencias de la vivienda [housingId] cada vez que alguna
+  /// cambia. Los errores llegan como `IncidentFailure`.
+  Stream<List<Incident>> watchByHousing(String housingId);
 }

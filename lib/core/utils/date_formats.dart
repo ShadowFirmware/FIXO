@@ -19,6 +19,10 @@ abstract final class DateFormats {
   static String longDate(DateTime date) =>
       '${date.day} de ${_months[date.month - 1]} de ${date.year}';
 
+  /// "9 oct 2026".
+  static String shortDate(DateTime date) =>
+      '${date.day} ${_months[date.month - 1].substring(0, 3)} ${date.year}';
+
   /// "4:05 p. m.".
   static String time(DateTime date) {
     final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;

@@ -26,14 +26,6 @@ class ResidentHomeScreen extends StatelessWidget {
             'Registrar incidencia',
             () => Navigator.pushNamed(context, RouteNames.registerIncident),
           ),
-          PlaceholderAction(
-            'Ver incidencia de ejemplo',
-            () => Navigator.pushNamed(
-              context,
-              RouteNames.incidentDetail,
-              arguments: 'INC-0001',
-            ),
-          ),
           PlaceholderAction('Ver historial', onSeeHistory),
         ],
       ),
