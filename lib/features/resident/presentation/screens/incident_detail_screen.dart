@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
+import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../providers/incident_detail_view_model.dart';
 
 /// HU-2.4 Consultar detalles de la incidencia.
@@ -81,7 +83,7 @@ class _IncidentDetailBody extends StatelessWidget {
               _SummaryCard(
                 reportNumber: incident.reportNumber,
                 title: incident.title,
-                status: incident.status.label,
+                status: incident.status,
               ),
               const SizedBox(height: 24),
               DetailSection(
@@ -182,7 +184,7 @@ class _SummaryCard extends StatelessWidget {
 
   final String reportNumber;
   final String title;
-  final String status;
+  final IncidentStatus status;
 
   @override
   Widget build(BuildContext context) {
@@ -213,10 +215,7 @@ class _SummaryCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                status,
-                style: textTheme.labelLarge?.copyWith(color: AppColors.white),
-              ),
+              IncidentStatusBadge(status: status),
             ],
           ),
           const SizedBox(height: 8),
@@ -227,6 +226,15 @@ class _SummaryCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 6),
+          Text(
+            status.description,
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.white.withValues(alpha: 0.85),
+            ),
+          ),
+          const SizedBox(height: 20),
+          IncidentStatusProgress(status: status),
         ],
       ),
     );
