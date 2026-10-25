@@ -22,6 +22,39 @@ class IncidentHistoryCard extends StatelessWidget {
 
   static final _radius = BorderRadius.circular(20);
 
+  /// Dato adicional según el estado: la llegada del técnico, la solución o
+  /// el motivo del rechazo. `null` si no hay nada que agregar.
+  static String? noteFor(Incident incident) {
+    String? text(String? value) =>
+        (value?.trim().isEmpty ?? true) ? null : value!.trim();
+
+    switch (incident.status) {
+      case IncidentStatus.assigned:
+        final arrival = incident.estimatedTime;
+        return arrival == null
+            ? null
+            : 'Llegada estimada: ${DateFormats.dateTime(arrival)}';
+      case IncidentStatus.resolved:
+        if (text(incident.solution) case final solution?) {
+          return 'Solución: $solution';
+        }
+        final resolvedAt = incident.resolvedAt;
+        return resolvedAt == null
+            ? null
+            : 'Resuelta el ${DateFormats.longDate(resolvedAt)}';
+      case IncidentStatus.rejected:
+        if (text(incident.rejectionComment) case final comment?) {
+          return 'Motivo del rechazo: $comment';
+        }
+        final rejectedAt = incident.rejectedAt;
+        return rejectedAt == null
+            ? null
+            : 'Rechazada el ${DateFormats.longDate(rejectedAt)}';
+      case IncidentStatus.pending || IncidentStatus.inProgress:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -107,6 +140,28 @@ class IncidentHistoryCard extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
+              if (noteFor(incident) case final note?) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: incident.status.color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    note,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
