@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/incident_history_view_model.dart';
+import '../widgets/incident_history_card.dart';
 
 /// HU-2.5 Consultar historial de incidencias.
 class IncidentHistoryScreen extends StatefulWidget {
@@ -77,14 +78,8 @@ class _IncidentHistoryScreenState extends State<IncidentHistoryScreen> {
                   IncidentHistoryState.loaded => SliverList.separated(
                     itemCount: vm.incidents.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final incident = vm.incidents[index];
-                      return ListTile(
-                        tileColor: AppColors.white,
-                        title: Text(incident.title),
-                        subtitle: Text(incident.reportNumber),
-                      );
-                    },
+                    itemBuilder: (context, index) =>
+                        IncidentHistoryCard(incident: vm.incidents[index]),
                   ),
                 },
               ),

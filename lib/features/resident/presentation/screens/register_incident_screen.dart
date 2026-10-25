@@ -8,6 +8,7 @@ import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../providers/register_incident_view_model.dart';
 
 /// HU-2.3 Registrar incidencia.
@@ -260,13 +261,6 @@ class _TypeSelector extends StatelessWidget {
   final IncidentType? selected;
   final ValueChanged<IncidentType> onSelected;
 
-  static IconData _iconFor(IncidentType type) => switch (type) {
-    IncidentType.electricity => Icons.lightbulb_outline_rounded,
-    IncidentType.water => Icons.water_drop_outlined,
-    IncidentType.structure => Icons.foundation_rounded,
-    IncidentType.other => Icons.more_horiz_rounded,
-  };
-
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -276,7 +270,7 @@ class _TypeSelector extends StatelessWidget {
         for (final type in IncidentType.values)
           ChoiceChip(
             key: Key('registerIncident.type.${type.value}'),
-            avatar: Icon(_iconFor(type), size: 18),
+            avatar: Icon(type.icon, size: 18),
             label: Text(type.label),
             selected: selected == type,
             onSelected: (_) => onSelected(type),

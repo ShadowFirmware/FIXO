@@ -63,6 +63,36 @@ class IncidentStatusBadge extends StatelessWidget {
   }
 }
 
+/// Etiqueta del estado para fondos claros, como las tarjetas del historial.
+class IncidentStatusChip extends StatelessWidget {
+  const IncidentStatusChip({super.key, required this.status});
+
+  final IncidentStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: status.color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(status.icon, size: 14, color: status.color),
+          const SizedBox(width: 4),
+          Text(
+            status.label,
+            style: Theme.of(context).textTheme.labelMedium
+                ?.copyWith(color: status.color, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Avance de la incidencia: Pendiente → Asignada → En proceso → Resuelta.
 /// Una incidencia rechazada se queda en el primer paso.
 class IncidentStatusProgress extends StatelessWidget {
