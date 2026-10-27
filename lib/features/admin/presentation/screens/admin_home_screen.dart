@@ -29,6 +29,10 @@ class AdminHomeScreen extends StatelessWidget {
         title: 'Inicio del administrador',
         actions: [
           PlaceholderAction(
+            'Registrar residente',
+            () => Navigator.pushNamed(context, RouteNames.registerResident),
+          ),
+          PlaceholderAction(
             'Mi perfil',
             () => Navigator.pushNamed(context, RouteNames.adminProfile),
           ),

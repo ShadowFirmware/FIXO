@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
+import '../../features/admin/presentation/screens/register_resident_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/auth/presentation/providers/auth_session.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -34,6 +35,7 @@ abstract final class AppRouter {
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
     RouteNames.adminEditProfile: {UserRole.admin},
+    RouteNames.registerResident: {UserRole.admin},
     RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
   };
 
@@ -69,6 +71,8 @@ abstract final class AppRouter {
         return _page(const AdminProfileScreen(), settings);
       case RouteNames.adminEditProfile:
         return _page(const AdminEditProfileScreen(), settings);
+      case RouteNames.registerResident:
+        return _page(const RegisterResidentScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),

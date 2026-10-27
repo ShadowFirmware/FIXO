@@ -93,6 +93,21 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
+  Future<void> createUser({
+    required String email,
+    required String password,
+  }) async {
+    if (signInError != null) throw signInError!;
+    final uid = 'uid-nuevo';
+    currentUid = uid;
+  }
+
+  @override
+  Future<void> createUserDocument(UserModel user) async {
+    // No-op para pruebas
+  }
+
+  @override
   Future<void> signOut() async {
     signOutCalls++;
     currentUid = null;
