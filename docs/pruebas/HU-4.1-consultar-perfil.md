@@ -1,4 +1,4 @@
-# Plan de pruebas — HU 4.1 Consultar perfil
+    # Plan de pruebas — HU 4.1 Consultar perfil
 
 | Dato | Valor |
 |---|---|
