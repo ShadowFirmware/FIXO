@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
@@ -67,7 +68,7 @@ abstract final class AppRouter {
       case RouteNames.adminProfile:
         return _page(const AdminProfileScreen(), settings);
       case RouteNames.adminEditProfile:
-        return _page(const EditProfileScreen(), settings);
+        return _page(const AdminEditProfileScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),

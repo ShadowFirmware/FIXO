@@ -13,6 +13,9 @@ class ProfileFailure implements Exception {
   static const notFound = ProfileFailure(
     'No se encontró tu perfil. Contacta al administrador.',
   );
+  static const emailAlreadyInUse = ProfileFailure(
+    'El correo electrónico ya está registrado por otro usuario.',
+  );
   static const unknown = ProfileFailure(
     'No se pudieron guardar los cambios. Inténtalo de nuevo.',
   );
