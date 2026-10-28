@@ -27,33 +27,4 @@ class ProfileRepositoryImpl implements ProfileRepository {
       };
     }
   }
-
-  @override
-  Future<void> updateProfile({
-    required String uid,
-    required String name,
-    required String email,
-    required String phone,
-    String? currentEmail,
-  }) async {
-    try {
-      await _remote.updateProfile(
-        uid: uid,
-        name: name,
-        email: email,
-        phone: phone,
-        currentEmail: currentEmail,
-      );
-    } on FirebaseException catch (e) {
-      if (e.code == 'already-exists') {
-        throw ProfileFailure.emailAlreadyInUse;
-      }
-      throw switch (e.code) {
-        'unavailable' || 'deadline-exceeded' => ProfileFailure.network,
-        'permission-denied' => ProfileFailure.permissionDenied,
-        'not-found' => ProfileFailure.notFound,
-        _ => ProfileFailure.unknown,
-      };
-    }
-  }
 }

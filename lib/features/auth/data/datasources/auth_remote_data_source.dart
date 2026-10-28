@@ -44,19 +44,5 @@ class AuthRemoteDataSource {
     return UserModel.fromFirestore(doc);
   }
 
-  Future<void> createUser({
-    required String email,
-    required String password,
-  }) async {
-    await _auth.createUserWithEmailAndPassword(email: email, password: password);
-  }
-
-  Future<void> createUserDocument(UserModel user) async {
-    await _firestore
-        .collection(FirestoreCollections.users)
-        .doc(user.uid)
-        .set(user.toFirestore());
-  }
-
   Future<void> signOut() => _auth.signOut();
 }

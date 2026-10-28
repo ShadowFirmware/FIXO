@@ -25,9 +25,6 @@ class AuthFailure implements Exception {
   static const accountDisabled = AuthFailure(
     'Tu cuenta está deshabilitada. Contacta al administrador.',
   );
-  static const emailAlreadyInUse = AuthFailure(
-    'El correo electrónico ya está registrado por otro usuario.',
-  );
 
   factory AuthFailure.accountSuspended(DateTime? until) {
     if (until == null) return const AuthFailure('Tu cuenta está suspendida.');
