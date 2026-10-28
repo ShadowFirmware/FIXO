@@ -26,37 +26,4 @@ class ProfileRemoteDataSource {
       'telefono': phone,
     });
   }
-
-  Future<void> updateProfile({
-    required String uid,
-    required String name,
-    required String email,
-    required String phone,
-    String? currentEmail,
-  }) async {
-    final trimmedEmail = email.trim().toLowerCase();
-    final current = currentEmail?.trim().toLowerCase();
-
-    if (trimmedEmail.isNotEmpty && trimmedEmail != current) {
-      final query = await _firestore
-          .collection(FirestoreCollections.users)
-          .where('correo', isEqualTo: trimmedEmail)
-          .limit(1)
-          .get();
-
-      if (query.docs.isNotEmpty && query.docs.first.id != uid) {
-        throw FirebaseException(
-          plugin: 'cloud_firestore',
-          code: 'already-exists',
-          message: 'Email already in use',
-        );
-      }
-    }
-
-    await _firestore.collection(FirestoreCollections.users).doc(uid).update({
-      'nombre': name,
-      'correo': trimmedEmail,
-      'telefono': phone,
-    });
-  }
 }

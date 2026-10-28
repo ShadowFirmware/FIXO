@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/routes/route_names.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../../shared/widgets/placeholder_view.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
@@ -14,28 +13,10 @@ class AdminHomeScreen extends StatelessWidget {
     final name = AuthSession.instance.currentUser?.name;
 
     return Scaffold(
-      appBar: FixoAppBar(
-        title: 'Administrador',
-        subtitle: name,
-        actions: [
-          FixoAppBarAction(
-            icon: Icons.person_outline_rounded,
-            tooltip: 'Mi perfil',
-            onPressed: () => Navigator.pushNamed(context, RouteNames.adminProfile),
-          ),
-        ],
-      ),
+      appBar: FixoAppBar(title: 'Administrador', subtitle: name),
       body: PlaceholderView(
         title: 'Inicio del administrador',
         actions: [
-          PlaceholderAction(
-            'Registrar residente',
-            () => Navigator.pushNamed(context, RouteNames.registerResident),
-          ),
-          PlaceholderAction(
-            'Mi perfil',
-            () => Navigator.pushNamed(context, RouteNames.adminProfile),
-          ),
           PlaceholderAction(
             'Cerrar sesión',
             () => signOutAndGoToLogin(context),

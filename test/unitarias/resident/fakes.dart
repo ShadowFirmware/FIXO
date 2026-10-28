@@ -5,13 +5,11 @@ import 'package:fixo/features/resident/domain/repositories/profile_repository.da
 class FakeProfileRepository implements ProfileRepository {
   FakeProfileRepository({this.error});
 
-  /// Error que lanza las actualizaciones.
-  ProfileFailure? error;
-  bool throwOnUpdate = false;
+  /// Error que lanza [updateContactInfo], por ejemplo sin conexión.
+  final ProfileFailure? error;
 
   /// Datos recibidos en cada guardado.
   final saved = <({String uid, String name, String phone})>[];
-  final updateProfileCalls = <({String uid, String name, String email, String phone, String? currentEmail})>[];
 
   @override
   Future<void> updateContactInfo({
@@ -21,18 +19,5 @@ class FakeProfileRepository implements ProfileRepository {
   }) async {
     if (error != null) throw error!;
     saved.add((uid: uid, name: name, phone: phone));
-  }
-
-  @override
-  Future<void> updateProfile({
-    required String uid,
-    required String name,
-    required String email,
-    required String phone,
-    String? currentEmail,
-  }) async {
-    if (throwOnUpdate) throw Exception('unexpected');
-    if (error != null) throw error!;
-    updateProfileCalls.add((uid: uid, name: name, email: email, phone: phone, currentEmail: currentEmail));
   }
 }
