@@ -24,4 +24,33 @@ class HousingRemoteDataSource {
     if (!doc.exists) return null;
     return HousingModel.fromFirestore(doc);
   }
+
+  /// Lista las viviendas activas disponibles.
+  Future<List<HousingModel>> fetchAvailable() async {
+    final snapshot = await _firestore
+        .collection(FirestoreCollections.housings)
+        .where('activa', isEqualTo: true)
+        .get();
+    return snapshot.docs
+        .map(HousingModel.fromFirestore)
+        .where((housing) => housing.residentId == null)
+        .toList();
+  }
+
+  Future<void> assignResident({
+    required String housingId,
+    required String residentId,
+  }) async {
+    await _firestore
+        .collection(FirestoreCollections.housings)
+        .doc(housingId)
+        .update({'residenteActivoId': residentId});
+  }
+
+  Future<void> unassignResident(String housingId) async {
+    await _firestore
+        .collection(FirestoreCollections.housings)
+        .doc(housingId)
+        .update({'residenteActivoId': null});
+  }
 }

@@ -10,4 +10,18 @@ class HousingRepositoryImpl implements HousingRepository {
 
   @override
   Future<Housing?> getById(String id) => _remote.fetchById(id);
+
+  @override
+  Future<List<Housing>> listAvailable() => _remote.fetchAvailable();
+
+  @override
+  Future<void> assignResident({
+    required String housingId,
+    required String residentId,
+  }) =>
+      _remote.assignResident(housingId: housingId, residentId: residentId);
+
+  @override
+  Future<void> unassignResident(String housingId) =>
+      _remote.unassignResident(housingId);
 }
