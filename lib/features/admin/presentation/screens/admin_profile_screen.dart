@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../resident/presentation/widgets/profile_header.dart';
+import '../../../resident/presentation/widgets/profile_info_section.dart';
 import '../providers/admin_profile_view_model.dart';
 
 /// HU-4.1 Consultar perfil del administrador.
@@ -61,6 +62,57 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                       roleIcon: Icons.admin_panel_settings_outlined,
                       roleColor: AppColors.primary,
                     ),
+                    const SizedBox(height: 28),
+                    ProfileInfoSection(
+                      title: 'Información personal',
+                      tiles: [
+                        ProfileInfoTile(
+                          icon: Icons.person_outline_rounded,
+                          label: 'Nombre completo',
+                          value: vm.name,
+                        ),
+                        ProfileInfoTile(
+                          icon: Icons.email_outlined,
+                          label: 'Correo electrónico',
+                          value: vm.email,
+                        ),
+                        ProfileInfoTile(
+                          icon: Icons.phone_outlined,
+                          label: 'Teléfono',
+                          value: vm.phone,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    if (vm.housing != 'Sin registrar') ...[
+                      ProfileInfoSection(
+                        title: 'Vivienda',
+                        tiles: [
+                          ProfileInfoTile(
+                            icon: Icons.apartment_rounded,
+                            label: 'Vivienda asignada',
+                            value: vm.housing,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    ProfileInfoSection(
+                      title: 'Cuenta',
+                      tiles: [
+                        ProfileInfoTile(
+                          icon: Icons.verified_user_outlined,
+                          label: 'Estado de la cuenta',
+                          value: vm.accountStatus,
+                          trailing: _StatusDot(active: vm.isAccountActive),
+                        ),
+                        ProfileInfoTile(
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Miembro desde',
+                          value: vm.memberSince,
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 32),
                     OutlinedButton.icon(
                       onPressed: () => signOutAndGoToLogin(context),
@@ -79,6 +131,24 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.active});
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: active ? AppColors.success : AppColors.error,
       ),
     );
   }
