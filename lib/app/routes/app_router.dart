@@ -32,6 +32,7 @@ abstract final class AppRouter {
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
+    RouteNames.adminEditProfile: {UserRole.admin},
     RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
   };
 
@@ -65,6 +66,8 @@ abstract final class AppRouter {
         return _page(const AdminHomeScreen(), settings);
       case RouteNames.adminProfile:
         return _page(const AdminProfileScreen(), settings);
+      case RouteNames.adminEditProfile:
+        return _page(const EditProfileScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),

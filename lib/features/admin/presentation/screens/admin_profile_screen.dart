@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
@@ -114,6 +115,16 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                       ],
                     ),
                     const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      key: const Key('adminProfile.edit'),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        RouteNames.adminEditProfile,
+                      ),
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text('Modificar perfil'),
+                    ),
+                    const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: () => signOutAndGoToLogin(context),
                       style: OutlinedButton.styleFrom(
