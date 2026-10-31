@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -36,10 +33,7 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -59,5 +53,27 @@ class DefaultFirebaseOptions {
     projectId: 'fixo-a7763',
     databaseURL: 'https://fixo-a7763-default-rtdb.firebaseio.com',
     storageBucket: 'fixo-a7763.firebasestorage.app',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAhCiedbLaE5ORzRMuGztjOK6LNBVwe_NQ',
+    appId: '1:322034326921:web:f79d60b2a1a22cedea1558',
+    messagingSenderId: '322034326921',
+    projectId: 'fixo-a7763',
+    authDomain: 'fixo-a7763.firebaseapp.com',
+    databaseURL: 'https://fixo-a7763-default-rtdb.firebaseio.com',
+    storageBucket: 'fixo-a7763.firebasestorage.app',
+    measurementId: 'G-1HQGN4V8SM',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyAhCiedbLaE5ORzRMuGztjOK6LNBVwe_NQ',
+    appId: '1:322034326921:web:f79d60b2a1a22cedea1558',
+    messagingSenderId: '322034326921',
+    projectId: 'fixo-a7763',
+    authDomain: 'fixo-a7763.firebaseapp.com',
+    databaseURL: 'https://fixo-a7763-default-rtdb.firebaseio.com',
+    storageBucket: 'fixo-a7763.firebasestorage.app',
+    measurementId: 'G-1HQGN4V8SM',
   );
 }
