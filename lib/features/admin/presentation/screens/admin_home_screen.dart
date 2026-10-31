@@ -115,6 +115,14 @@ class _AdminDrawer extends StatelessWidget {
             ),
             const Divider(height: 1),
             ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('Residentes'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, RouteNames.adminResidents);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.person_outline_rounded),
               title: const Text('Ver perfil'),
               onTap: () {
