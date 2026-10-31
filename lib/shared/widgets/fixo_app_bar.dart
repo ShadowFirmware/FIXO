@@ -14,6 +14,7 @@ class FixoAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.leading,
     this.actions = const [],
   });
 
@@ -24,6 +25,7 @@ class FixoAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
   final String? subtitle;
+  final Widget? leading;
   final List<Widget> actions;
 
   double get _barHeight => subtitle == null ? 64 : 76;
@@ -79,6 +81,7 @@ class FixoAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildBar(BuildContext context) {
     final canPop = ModalRoute.of(context)?.canPop ?? false;
     final textTheme = Theme.of(context).textTheme;
+    final leading = this.leading;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -117,10 +120,16 @@ class FixoAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: _circle(64, AppColors.white.withValues(alpha: 0.05)),
             ),
             Padding(
-              padding: EdgeInsets.only(left: canPop ? 10 : 20, right: 10),
+              padding: EdgeInsets.only(
+                left: leading != null || canPop ? 10 : 20,
+                right: 10,
+              ),
               child: Row(
                 children: [
-                  if (canPop) ...[
+                  if (leading != null) ...[
+                    leading,
+                    const SizedBox(width: 12),
+                  ] else if (canPop) ...[
                     FixoAppBarAction(
                       icon: Icons.arrow_back_ios_new_rounded,
                       tooltip: 'Regresar',

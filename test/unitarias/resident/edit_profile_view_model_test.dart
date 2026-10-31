@@ -96,6 +96,7 @@ void main() {
     expect(profiles.saved.single, (
       uid: 'uid-residente',
       name: 'María López',
+      email: 'maria@correo.com',
       phone: '7779998877',
     ));
     expect(profile.name, 'María López');

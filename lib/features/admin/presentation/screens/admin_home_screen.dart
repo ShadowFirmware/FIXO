@@ -11,15 +11,23 @@ class AdminHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = AuthSession.instance.currentUser?.name;
+    final user = AuthSession.instance.currentUser;
+    final name = user?.name;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
+      drawer: _AdminDrawer(name: name),
       appBar: FixoAppBar(
         title: 'Administrador',
         subtitle: name,
-        actions: [_AdminMenuButton(name: name)],
+        leading: Builder(
+          builder: (context) => FixoAppBarAction(
+            icon: Icons.menu_rounded,
+            tooltip: 'Menú',
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
       ),
       body: Center(
         child: Padding(
@@ -49,74 +57,98 @@ class AdminHomeScreen extends StatelessWidget {
   }
 }
 
-class _AdminMenuButton extends StatelessWidget {
-  const _AdminMenuButton({this.name});
+class _AdminDrawer extends StatelessWidget {
+  const _AdminDrawer({this.name});
 
   final String? name;
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<_AdminMenuAction>(
-      tooltip: 'Menú',
-      icon: const Icon(Icons.menu_rounded, color: AppColors.white),
-      color: AppColors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      offset: const Offset(0, 56),
-      onSelected: (action) {
-        switch (action) {
-          case _AdminMenuAction.profile:
-            Navigator.pushNamed(context, RouteNames.adminProfile);
-            break;
-          case _AdminMenuAction.logout:
-            signOutAndGoToLogin(context);
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem<_AdminMenuAction>(
-          enabled: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name ?? 'Administrador',
-                style: Theme.of(context).textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
+    final user = AuthSession.instance.currentUser;
+    final displayName = name ?? user?.name ?? 'Administrador';
+    final textTheme = Theme.of(context).textTheme;
+
+    return Drawer(
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                    child: Text(
+                      _initials(displayName),
+                      style: textTheme.titleMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    displayName,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Administrador',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                'Administrador',
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: AppColors.textSecondary),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.person_outline_rounded),
+              title: const Text('Ver perfil'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, RouteNames.adminProfile);
+              },
+            ),
+            const Spacer(),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+              title: const Text(
+                'Cerrar sesión',
+                style: TextStyle(color: AppColors.error),
               ),
-            ],
-          ),
+              onTap: () {
+                Navigator.pop(context);
+                signOutAndGoToLogin(context);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
-        const PopupMenuDivider(),
-        const PopupMenuItem<_AdminMenuAction>(
-          value: _AdminMenuAction.profile,
-          child: Row(
-            children: [
-              Icon(Icons.person_outline_rounded),
-              SizedBox(width: 12),
-              Text('Ver perfil'),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem<_AdminMenuAction>(
-          value: _AdminMenuAction.logout,
-          child: Row(
-            children: [
-              Icon(Icons.logout_rounded, color: AppColors.error),
-              SizedBox(width: 12),
-              Text('Cerrar sesión', style: TextStyle(color: AppColors.error)),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
-}
 
-enum _AdminMenuAction { profile, logout }
+  String _initials(String value) {
+    final words = value
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .take(2);
+    final letters = words.map((word) => word[0].toUpperCase()).join();
+    return letters.isEmpty ? '?' : letters;
+  }
+}

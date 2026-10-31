@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
+import '../../../../core/errors/profile_failure.dart';
 
 /// Escritura del perfil en la colección `usuarios`.
 class ProfileRemoteDataSource {
@@ -19,11 +20,28 @@ class ProfileRemoteDataSource {
   Future<void> updateContactInfo({
     required String uid,
     required String name,
+    required String email,
     required String phone,
-  }) {
-    return _firestore.collection(FirestoreCollections.users).doc(uid).update({
+  }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final query = await _firestore
+        .collection(FirestoreCollections.users)
+        .where('correo', isEqualTo: normalizedEmail)
+        .limit(5)
+        .get();
+
+    for (final doc in query.docs) {
+      if (doc.id != uid) {
+        throw const ProfileFailure(
+          'El correo electrónico ya está registrado por otro usuario.',
+        );
+      }
+    }
+
+    await _firestore.collection(FirestoreCollections.users).doc(uid).update({
       'nombre': name,
-      'telefono': phone,
+      'correo': normalizedEmail,
+      'telefono': phone.trim(),
     });
   }
 }

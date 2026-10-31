@@ -15,6 +15,7 @@ class _FailingDataSource implements ProfileRemoteDataSource {
   Future<void> updateContactInfo({
     required String uid,
     required String name,
+    required String email,
     required String phone,
   }) async => throw firestoreError(code);
 }
@@ -35,7 +36,7 @@ void main() {
         remote: _FailingDataSource(code),
       );
       await expectLater(
-        repository.updateContactInfo(uid: 'u', name: 'Ana', phone: '1'),
+        repository.updateContactInfo(uid: 'u', name: 'Ana', email: 'a@b.com', phone: '1'),
         throwsA(same(failure)),
         reason: code,
       );
