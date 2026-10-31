@@ -14,10 +14,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<void> updateContactInfo({
     required String uid,
     required String name,
+    required String email,
     required String phone,
   }) async {
     try {
-      await _remote.updateContactInfo(uid: uid, name: name, phone: phone);
+      await _remote.updateContactInfo(
+        uid: uid,
+        name: name,
+        email: email,
+        phone: phone,
+      );
+    } on ProfileFailure {
+      rethrow;
     } on FirebaseException catch (e) {
       throw switch (e.code) {
         'unavailable' || 'deadline-exceeded' => ProfileFailure.network,

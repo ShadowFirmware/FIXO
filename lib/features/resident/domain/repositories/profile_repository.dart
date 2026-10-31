@@ -1,12 +1,13 @@
-/// Datos del perfil que el residente puede modificar (HU-2.2).
+/// Datos del perfil que el residente/administrador puede modificar.
 abstract interface class ProfileRepository {
-  /// Guarda el nombre y el teléfono en el documento `usuarios/{uid}`.
+  /// Guarda el nombre, el correo y el teléfono en el documento `usuarios/{uid}`.
   ///
-  /// Solo toca esos dos campos: el correo, el rol y la vivienda no se pueden
-  /// cambiar desde el perfil. Si falla lanza un `ProfileFailure`.
+  /// Si el correo ya está registrado por otro usuario lanza un [ProfileFailure].
+  /// Si falla lanza un `ProfileFailure`.
   Future<void> updateContactInfo({
     required String uid,
     required String name,
+    required String email,
     required String phone,
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
@@ -8,7 +9,7 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/communication/presentation/screens/incident_chat_screen.dart';
-import '../../features/resident/presentation/screens/edit_profile_screen.dart';
+
 import '../../features/resident/presentation/screens/incident_detail_screen.dart';
 import '../../features/resident/presentation/screens/register_incident_screen.dart';
 import '../../features/resident/presentation/screens/resident_shell_screen.dart';
@@ -28,7 +29,7 @@ abstract final class AppRouter {
     RouteNames.residentShell: {UserRole.resident},
     RouteNames.registerIncident: {UserRole.resident},
     RouteNames.incidentDetail: {UserRole.resident},
-    RouteNames.editProfile: {UserRole.resident},
+    // RouteNames.editProfile: deshabilitado, solo admin puede editar via adminEditProfile.
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
@@ -59,7 +60,14 @@ abstract final class AppRouter {
           settings,
         );
       case RouteNames.editProfile:
-        return _page(const EditProfileScreen(), settings);
+        return _page(
+          Scaffold(
+            body: Center(
+              child: Text('No disponible para este rol'),
+            ),
+          ),
+          settings,
+        );
       case RouteNames.technicianHome:
         return _page(const TechnicianHomeScreen(), settings);
       case RouteNames.adminHome:
@@ -67,7 +75,7 @@ abstract final class AppRouter {
       case RouteNames.adminProfile:
         return _page(const AdminProfileScreen(), settings);
       case RouteNames.adminEditProfile:
-        return _page(const EditProfileScreen(), settings);
+        return _page(const AdminEditProfileScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),

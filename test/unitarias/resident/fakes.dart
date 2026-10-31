@@ -9,15 +9,16 @@ class FakeProfileRepository implements ProfileRepository {
   final ProfileFailure? error;
 
   /// Datos recibidos en cada guardado.
-  final saved = <({String uid, String name, String phone})>[];
+  final saved = <({String uid, String name, String email, String phone})>[];
 
   @override
   Future<void> updateContactInfo({
     required String uid,
     required String name,
+    required String email,
     required String phone,
   }) async {
     if (error != null) throw error!;
-    saved.add((uid: uid, name: name, phone: phone));
+    saved.add((uid: uid, name: name, email: email, phone: phone));
   }
 }
