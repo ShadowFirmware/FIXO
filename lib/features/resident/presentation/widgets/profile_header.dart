@@ -9,11 +9,17 @@ class ProfileHeader extends StatelessWidget {
     required this.initials,
     required this.name,
     required this.email,
+    this.roleLabel = 'Residente',
+    this.roleIcon = Icons.home_work_outlined,
+    this.roleColor = AppColors.orange,
   });
 
   final String initials;
   final String name;
   final String email;
+  final String roleLabel;
+  final IconData roleIcon;
+  final Color roleColor;
 
   @override
   Widget build(BuildContext context) {
@@ -70,22 +76,18 @@ class ProfileHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.orange.withValues(alpha: 0.12),
+            color: roleColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.home_work_outlined,
-                size: 16,
-                color: AppColors.orange,
-              ),
+              Icon(roleIcon, size: 16, color: roleColor),
               const SizedBox(width: 6),
               Text(
-                'Residente',
+                roleLabel,
                 style: textTheme.labelLarge?.copyWith(
-                  color: AppColors.orange,
+                  color: roleColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
