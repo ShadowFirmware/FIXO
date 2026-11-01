@@ -248,6 +248,14 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
+              leading: const Icon(Icons.build_outlined),
+              title: const Text('Técnicos'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, RouteNames.adminTechnicians);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('Ver perfil'),
               onTap: () {

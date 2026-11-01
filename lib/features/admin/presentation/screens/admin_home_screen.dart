@@ -123,6 +123,14 @@ class _AdminDrawer extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.build_outlined),
+              title: const Text('Técnicos'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, RouteNames.adminTechnicians);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.person_outline_rounded),
               title: const Text('Ver perfil'),
               onTap: () {
