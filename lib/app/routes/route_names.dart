@@ -20,6 +20,8 @@ abstract final class RouteNames {
   static const String adminProfile = '/admin/profile';
   static const String adminEditProfile = '/admin/profile/edit';
   static const String adminResidents = '/admin/residents';
+  static const String adminTechnicians = '/admin/technicians';
+  static const String adminTechnician = '/admin/technicians';
 
   // Comunicación
   static const String incidentChat = '/incidents/chat';

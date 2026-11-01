@@ -4,6 +4,7 @@ import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_residents_screen.dart';
+import '../../features/admin/presentation/screens/admin_technicians_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/auth/presentation/providers/auth_session.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -36,6 +37,7 @@ abstract final class AppRouter {
     RouteNames.adminProfile: {UserRole.admin},
     RouteNames.adminEditProfile: {UserRole.admin},
     RouteNames.adminResidents: {UserRole.admin},
+    RouteNames.adminTechnicians: {UserRole.admin},
     RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
   };
 
@@ -80,6 +82,8 @@ abstract final class AppRouter {
         return _page(const AdminEditProfileScreen(), settings);
       case RouteNames.adminResidents:
         return _page(const AdminResidentsScreen(), settings);
+      case RouteNames.adminTechnicians:
+        return _page(const AdminTechniciansScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),
