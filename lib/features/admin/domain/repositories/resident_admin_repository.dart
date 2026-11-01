@@ -29,4 +29,22 @@ abstract interface class ResidentAdminRepository {
     required String uid,
     String? housingId,
   });
+
+  Future<void> removeResident({
+    required String uid,
+    String? housingId,
+  });
+
+  Future<void> deactivateResident({
+    required String uid,
+    String? housingId,
+  });
+
+  Future<void> enableResident({
+    required String uid,
+  });
+
+  Future<void> activateResident({
+    required String uid,
+  });
 }

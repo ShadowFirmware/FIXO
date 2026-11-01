@@ -344,12 +344,13 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
     }
   }
 
-  Future<void> _deleteTechnician(AppUser technician) async {
+
+  Future<void> _enableTechnician(AppUser technician) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar técnico'),
-        content: Text('¿Eliminar a ${technician.name}?'),
+        title: const Text('Habilitar t\u00e9cnico'),
+        content: Text('\u00bfHabilitar a ${technician.name}?'),
         actions: [
           SizedBox(
             width: double.infinity,
@@ -365,7 +366,7 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Eliminar'),
+                    child: const Text('Confirmar'),
                   ),
                 ),
               ],
@@ -375,7 +376,51 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
       ),
     );
     if (confirmed != true) return;
-    final ok = await _viewModel.delete(technician);
+    final ok = await _viewModel.enable(technician);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? (_viewModel.successMessage ?? 'Habilitado')
+              : (_viewModel.errorMessage ?? 'Error'),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _removeTechnician(AppUser technician) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Dar de baja técnico'),
+        content: Text('¿Dar de baja a ${technician.name}?'),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Confirmar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await _viewModel.remove(technician);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -482,12 +527,15 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
                           case 'edit':
                             _editTechnician(t);
                             break;
-                          case 'delete':
-                            _deleteTechnician(t);
+                          case 'inhabilitar':
+                            _removeTechnician(t);
+                            break;
+                          case 'habilitar':
+                            _enableTechnician(t);
                             break;
                         }
                       },
-                      itemBuilder: (context) => const [
+                      itemBuilder: (context) => [
                         PopupMenuItem(
                           value: 'view',
                           child: Text('Ver detalles'),
@@ -497,8 +545,12 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
                           child: Text('Editar'),
                         ),
                         PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Eliminar'),
+                          value: t.accountStatus == AccountStatus.active
+                              ? 'inhabilitar'
+                              : 'habilitar',
+                          child: Text(t.accountStatus == AccountStatus.active
+                              ? 'Inhabilitar'
+                              : 'Habilitar'),
                         ),
                       ],
                     ),
@@ -533,10 +585,18 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
                         icon: const Icon(Icons.edit_outlined),
                         onPressed: () => _editTechnician(t),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _deleteTechnician(t),
-                      ),
+                      if (t.accountStatus == AccountStatus.active)
+                        IconButton(
+                          icon: const Icon(Icons.block_outlined),
+                          tooltip: 'Inhabilitar',
+                          onPressed: () => _removeTechnician(t),
+                        )
+                      else
+                        IconButton(
+                          icon: const Icon(Icons.check_circle_outline),
+                          tooltip: 'Habilitar',
+                          onPressed: () => _enableTechnician(t),
+                        ),
                     ],
                   )),
                 ]);

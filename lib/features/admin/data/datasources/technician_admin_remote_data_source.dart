@@ -110,4 +110,18 @@ class TechnicianAdminRemoteDataSource {
   Future<void> deleteTechnicianProfile(String uid) async {
     await _firestore.collection(FirestoreCollections.users).doc(uid).delete();
   }
+
+  Future<void> deactivateUser(String uid) async {
+    await _firestore.collection(FirestoreCollections.users).doc(uid).update({
+      'estadoCuenta': 'baja',
+      'disponible': false,
+    });
+  }
+
+  Future<void> activateUser(String uid) async {
+    await _firestore.collection(FirestoreCollections.users).doc(uid).update({
+      'estadoCuenta': 'activa',
+      'disponible': true,
+    });
+  }
 }

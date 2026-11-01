@@ -146,25 +146,57 @@ class TechnicianAdminViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> delete(AppUser technician) async {
+  Future<bool> _remove(AppUser technician) async {
     _errorMessage = null;
     _successMessage = null;
     _isLoading = true;
     notifyListeners();
     try {
-      await _repository.deleteTechnician(uid: technician.uid);
-      _successMessage = 'Técnico eliminado correctamente.';
+      await _repository.removeTechnician(uid: technician.uid);
+      _successMessage = 'Técnico dado de baja correctamente.';
       await load();
       return true;
     } catch (e) {
       _errorMessage = e is AuthFailure || e is ProfileFailure
           ? e.toString()
-          : 'No se pudo eliminar el técnico.';
+          : 'No se pudo dar de baja al técnico.';
       _isLoading = false;
       if (!_disposed) notifyListeners();
       return false;
     }
   }
+
+  Future<bool> delete(AppUser technician) => _remove(technician);
+
+  Future<bool> remove(AppUser technician) => _remove(technician);
+
+  Future<bool> deactivate(AppUser technician) => _remove(technician);
+
+  Future<bool> _enable(AppUser technician) async {
+    _errorMessage = null;
+    _successMessage = null;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.enableTechnician(uid: technician.uid);
+      _successMessage = 'Técnico habilitado correctamente.';
+      await load();
+      return true;
+    } catch (e) {
+      _errorMessage = e is AuthFailure || e is ProfileFailure
+          ? e.toString()
+          : 'No se pudo habilitar al técnico.';
+      _isLoading = false;
+      if (!_disposed) notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> enable(AppUser technician) => _enable(technician);
+
+  Future<bool> activate(AppUser technician) => _enable(technician);
+
+  Future<bool> habilitar(AppUser technician) => _enable(technician);
 
   @override
   void dispose() {
