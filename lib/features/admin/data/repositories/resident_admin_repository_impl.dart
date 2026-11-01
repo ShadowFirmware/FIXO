@@ -124,20 +124,51 @@ class ResidentAdminRepositoryImpl implements ResidentAdminRepository {
     }
   }
 
-  @override
-  Future<void> deleteResident({
+  Future<void> _deactivateResident({
     required String uid,
     String? housingId,
   }) async {
     try {
-      await _remote.deleteResidentProfile(uid);
-      if (housingId != null) {
+      if (housingId != null && housingId.isNotEmpty) {
         await _remote.unassignHousing(housingId);
       }
+      await _remote.deactivateUser(uid);
     } on FirebaseException catch (e) {
       throw e.code == 'unavailable' ? AuthFailure.network : AuthFailure.unknown;
     }
   }
+
+  @override
+  Future<void> deleteResident({
+    required String uid,
+    String? housingId,
+  }) => _deactivateResident(uid: uid, housingId: housingId);
+
+  @override
+  Future<void> removeResident({
+    required String uid,
+    String? housingId,
+  }) => _deactivateResident(uid: uid, housingId: housingId);
+
+  @override
+  Future<void> deactivateResident({
+    required String uid,
+    String? housingId,
+  }) => _deactivateResident(uid: uid, housingId: housingId);
+
+  Future<void> _activateResident({required String uid}) async {
+    try {
+      await _remote.activateUser(uid);
+    } on FirebaseException catch (e) {
+      throw e.code == 'unavailable' ? AuthFailure.network : AuthFailure.unknown;
+    }
+  }
+
+  @override
+  Future<void> enableResident({required String uid}) => _activateResident(uid: uid);
+
+  @override
+  Future<void> activateResident({required String uid}) => _activateResident(uid: uid);
 
   AuthFailure _mapAuthException(FirebaseAuthException e) {
     switch (e.code) {

@@ -153,28 +153,60 @@ class ResidentAdminViewModel extends ChangeNotifier {
     return null;
   }
 
-  Future<bool> delete(AppUser resident) async {
+  Future<bool> _remove(AppUser resident) async {
     _errorMessage = null;
     _successMessage = null;
     _isLoading = true;
     notifyListeners();
     try {
-      await _repository.deleteResident(
+      await _repository.removeResident(
         uid: resident.uid,
         housingId: resident.housingId,
       );
-      _successMessage = 'Residente eliminado correctamente.';
+      _successMessage = 'Residente dado de baja correctamente.';
       await load();
       return true;
     } catch (e) {
       _errorMessage = e is AuthFailure || e is ProfileFailure
           ? e.toString()
-          : 'No se pudo eliminar el residente.';
+          : 'No se pudo dar de baja al residente.';
       _isLoading = false;
       if (!_disposed) notifyListeners();
       return false;
     }
   }
+
+  Future<bool> delete(AppUser resident) => _remove(resident);
+
+  Future<bool> remove(AppUser resident) => _remove(resident);
+
+  Future<bool> deactivate(AppUser resident) => _remove(resident);
+
+  Future<bool> _enable(AppUser resident) async {
+    _errorMessage = null;
+    _successMessage = null;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.enableResident(uid: resident.uid);
+      _successMessage = 'Residente habilitado correctamente.';
+      await load();
+      return true;
+    } catch (e) {
+      _errorMessage = e is AuthFailure || e is ProfileFailure
+          ? e.toString()
+          : 'No se pudo habilitar al residente.';
+      _isLoading = false;
+      if (!_disposed) notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> enable(AppUser resident) => _enable(resident);
+
+  Future<bool> activate(AppUser resident) => _enable(resident);
+
+  Future<bool> habilitar(AppUser resident) => _enable(resident);
 
   @override
   void dispose() {

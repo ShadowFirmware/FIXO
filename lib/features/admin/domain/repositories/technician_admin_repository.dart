@@ -22,4 +22,20 @@ abstract interface class TechnicianAdminRepository {
   Future<void> deleteTechnician({
     required String uid,
   });
+
+  Future<void> removeTechnician({
+    required String uid,
+  });
+
+  Future<void> deactivateTechnician({
+    required String uid,
+  });
+
+  Future<void> enableTechnician({
+    required String uid,
+  });
+
+  Future<void> activateTechnician({
+    required String uid,
+  });
 }

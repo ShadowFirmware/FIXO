@@ -91,16 +91,39 @@ class TechnicianAdminRepositoryImpl implements TechnicianAdminRepository {
     }
   }
 
-  @override
-  Future<void> deleteTechnician({
-    required String uid,
-  }) async {
+  Future<void> _deactivateTechnician({required String uid}) async {
     try {
-      await _remote.deleteTechnicianProfile(uid);
+      await _remote.deactivateUser(uid);
     } on FirebaseException catch (e) {
       throw e.code == 'unavailable' ? AuthFailure.network : AuthFailure.unknown;
     }
   }
+
+  @override
+  Future<void> deleteTechnician({required String uid}) =>
+      _deactivateTechnician(uid: uid);
+
+  @override
+  Future<void> removeTechnician({required String uid}) =>
+      _deactivateTechnician(uid: uid);
+
+  @override
+  Future<void> deactivateTechnician({required String uid}) =>
+      _deactivateTechnician(uid: uid);
+
+  Future<void> _activateTechnician({required String uid}) async {
+    try {
+      await _remote.activateUser(uid);
+    } on FirebaseException catch (e) {
+      throw e.code == 'unavailable' ? AuthFailure.network : AuthFailure.unknown;
+    }
+  }
+
+  @override
+  Future<void> enableTechnician({required String uid}) => _activateTechnician(uid: uid);
+
+  @override
+  Future<void> activateTechnician({required String uid}) => _activateTechnician(uid: uid);
 
   AuthFailure _mapAuthException(FirebaseAuthException e) {
     switch (e.code) {

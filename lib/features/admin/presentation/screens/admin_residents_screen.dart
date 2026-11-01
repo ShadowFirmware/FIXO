@@ -367,12 +367,13 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
     }
   }
 
-  Future<void> _deleteResident(AppUser resident) async {
+
+  Future<void> _enableResident(AppUser resident) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar residente'),
-        content: Text('¿Eliminar a ${resident.name}?'),
+        title: const Text('Habilitar residente'),
+        content: Text('\u00bfHabilitar a ${resident.name}?'),
         actions: [
           SizedBox(
             width: double.infinity,
@@ -388,7 +389,7 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Eliminar'),
+                    child: const Text('Confirmar'),
                   ),
                 ),
               ],
@@ -398,7 +399,51 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
       ),
     );
     if (confirmed != true) return;
-    final ok = await _viewModel.delete(resident);
+    final ok = await _viewModel.enable(resident);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? (_viewModel.successMessage ?? 'Habilitado')
+              : (_viewModel.errorMessage ?? 'Error'),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _removeResident(AppUser resident) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Dar de baja residente'),
+        content: Text('¿Dar de baja a ${resident.name}?'),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Confirmar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await _viewModel.remove(resident);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -505,12 +550,15 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                           case 'edit':
                             _editResident(r);
                             break;
-                          case 'delete':
-                            _deleteResident(r);
+                          case 'inhabilitar':
+                            _removeResident(r);
+                            break;
+                          case 'habilitar':
+                            _enableResident(r);
                             break;
                         }
                       },
-                      itemBuilder: (context) => const [
+                      itemBuilder: (context) => [
                         PopupMenuItem(
                           value: 'view',
                           child: Text('Ver detalles'),
@@ -520,8 +568,12 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                           child: Text('Editar'),
                         ),
                         PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Eliminar'),
+                          value: r.accountStatus == AccountStatus.active
+                              ? 'inhabilitar'
+                              : 'habilitar',
+                          child: Text(r.accountStatus == AccountStatus.active
+                              ? 'Inhabilitar'
+                              : 'Habilitar'),
                         ),
                       ],
                     ),
@@ -556,10 +608,18 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                         icon: const Icon(Icons.edit_outlined),
                         onPressed: () => _editResident(r),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _deleteResident(r),
-                      ),
+                      if (r.accountStatus == AccountStatus.active)
+                        IconButton(
+                          icon: const Icon(Icons.block_outlined),
+                          tooltip: 'Inhabilitar',
+                          onPressed: () => _removeResident(r),
+                        )
+                      else
+                        IconButton(
+                          icon: const Icon(Icons.check_circle_outline),
+                          tooltip: 'Habilitar',
+                          onPressed: () => _enableResident(r),
+                        ),
                     ],
                   )),
                 ]);
