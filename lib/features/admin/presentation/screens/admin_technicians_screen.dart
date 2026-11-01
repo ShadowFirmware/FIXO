@@ -174,6 +174,176 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
     );
   }
 
+
+  Future<void> _editTechnician(AppUser technician) async {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: technician.name);
+    final emailController = TextEditingController(text: technician.email);
+    final phoneController = TextEditingController(text: technician.phone);
+    final specialtyController =
+        TextEditingController(text: technician.specialty ?? '');
+
+    final initialName = technician.name;
+    final initialEmail = technician.email;
+    final initialPhone = technician.phone;
+    final initialSpecialty = technician.specialty ?? '';
+
+    bool hasChanges() =>
+        nameController.text.trim() != initialName.trim() ||
+        emailController.text.trim().toLowerCase() !=
+            initialEmail.trim().toLowerCase() ||
+        phoneController.text.trim() != initialPhone.trim() ||
+        specialtyController.text.trim() != initialSpecialty.trim();
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Editar t\u00e9cnico'),
+          content: SizedBox(
+            width: 480,
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Nombre completo'),
+                      onChanged: (_) => setDialogState(() {}),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Ingresa el nombre'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: emailController,
+                      decoration: const InputDecoration(labelText: 'Correo electr\u00f3nico'),
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (_) => setDialogState(() {}),
+                      validator: (v) => v == null || !v.contains('@')
+                          ? 'Correo no v\u00e1lido'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: phoneController,
+                      decoration: const InputDecoration(labelText: 'Tel\u00e9fono'),
+                      keyboardType: TextInputType.phone,
+                      onChanged: (_) => setDialogState(() {}),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: specialtyController,
+                      decoration: const InputDecoration(labelText: 'Especialidad'),
+                      onChanged: (_) => setDialogState(() {}),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Ingresa la especialidad'
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        if (hasChanges()) {
+                          final discard = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Descartar cambios'),
+                              content: const Text(
+                                  '\u00bfDeseas descartar los cambios realizados?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, true),
+                                  child: const Text('Descartar'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (discard != true) return;
+                        }
+                        if (context.mounted) Navigator.pop(context, false);
+                      },
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (!formKey.currentState!.validate()) return;
+                        if (!hasChanges()) {
+                          Navigator.pop(context, false);
+                          return;
+                        }
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Guardar cambios'),
+                            content: const Text(
+                                '\u00bfDeseas guardar los cambios realizados?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, false),
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, true),
+                                child: const Text('Guardar'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm != true) return;
+                        final ok = await _viewModel.update(
+                          technician,
+                          name: nameController.text,
+                          email: emailController.text,
+                          phone: phoneController.text,
+                          specialty: specialtyController.text,
+                        );
+                        if (ok && context.mounted) Navigator.pop(context, true);
+                      },
+                      child: const Text('Guardar'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_viewModel.successMessage ?? 'T\u00e9cnico actualizado')),
+      );
+    } else if (saved == false && _viewModel.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_viewModel.errorMessage!)),
+      );
+    }
+  }
+
   Future<void> _deleteTechnician(AppUser technician) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -310,11 +480,7 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
                             _viewTechnician(t);
                             break;
                           case 'edit':
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Edici?n no implementada'),
-                              ),
-                            );
+                            _editTechnician(t);
                             break;
                           case 'delete':
                             _deleteTechnician(t);
@@ -365,13 +531,7 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Edici?n no implementada'),
-                            ),
-                          );
-                        },
+                        onPressed: () => _editTechnician(t),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline),

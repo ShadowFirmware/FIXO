@@ -66,6 +66,14 @@ class ResidentAdminRemoteDataSource {
         .toList();
   }
 
+  Future<List<HousingModel>> fetchHousings() async {
+    final snapshot = await _firestore
+        .collection(FirestoreCollections.housings)
+        .where('activa', isEqualTo: true)
+        .get();
+    return snapshot.docs.map(HousingModel.fromFirestore).toList();
+  }
+
   Future<UserModel?> fetchUserByEmail(String email) async {
     final snapshot = await _firestore
         .collection(FirestoreCollections.users)
@@ -125,11 +133,13 @@ class ResidentAdminRemoteDataSource {
   Future<void> updateResidentProfile({
     required String uid,
     required String name,
+    required String email,
     required String phone,
     String? housingId,
   }) async {
     final data = <String, dynamic>{
       'nombre': name,
+      'correo': email.trim().toLowerCase(),
       'telefono': phone.trim(),
     };
     if (housingId != null) data['viviendaId'] = housingId;

@@ -66,13 +66,23 @@ class TechnicianAdminRepositoryImpl implements TechnicianAdminRepository {
   Future<void> updateTechnician({
     required String uid,
     required String name,
+    required String email,
     required String phone,
     String? specialty,
   }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final existing = await _remote.fetchUserByEmail(normalizedEmail);
+    if (existing != null && existing.uid != uid) {
+      throw const ProfileFailure(
+        'El correo electr\u00f3nico ya est\u00e1 registrado por otro usuario.',
+      );
+    }
+
     try {
       await _remote.updateTechnicianProfile(
         uid: uid,
         name: name,
+        email: normalizedEmail,
         phone: phone,
         specialty: specialty,
       );
