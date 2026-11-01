@@ -14,6 +14,7 @@ abstract interface class TechnicianAdminRepository {
   Future<void> updateTechnician({
     required String uid,
     required String name,
+    required String email,
     required String phone,
     String? specialty,
   });

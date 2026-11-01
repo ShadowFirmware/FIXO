@@ -34,13 +34,17 @@ class ResidentAdminViewModel extends ChangeNotifier {
   List<Housing> _availableHousings = const [];
   List<Housing> get availableHousings => _availableHousings;
 
+  List<Housing> _housings = const [];
+  List<Housing> get housings => _housings;
+
   Future<void> load() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
       _residents = await _repository.listResidents();
-      _availableHousings = await _repository.listAvailableHousings();
+      _housings = await _repository.listHousings();
+      _availableHousings = _housings.where((h) => h.residentId == null).toList();
     } catch (e) {
       _errorMessage = e is AuthFailure || e is ProfileFailure
           ? e.toString()
@@ -94,6 +98,49 @@ class ResidentAdminViewModel extends ChangeNotifier {
       _errorMessage = e is AuthFailure || e is ProfileFailure
           ? e.toString()
           : 'No se pudo registrar el residente.';
+      _isLoading = false;
+      if (!_disposed) notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> update(
+    AppUser resident, {
+    required String name,
+    required String email,
+    required String phone,
+    required String housingId,
+  }) async {
+    _errorMessage = null;
+    _successMessage = null;
+
+    final invalid = Validators.name(name) ??
+        Validators.email(email) ??
+        Validators.phone(phone);
+    if (invalid != null) {
+      _errorMessage = invalid;
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.updateResident(
+        uid: resident.uid,
+        name: name,
+        email: email,
+        phone: phone,
+        housingId: housingId,
+        previousHousingId: resident.housingId,
+      );
+      _successMessage = 'Residente actualizado correctamente.';
+      await load();
+      return true;
+    } catch (e) {
+      _errorMessage = e is AuthFailure || e is ProfileFailure
+          ? e.toString()
+          : 'No se pudo actualizar el residente.';
       _isLoading = false;
       if (!_disposed) notifyListeners();
       return false;

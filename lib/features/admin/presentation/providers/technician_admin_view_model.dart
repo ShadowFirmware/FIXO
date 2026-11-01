@@ -99,6 +99,53 @@ class TechnicianAdminViewModel extends ChangeNotifier {
     return null;
   }
 
+  Future<bool> update(
+    AppUser technician, {
+    required String name,
+    required String email,
+    required String phone,
+    required String specialty,
+  }) async {
+    _errorMessage = null;
+    _successMessage = null;
+
+    final invalid = Validators.name(name) ??
+        Validators.email(email) ??
+        Validators.phone(phone);
+    if (invalid != null) {
+      _errorMessage = invalid;
+      notifyListeners();
+      return false;
+    }
+    if (specialty.trim().isEmpty) {
+      _errorMessage = 'Ingresa la especialidad';
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.updateTechnician(
+        uid: technician.uid,
+        name: name,
+        email: email,
+        phone: phone,
+        specialty: specialty,
+      );
+      _successMessage = 'Técnico actualizado correctamente.';
+      await load();
+      return true;
+    } catch (e) {
+      _errorMessage = e is AuthFailure || e is ProfileFailure
+          ? e.toString()
+          : 'No se pudo actualizar el técnico.';
+      _isLoading = false;
+      if (!_disposed) notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> delete(AppUser technician) async {
     _errorMessage = null;
     _successMessage = null;

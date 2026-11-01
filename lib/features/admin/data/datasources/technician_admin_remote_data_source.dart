@@ -94,11 +94,13 @@ class TechnicianAdminRemoteDataSource {
   Future<void> updateTechnicianProfile({
     required String uid,
     required String name,
+    required String email,
     required String phone,
     String? specialty,
   }) async {
     final data = <String, dynamic>{
       'nombre': name,
+      'correo': email.trim().toLowerCase(),
       'telefono': phone.trim(),
     };
     if (specialty != null) data['especialidad'] = specialty.trim();

@@ -24,6 +24,9 @@ class ResidentAdminRepositoryImpl implements ResidentAdminRepository {
       _remote.fetchAvailableHousings();
 
   @override
+  Future<List<Housing>> listHousings() => _remote.fetchHousings();
+
+  @override
   Future<List<AppUser>> listResidents() async {
     final models = await _remote.fetchResidents();
     return models.cast<AppUser>();
@@ -84,19 +87,38 @@ class ResidentAdminRepositoryImpl implements ResidentAdminRepository {
   Future<void> updateResident({
     required String uid,
     required String name,
+    required String email,
     required String phone,
     String? housingId,
+    String? previousHousingId,
   }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final existing = await _remote.fetchUserByEmail(normalizedEmail);
+    if (existing != null && existing.uid != uid) {
+      throw const ProfileFailure(
+        'El correo electr\u00f3nico ya est\u00e1 registrado por otro usuario.',
+      );
+    }
+
+    if (housingId != null && housingId.isNotEmpty && housingId != previousHousingId) {
+      final housing = await _housings.getById(housingId);
+      if (housing == null || !housing.active || (housing.residentId != null && housing.residentId != uid)) {
+        throw const ProfileFailure('La vivienda seleccionada no est\u00e1 disponible.');
+      }
+      if (previousHousingId != null && previousHousingId.isNotEmpty) {
+        await _remote.unassignHousing(previousHousingId);
+      }
+      await _remote.assignHousing(housingId: housingId, residentId: uid);
+    }
+
     try {
       await _remote.updateResidentProfile(
         uid: uid,
         name: name,
+        email: normalizedEmail,
         phone: phone,
         housingId: housingId,
       );
-      if (housingId != null) {
-        await _remote.assignHousing(housingId: housingId, residentId: uid);
-      }
     } on FirebaseException catch (e) {
       throw e.code == 'unavailable' ? AuthFailure.network : AuthFailure.unknown;
     }

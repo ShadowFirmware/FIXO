@@ -182,6 +182,191 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
     );
   }
 
+
+  Future<void> _editResident(AppUser resident) async {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: resident.name);
+    final emailController = TextEditingController(text: resident.email);
+    final phoneController = TextEditingController(text: resident.phone);
+    String? selectedHousingId = resident.housingId;
+
+    final initialName = resident.name;
+    final initialEmail = resident.email;
+    final initialPhone = resident.phone;
+    final initialHousing = resident.housingId;
+
+    bool hasChanges() =>
+        nameController.text.trim() != initialName.trim() ||
+        emailController.text.trim().toLowerCase() !=
+            initialEmail.trim().toLowerCase() ||
+        phoneController.text.trim() != initialPhone.trim() ||
+        selectedHousingId != initialHousing;
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final housingOptions = _viewModel.housings
+              .where((h) =>
+                  h.active &&
+                  (h.residentId == null || h.residentId == resident.uid || h.id == resident.housingId))
+              .toList();
+
+          return AlertDialog(
+            title: const Text('Editar residente'),
+            content: SizedBox(
+              width: 480,
+              child: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(labelText: 'Nombre completo'),
+                        onChanged: (_) => setDialogState(() {}),
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Ingresa el nombre'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: emailController,
+                        decoration: const InputDecoration(labelText: 'Correo electr\u00f3nico'),
+                        keyboardType: TextInputType.emailAddress,
+                        onChanged: (_) => setDialogState(() {}),
+                        validator: (v) => v == null || !v.contains('@')
+                            ? 'Correo no v\u00e1lido'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: phoneController,
+                        decoration: const InputDecoration(labelText: 'Tel\u00e9fono'),
+                        keyboardType: TextInputType.phone,
+                        onChanged: (_) => setDialogState(() {}),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedHousingId,
+                        decoration: const InputDecoration(labelText: 'Vivienda'),
+                        items: housingOptions
+                            .map(
+                              (h) => DropdownMenuItem(
+                                value: h.id,
+                                child: Text(h.label),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) =>
+                            setDialogState(() => selectedHousingId = v),
+                        validator: (v) =>
+                            v == null ? 'Selecciona una vivienda' : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          if (hasChanges()) {
+                            final discard = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Descartar cambios'),
+                                content: const Text(
+                                    '\u00bfDeseas descartar los cambios realizados?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text('Descartar'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (discard != true) return;
+                          }
+                          if (context.mounted) Navigator.pop(context, false);
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (!formKey.currentState!.validate()) return;
+                          if (!hasChanges()) {
+                            Navigator.pop(context, false);
+                            return;
+                          }
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Guardar cambios'),
+                              content: const Text(
+                                  '\u00bfDeseas guardar los cambios realizados?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, true),
+                                  child: const Text('Guardar'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm != true) return;
+                          final ok = await _viewModel.update(
+                            resident,
+                            name: nameController.text,
+                            email: emailController.text,
+                            phone: phoneController.text,
+                            housingId: selectedHousingId ?? '',
+                          );
+                          if (ok && context.mounted) Navigator.pop(context, true);
+                        },
+                        child: const Text('Guardar'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_viewModel.successMessage ?? 'Residente actualizado')),
+      );
+    } else if (saved == false && _viewModel.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_viewModel.errorMessage!)),
+      );
+    }
+  }
+
   Future<void> _deleteResident(AppUser resident) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -318,11 +503,7 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                             _viewResident(r);
                             break;
                           case 'edit':
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Edición no implementada'),
-                              ),
-                            );
+                            _editResident(r);
                             break;
                           case 'delete':
                             _deleteResident(r);
@@ -373,13 +554,7 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Edición no implementada'),
-                            ),
-                          );
-                        },
+                        onPressed: () => _editResident(r),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline),
