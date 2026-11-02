@@ -307,6 +307,14 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.assignment_outlined),
+              title: const Text('Reportes pendientes'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, RouteNames.adminPendingIncidents);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.people_outline),
               title: const Text('Residentes'),
               onTap: () {

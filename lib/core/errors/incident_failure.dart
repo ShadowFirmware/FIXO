@@ -49,6 +49,24 @@ class IncidentFailure implements Exception {
     'Contacta al administrador.',
   );
 
+  // Administrador (HU-4.8 y acciones de asignar / rechazar)
+  static const pendingLoadFailed = IncidentFailure(
+    'No se pudieron cargar las incidencias pendientes. Inténtalo de nuevo.',
+  );
+  static const pendingAccessDenied = IncidentFailure(
+    'Solo los administradores pueden consultar las incidencias pendientes.',
+  );
+  static const notPending = IncidentFailure(
+    'La incidencia ya no está pendiente. Es posible que otro administrador '
+    'la haya atendido.',
+  );
+  static const technicianUnavailable = IncidentFailure(
+    'El técnico seleccionado ya no está disponible. Elige otro.',
+  );
+  static const actionFailed = IncidentFailure(
+    'No se pudo completar la acción. Inténtalo de nuevo.',
+  );
+
   @override
   String toString() => message;
 }

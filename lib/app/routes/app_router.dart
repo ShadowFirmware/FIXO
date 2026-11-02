@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_housings_screen.dart';
+import '../../features/admin/presentation/screens/admin_pending_incidents_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_residents_screen.dart';
 import '../../features/admin/presentation/screens/admin_technicians_screen.dart';
@@ -40,6 +41,7 @@ abstract final class AppRouter {
     RouteNames.adminResidents: {UserRole.admin},
     RouteNames.adminTechnicians: {UserRole.admin},
     RouteNames.adminHousings: {UserRole.admin},
+    RouteNames.adminPendingIncidents: {UserRole.admin},
     RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
   };
 
@@ -88,6 +90,8 @@ abstract final class AppRouter {
         return _page(const AdminTechniciansScreen(), settings);
       case RouteNames.adminHousings:
         return _page(const AdminHousingsScreen(), settings);
+      case RouteNames.adminPendingIncidents:
+        return _page(const AdminPendingIncidentsScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),
