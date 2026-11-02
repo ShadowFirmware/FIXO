@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/pending_incident.dart';
+import '../../domain/entities/rejection_rules.dart';
 import '../providers/pending_incidents_view_model.dart';
 import 'assign_incident_dialog.dart';
 import 'pending_incident_widgets.dart';
@@ -64,7 +65,16 @@ class _RejectIncidentDialogState extends State<RejectIncidentDialog> {
                 autofocus: true,
                 minLines: 3,
                 maxLines: 5,
-                maxLength: 500,
+                maxLength: RejectionRules.maxLength,
+                // Tras el primer error se vuelve a validar mientras escribe.
+                onChanged: (_) {
+                  if (_error == null) return;
+                  setState(
+                    () => _error = PendingIncidentsViewModel.validateRejection(
+                      _comment.text,
+                    ),
+                  );
+                },
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
                   labelText: 'Motivo del rechazo',

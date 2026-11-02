@@ -4,6 +4,7 @@ import '../../../../core/errors/incident_failure.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/pending_incident.dart';
+import '../../domain/entities/rejection_rules.dart';
 import '../../domain/repositories/incident_admin_repository.dart';
 import '../datasources/incident_admin_remote_data_source.dart';
 
@@ -115,6 +116,9 @@ class IncidentAdminRepositoryImpl implements IncidentAdminRepository {
     required String incidentId,
     required String comment,
   }) async {
+    // El motivo es obligatorio aunque la llamada no venga del formulario.
+    final invalid = RejectionRules.validate(comment);
+    if (invalid != null) throw IncidentFailure(invalid);
     try {
       await _remote.reject(incidentId: incidentId, comment: comment.trim());
     } on IncidentNotPendingException {
