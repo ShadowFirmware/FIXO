@@ -6,6 +6,7 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../models/assignment_plan.dart';
 
 /// La incidencia ya no está pendiente (otro administrador la atendió).
 class IncidentNotPendingException implements Exception {
@@ -110,17 +111,13 @@ class IncidentAdminRemoteDataSource {
       final incidentDoc = await transaction.get(incidentRef);
       final technicianDoc = await transaction.get(technicianRef);
 
-      final incident = incidentDoc.data();
-      if (incident == null ||
-          incident['estado'] != IncidentStatus.pending.value) {
-        throw const IncidentNotPendingException();
-      }
-      final technician = technicianDoc.data();
-      if (technician == null ||
-          technician['estadoCuenta'] != AccountStatus.active.value ||
-          technician['disponible'] == false) {
-        throw const TechnicianUnavailableException();
-      }
+      AssignmentPlan.validate(
+        incident: incidentDoc.data(),
+        technician: technicianDoc.data(),
+        now: DateTime.now(),
+      );
+      final incident = incidentDoc.data()!;
+      final technician = technicianDoc.data()!;
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,

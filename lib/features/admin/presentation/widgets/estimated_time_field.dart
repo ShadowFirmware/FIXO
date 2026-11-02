@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/date_formats.dart';
+import '../providers/pending_incidents_view_model.dart';
 
 /// Campo de la hora estimada de llegada (HU-4.9). La fecha y la hora se
 /// eligen con los selectores del sistema, no se escriben a mano.
@@ -11,9 +12,6 @@ class EstimatedTimeField extends StatelessWidget {
     required this.onChanged,
     this.errorText,
   });
-
-  /// Hasta cuántos días después de hoy se puede programar la visita.
-  static const maxDaysAhead = 30;
 
   final DateTime? value;
   final ValueChanged<DateTime> onChanged;
@@ -41,7 +39,9 @@ class EstimatedTimeField extends StatelessWidget {
       context: context,
       initialDate: initial.isBefore(today) ? today : initial,
       firstDate: today,
-      lastDate: today.add(const Duration(days: maxDaysAhead)),
+      lastDate: today.add(
+        const Duration(days: PendingIncidentsViewModel.maxDaysAhead),
+      ),
       helpText: 'Fecha de llegada',
     );
     if (date == null || !context.mounted) return;
