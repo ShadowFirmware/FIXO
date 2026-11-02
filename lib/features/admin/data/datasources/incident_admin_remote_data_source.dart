@@ -77,7 +77,8 @@ class IncidentAdminRemoteDataSource {
     }
   }
 
-  /// Técnicos con cuenta activa y disponibles (HU-4.9).
+  /// Técnicos con cuenta activa y estado Disponible (HU-4.9). Un técnico
+  /// sin el campo `disponible` no se considera disponible.
   Future<List<UserModel>> availableTechnicians() async {
     final query = await _users
         .where('rol', isEqualTo: UserRole.technician.value)
@@ -87,7 +88,7 @@ class IncidentAdminRemoteDataSource {
     for (final doc in query.docs) {
       try {
         final user = UserModel.fromFirestore(doc);
-        if (user.available ?? true) technicians.add(user);
+        if (user.available == true) technicians.add(user);
       } on FormatException {
         continue;
       }

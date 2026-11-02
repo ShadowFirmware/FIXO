@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
 import '../../../auth/domain/entities/app_user.dart';
@@ -51,8 +52,14 @@ class AssignIncidentDialog extends StatefulWidget {
 }
 
 class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
-  late final Future<List<AppUser>> _technicians = widget.loadTechnicians();
+  late Future<List<AppUser>> _technicians = widget.loadTechnicians();
   String? _technicianId;
+
+  /// Vuelve a consultar los técnicos si la consulta anterior falló.
+  void _retry() => setState(() {
+    _technicianId = null;
+    _technicians = widget.loadTechnicians();
+  });
   DateTime? _estimatedTime;
   String? _error;
 
@@ -127,9 +134,23 @@ class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
                     );
                   }
                   if (snapshot.hasError) {
-                    return Text(
-                      snapshot.error.toString(),
-                      style: const TextStyle(color: AppColors.error),
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            snapshot.error is IncidentFailure
+                                ? snapshot.error.toString()
+                                : IncidentFailure.actionFailed.message,
+                            style: const TextStyle(color: AppColors.error),
+                          ),
+                        ),
+                        TextButton.icon(
+                          key: const Key('assign.retry'),
+                          onPressed: _retry,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Reintentar'),
+                        ),
+                      ],
                     );
                   }
                   final list = snapshot.data ?? const [];
