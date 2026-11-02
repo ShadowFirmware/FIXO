@@ -7,6 +7,7 @@ import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../providers/pending_incidents_view_model.dart';
 import 'assign_incident_dialog.dart';
+import 'reject_incident_dialog.dart';
 
 String formatCreatedAt(PendingIncident pending) {
   final date = pending.incident.createdAt;
@@ -306,47 +307,7 @@ class PendingIncidentActions {
   final PendingIncidentsViewModel viewModel;
 
   Future<void> reject(PendingIncident pending) async {
-    final controller = TextEditingController();
-    String? error;
-
-    final comment = await showDialog<String>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text('Rechazar ${pending.incident.reportNumber}'),
-          content: SizedBox(
-            width: 480,
-            child: TextField(
-              controller: controller,
-              maxLines: 4,
-              maxLength: 500,
-              decoration: InputDecoration(
-                labelText: 'Motivo del rechazo',
-                hintText: 'Explica al residente por qué no procede',
-                errorText: error,
-              ),
-            ),
-          ),
-          actions: [
-            DialogButtons(
-              onCancel: () => Navigator.pop(context),
-              confirmLabel: 'Rechazar',
-              destructive: true,
-              onConfirm: () {
-                final invalid = PendingIncidentsViewModel.validateRejection(
-                  controller.text,
-                );
-                if (invalid != null) {
-                  setState(() => error = invalid);
-                  return;
-                }
-                Navigator.pop(context, controller.text.trim());
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+    final comment = await showRejectIncidentDialog(context, pending: pending);
     if (comment == null || !context.mounted) return;
 
     final confirmed = await _confirm(

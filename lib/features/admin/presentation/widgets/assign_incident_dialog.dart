@@ -103,7 +103,7 @@ class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _IncidentSummary(pending: widget.pending),
+              PendingIncidentSummary(pending: widget.pending),
               const SizedBox(height: 20),
               Text('Técnico', style: _sectionStyle(textTheme)),
               const SizedBox(height: 8),
@@ -183,8 +183,8 @@ class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
 }
 
 /// Datos de la incidencia que se va a asignar.
-class _IncidentSummary extends StatelessWidget {
-  const _IncidentSummary({required this.pending});
+class PendingIncidentSummary extends StatelessWidget {
+  const PendingIncidentSummary({super.key, required this.pending});
 
   final PendingIncident pending;
 
