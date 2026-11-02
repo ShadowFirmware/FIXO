@@ -105,7 +105,8 @@ class _AdminPendingIncidentsScreenState
           final p = items[index];
           return PendingIncidentCard(
             pending: p,
-            onTap: () => showPendingIncidentDetail(context, p),
+            onTap: () =>
+                showPendingIncidentDetail(context, p, actions: _actions),
             onAssign: _viewModel.isSaving ? null : () => _actions.assign(p),
             onReject: _viewModel.isSaving ? null : () => _actions.reject(p),
           );
@@ -115,7 +116,7 @@ class _AdminPendingIncidentsScreenState
     return _Table(
       items: items,
       busy: _viewModel.isSaving,
-      onView: (p) => showPendingIncidentDetail(context, p),
+      onView: (p) => showPendingIncidentDetail(context, p, actions: _actions),
       onAssign: _actions.assign,
       onReject: _actions.reject,
     );

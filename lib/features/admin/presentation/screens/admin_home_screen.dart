@@ -99,7 +99,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               for (final p in preview) ...[
                 PendingIncidentCard(
                   pending: p,
-                  onTap: () => showPendingIncidentDetail(context, p),
+                  onTap: () =>
+                      showPendingIncidentDetail(context, p, actions: _actions),
                   onAssign: _viewModel.isSaving
                       ? null
                       : () => _actions.assign(p),

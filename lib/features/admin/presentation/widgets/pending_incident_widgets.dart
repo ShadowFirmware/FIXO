@@ -164,11 +164,13 @@ class _InfoLine extends StatelessWidget {
   }
 }
 
-/// Detalle completo de una incidencia pendiente, con sus evidencias.
+/// Detalle completo de una incidencia pendiente, con sus evidencias. Con
+/// [actions] también ofrece Rechazar y Asignar.
 Future<void> showPendingIncidentDetail(
   BuildContext context,
-  PendingIncident pending,
-) {
+  PendingIncident pending, {
+  PendingIncidentActions? actions,
+}) {
   final incident = pending.incident;
   return showDialog<void>(
     context: context,
@@ -205,16 +207,67 @@ Future<void> showPendingIncidentDetail(
         ),
       ),
       actions: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
+        if (actions == null)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          )
+        else
+          _DetailActions(
+            onReject: () {
+              Navigator.pop(context);
+              actions.reject(pending);
+            },
+            onAssign: () {
+              Navigator.pop(context);
+              actions.assign(pending);
+            },
           ),
-        ),
       ],
     ),
   );
+}
+
+/// Opciones del detalle: Rechazar y Asignar.
+class _DetailActions extends StatelessWidget {
+  const _DetailActions({required this.onReject, required this.onAssign});
+
+  final VoidCallback onReject;
+  final VoidCallback onAssign;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              key: const Key('pendingDetail.reject'),
+              onPressed: onReject,
+              icon: const Icon(Icons.close_rounded),
+              label: const Text('Rechazar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              key: const Key('pendingDetail.assign'),
+              onPressed: onAssign,
+              icon: const Icon(Icons.engineering_outlined),
+              label: const Text('Asignar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DetailRow extends StatelessWidget {
