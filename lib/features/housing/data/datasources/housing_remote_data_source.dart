@@ -37,6 +37,42 @@ class HousingRemoteDataSource {
         .toList();
   }
 
+  /// Lista todas las viviendas, activas o no.
+  Future<List<HousingModel>> fetchAll() async {
+    final snapshot = await _firestore
+        .collection(FirestoreCollections.housings)
+        .get();
+    return snapshot.docs.map(HousingModel.fromFirestore).toList();
+  }
+
+  /// Crea la vivienda y devuelve su ID.
+  Future<String> create(HousingModel housing) async {
+    final doc = await _firestore
+        .collection(FirestoreCollections.housings)
+        .add({...housing.toFirestore(), 'creadoEn': DateTime.now()});
+    return doc.id;
+  }
+
+  Future<void> updateData({
+    required String id,
+    required String type,
+    required String number,
+    String? building,
+  }) async {
+    await _firestore.collection(FirestoreCollections.housings).doc(id).update({
+      'tipo': type,
+      'edificio': building,
+      'numero': number,
+    });
+  }
+
+  Future<void> setActive({required String id, required bool active}) async {
+    await _firestore
+        .collection(FirestoreCollections.housings)
+        .doc(id)
+        .update({'activa': active});
+  }
+
   Future<void> assignResident({
     required String housingId,
     required String residentId,

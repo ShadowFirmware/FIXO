@@ -8,6 +8,12 @@ enum HousingType {
   /// Valor guardado en Firestore.
   final String value;
 
+  /// Nombre para mostrar, por ejemplo "Departamento".
+  String get displayName => switch (this) {
+    HousingType.apartment => 'Departamento',
+    HousingType.house => 'Casa',
+  };
+
   static HousingType? fromValue(String? value) {
     for (final type in values) {
       if (type.value == value) return type;
@@ -40,6 +46,13 @@ class Housing {
 
   /// UID del residente activo, o `null` si está disponible.
   final String? residentId;
+
+  /// Clave que identifica la vivienda dentro de su edificio o sección. Dos
+  /// viviendas no pueden compartirla (HU-4.7).
+  String get identityKey => identityKeyFor(building: building, number: number);
+
+  static String identityKeyFor({String? building, required String number}) =>
+      '${(building ?? '').trim().toLowerCase()}|${number.trim().toLowerCase()}';
 
   /// Nombre para mostrar, por ejemplo "Torre A – 4B" o "Casa 12".
   String get label {

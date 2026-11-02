@@ -66,10 +66,10 @@ class ResidentAdminRemoteDataSource {
         .toList();
   }
 
+  /// Todas las viviendas, activas o no, para mostrar la de cada residente.
   Future<List<HousingModel>> fetchHousings() async {
     final snapshot = await _firestore
         .collection(FirestoreCollections.housings)
-        .where('activa', isEqualTo: true)
         .get();
     return snapshot.docs.map(HousingModel.fromFirestore).toList();
   }
