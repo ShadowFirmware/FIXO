@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
-import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../providers/pending_incidents_view_model.dart';
+import 'assign_incident_dialog.dart';
 
 String formatCreatedAt(PendingIncident pending) {
   final date = pending.incident.createdAt;
@@ -275,7 +275,7 @@ class PendingIncidentActions {
             ),
           ),
           actions: [
-            _DialogButtons(
+            DialogButtons(
               onCancel: () => Navigator.pop(context),
               confirmLabel: 'Rechazar',
               destructive: true,
@@ -310,140 +310,27 @@ class PendingIncidentActions {
   }
 
   Future<void> assign(PendingIncident pending) async {
-    final technicians = viewModel.availableTechnicians();
-    String? technicianId;
-    DateTime? estimatedTime;
-    String? error;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text('Asignar ${pending.incident.reportNumber}'),
-          content: SizedBox(
-            width: 480,
-            child: FutureBuilder<List<AppUser>>(
-              future: technicians,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const SizedBox(
-                    height: 120,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Text(
-                    snapshot.error.toString(),
-                    style: const TextStyle(color: AppColors.error),
-                  );
-                }
-                final list = snapshot.data ?? const [];
-                if (list.isEmpty) {
-                  return const Text(
-                    'No hay técnicos disponibles en este momento.',
-                  );
-                }
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: technicianId,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Técnico'),
-                      items: [
-                        for (final t in list)
-                          DropdownMenuItem(
-                            value: t.uid,
-                            child: Text(
-                              t.specialty == null || t.specialty!.isEmpty
-                                  ? t.name
-                                  : '${t.name} · ${t.specialty}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                      ],
-                      onChanged: (v) => setState(() => technicianId = v),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.schedule_outlined),
-                      label: Text(
-                        estimatedTime == null
-                            ? 'Seleccionar hora estimada de llegada'
-                            : DateFormats.dateTime(estimatedTime!),
-                      ),
-                      onPressed: () async {
-                        final picked = await _pickDateTime(context);
-                        if (picked != null) {
-                          setState(() => estimatedTime = picked);
-                        }
-                      },
-                    ),
-                    if (error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        error!,
-                        style: const TextStyle(color: AppColors.error),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            _DialogButtons(
-              onCancel: () => Navigator.pop(context, false),
-              confirmLabel: 'Asignar',
-              onConfirm: () {
-                final invalid = PendingIncidentsViewModel.validateAssignment(
-                  technicianId: technicianId,
-                  estimatedTime: estimatedTime,
-                );
-                if (invalid != null) {
-                  setState(() => error = invalid);
-                  return;
-                }
-                Navigator.pop(context, true);
-              },
-            ),
-          ],
-        ),
-      ),
+    final selection = await showAssignIncidentDialog(
+      context,
+      pending: pending,
+      loadTechnicians: viewModel.availableTechnicians,
     );
-    if (confirmed != true) return;
+    if (selection == null) return;
 
     await viewModel.assign(
       pending,
-      technicianId: technicianId,
-      estimatedTime: estimatedTime,
+      technicianId: selection.technicianId,
+      estimatedTime: selection.estimatedTime,
     );
     _showResult();
-  }
-
-  static Future<DateTime?> _pickDateTime(BuildContext context) async {
-    final now = DateTime.now();
-    final date = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: DateTime(now.year, now.month, now.day),
-      lastDate: now.add(const Duration(days: 30)),
-    );
-    if (date == null || !context.mounted) return null;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(now.add(const Duration(hours: 1))),
-    );
-    if (time == null) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
   void _showResult() {
     if (!context.mounted) return;
     final message = viewModel.successMessage ?? viewModel.errorMessage;
     if (message == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<bool> _confirm({
@@ -457,7 +344,7 @@ class PendingIncidentActions {
         title: Text(title),
         content: Text(message),
         actions: [
-          _DialogButtons(
+          DialogButtons(
             onCancel: () => Navigator.pop(context, false),
             confirmLabel: confirmLabel,
             onConfirm: () => Navigator.pop(context, true),
@@ -470,8 +357,9 @@ class PendingIncidentActions {
 }
 
 /// Botones Cancelar / Confirmar de los modales, del mismo ancho.
-class _DialogButtons extends StatelessWidget {
-  const _DialogButtons({
+class DialogButtons extends StatelessWidget {
+  const DialogButtons({
+    super.key,
     required this.onCancel,
     required this.onConfirm,
     required this.confirmLabel,

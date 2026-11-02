@@ -1,0 +1,360 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_formats.dart';
+import '../../../auth/domain/entities/app_user.dart';
+import '../../../incidents/presentation/widgets/incident_type_style.dart';
+import '../../domain/entities/pending_incident.dart';
+import '../providers/pending_incidents_view_model.dart';
+import 'pending_incident_widgets.dart';
+
+/// Técnico y hora elegidos en el formulario de asignación.
+class AssignmentSelection {
+  const AssignmentSelection({
+    required this.technicianId,
+    required this.estimatedTime,
+  });
+
+  final String technicianId;
+  final DateTime estimatedTime;
+}
+
+/// Formulario para asignar un técnico y la hora estimada de llegada a una
+/// incidencia pendiente (HU-4.9). Devuelve lo elegido, o `null` si se
+/// canceló.
+Future<AssignmentSelection?> showAssignIncidentDialog(
+  BuildContext context, {
+  required PendingIncident pending,
+  required Future<List<AppUser>> Function() loadTechnicians,
+}) {
+  return showDialog<AssignmentSelection>(
+    context: context,
+    builder: (_) => AssignIncidentDialog(
+      pending: pending,
+      loadTechnicians: loadTechnicians,
+    ),
+  );
+}
+
+class AssignIncidentDialog extends StatefulWidget {
+  const AssignIncidentDialog({
+    super.key,
+    required this.pending,
+    required this.loadTechnicians,
+  });
+
+  final PendingIncident pending;
+  final Future<List<AppUser>> Function() loadTechnicians;
+
+  @override
+  State<AssignIncidentDialog> createState() => _AssignIncidentDialogState();
+}
+
+class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
+  late final Future<List<AppUser>> _technicians = widget.loadTechnicians();
+  String? _technicianId;
+  DateTime? _estimatedTime;
+  String? _error;
+
+  void _confirm() {
+    final invalid = PendingIncidentsViewModel.validateAssignment(
+      technicianId: _technicianId,
+      estimatedTime: _estimatedTime,
+    );
+    if (invalid != null) {
+      setState(() => _error = invalid);
+      return;
+    }
+    Navigator.pop(
+      context,
+      AssignmentSelection(
+        technicianId: _technicianId!,
+        estimatedTime: _estimatedTime!,
+      ),
+    );
+  }
+
+  Future<void> _pickTime() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 30)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(now.add(const Duration(hours: 1))),
+    );
+    if (time == null) return;
+    setState(() {
+      _estimatedTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+      _error = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return AlertDialog(
+      title: Text('Asignar ${widget.pending.incident.reportNumber}'),
+      content: SizedBox(
+        width: 520,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _IncidentSummary(pending: widget.pending),
+              const SizedBox(height: 20),
+              Text('Técnico', style: _sectionStyle(textTheme)),
+              const SizedBox(height: 8),
+              FutureBuilder<List<AppUser>>(
+                future: _technicians,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const SizedBox(
+                      height: 120,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Text(
+                      snapshot.error.toString(),
+                      style: const TextStyle(color: AppColors.error),
+                    );
+                  }
+                  final list = snapshot.data ?? const [];
+                  if (list.isEmpty) {
+                    return const Text(
+                      'No hay técnicos disponibles en este momento.',
+                    );
+                  }
+                  return _TechnicianList(
+                    technicians: list,
+                    selectedId: _technicianId,
+                    onSelected: (id) => setState(() {
+                      _technicianId = id;
+                      _error = null;
+                    }),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              Text('Hora estimada de llegada', style: _sectionStyle(textTheme)),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('assign.estimatedTime'),
+                icon: const Icon(Icons.schedule_outlined),
+                label: Text(
+                  _estimatedTime == null
+                      ? 'Seleccionar fecha y hora'
+                      : DateFormats.dateTime(_estimatedTime!),
+                ),
+                onPressed: _pickTime,
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: const TextStyle(color: AppColors.error)),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        DialogButtons(
+          onCancel: () => Navigator.pop(context),
+          confirmLabel: 'Asignar',
+          onConfirm: _confirm,
+        ),
+      ],
+    );
+  }
+
+  static TextStyle? _sectionStyle(TextTheme textTheme) => textTheme.titleSmall
+      ?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold);
+}
+
+/// Datos de la incidencia que se va a asignar.
+class _IncidentSummary extends StatelessWidget {
+  const _IncidentSummary({required this.pending});
+
+  final PendingIncident pending;
+
+  @override
+  Widget build(BuildContext context) {
+    final incident = pending.incident;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+            child: Icon(incident.type.icon, size: 20, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  incident.title,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${incident.type.label} · ${pending.housingLabel}',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  'Reportó: ${pending.reporterName} · '
+                  '${formatCreatedAt(pending)}',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Técnicos disponibles como tarjetas seleccionables.
+class _TechnicianList extends StatelessWidget {
+  const _TechnicianList({
+    required this.technicians,
+    required this.selectedId,
+    required this.onSelected,
+  });
+
+  final List<AppUser> technicians;
+  final String? selectedId;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 260),
+      child: ListView.separated(
+        shrinkWrap: true,
+        itemCount: technicians.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final technician = technicians[index];
+          return _TechnicianTile(
+            technician: technician,
+            selected: technician.uid == selectedId,
+            onTap: () => onSelected(technician.uid),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _TechnicianTile extends StatelessWidget {
+  const _TechnicianTile({
+    required this.technician,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppUser technician;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final specialty = technician.specialty?.trim() ?? '';
+    final details = [
+      specialty.isEmpty
+          ? 'Sin especialidad'
+          : specialty[0].toUpperCase() + specialty.substring(1),
+      if (technician.phone.trim().isNotEmpty) technician.phone.trim(),
+    ].join(' · ');
+
+    return Material(
+      color: selected
+          ? AppColors.primary.withValues(alpha: 0.08)
+          : AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: selected ? AppColors.primary : AppColors.border,
+          width: selected ? 1.5 : 1,
+        ),
+      ),
+      child: InkWell(
+        key: Key('assign.technician.${technician.uid}'),
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.navy.withValues(alpha: 0.1),
+                child: const Icon(
+                  Icons.engineering_outlined,
+                  size: 20,
+                  color: AppColors.navy,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      technician.name,
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      details,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                color: selected ? AppColors.primary : AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
