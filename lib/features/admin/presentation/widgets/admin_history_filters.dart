@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_formats.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../providers/admin_incident_history_view_model.dart';
@@ -75,6 +76,7 @@ class AdminHistoryFilters extends StatelessWidget {
                 options: vm.housingOptions,
                 onChanged: vm.setHousing,
               ),
+              _DateRangeButton(viewModel: vm),
               if (!filter.isEmpty)
                 TextButton.icon(
                   key: const Key('history.clearFilters'),
@@ -137,6 +139,74 @@ class _Dropdown<T extends Object> extends StatelessWidget {
             ),
         ],
         onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+/// Botón para elegir el rango de fechas de creación, y para quitarlo.
+class _DateRangeButton extends StatelessWidget {
+  const _DateRangeButton({required this.viewModel});
+
+  final AdminIncidentHistoryViewModel viewModel;
+
+  Future<void> _pick(BuildContext context) async {
+    final filter = viewModel.filter;
+    final now = DateTime.now();
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      initialDateRange: filter.hasDateRange
+          ? DateTimeRange(start: filter.from ?? now, end: filter.to ?? now)
+          : null,
+      helpText: 'Fecha de creación',
+      saveText: 'Aplicar',
+    );
+    if (range == null) return;
+    final error = viewModel.setDateRange(from: range.start, to: range.end);
+    if (error != null && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  /// "1 oct 2026 – 31 oct 2026", o "Cualquier fecha" sin rango.
+  static String label({DateTime? from, DateTime? to}) {
+    if (from == null && to == null) return 'Cualquier fecha';
+    if (from == null) return 'Hasta ${DateFormats.shortDate(to!)}';
+    if (to == null) return 'Desde ${DateFormats.shortDate(from)}';
+    return '${DateFormats.shortDate(from)} – ${DateFormats.shortDate(to)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filter = viewModel.filter;
+    // El tema hace que los botones ocupen todo el ancho; dentro del Wrap
+    // necesitan un ancho fijo.
+    return SizedBox(
+      width: 300,
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              key: const Key('history.dateRange'),
+              onPressed: () => _pick(context),
+              icon: const Icon(Icons.date_range_rounded),
+              label: Text(
+                label(from: filter.from, to: filter.to),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          if (filter.hasDateRange)
+            IconButton(
+              key: const Key('history.clearDates'),
+              tooltip: 'Quitar fechas',
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => viewModel.setDateRange(),
+            ),
+        ],
       ),
     );
   }

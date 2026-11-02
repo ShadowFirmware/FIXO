@@ -52,6 +52,15 @@ class AdminIncidentHistoryViewModel extends ChangeNotifier {
   void setHousing(String? housingId) =>
       _setFilter(_filter.copyWith(housingId: () => housingId));
 
+  /// Filtra por fecha de creación. Sin fechas, quita el filtro. Devuelve
+  /// el error si el rango no es válido, y en ese caso no lo aplica.
+  String? setDateRange({DateTime? from, DateTime? to}) {
+    final invalid = AdminHistoryFilter.validateDateRange(from, to);
+    if (invalid != null) return invalid;
+    _setFilter(_filter.copyWith(from: () => from, to: () => to));
+    return null;
+  }
+
   void clearFilters() => _setFilter(AdminHistoryFilter.none);
 
   void _setFilter(AdminHistoryFilter filter) {
