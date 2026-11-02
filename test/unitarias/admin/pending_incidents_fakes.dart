@@ -46,8 +46,18 @@ class FakeIncidentAdminRepository implements IncidentAdminRepository {
   @override
   Stream<List<PendingIncident>> watchPending() => controller.stream;
 
+  /// Si no es `null`, [availableTechnicians] falla con este error una vez.
+  Object? techniciansError;
+  int technicianLoads = 0;
+
   @override
-  Future<List<AppUser>> availableTechnicians() async => technicians;
+  Future<List<AppUser>> availableTechnicians() async {
+    technicianLoads++;
+    final error = techniciansError;
+    techniciansError = null;
+    if (error != null) throw error;
+    return technicians;
+  }
 
   @override
   Future<void> assign({
