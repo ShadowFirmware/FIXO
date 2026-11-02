@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/date_formats.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../providers/pending_incidents_view_model.dart';
+import 'estimated_time_field.dart';
 import 'pending_incident_widgets.dart';
 
 /// Técnico y hora elegidos en el formulario de asignación.
@@ -81,31 +81,14 @@ class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
     );
   }
 
-  Future<void> _pickTime() async {
-    final now = DateTime.now();
-    final date = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: DateTime(now.year, now.month, now.day),
-      lastDate: now.add(const Duration(days: 30)),
-    );
-    if (date == null || !mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(now.add(const Duration(hours: 1))),
-    );
-    if (time == null) return;
-    setState(() {
-      _estimatedTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-      _error = null;
-    });
-  }
+  /// Error de la hora, que se muestra en cuanto se elige.
+  String? _timeError;
+
+  void _setTime(DateTime value) => setState(() {
+    _estimatedTime = value;
+    _timeError = PendingIncidentsViewModel.validateEstimatedTime(value);
+    _error = null;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,15 +155,10 @@ class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
               const SizedBox(height: 20),
               Text('Hora estimada de llegada', style: _sectionStyle(textTheme)),
               const SizedBox(height: 8),
-              OutlinedButton.icon(
-                key: const Key('assign.estimatedTime'),
-                icon: const Icon(Icons.schedule_outlined),
-                label: Text(
-                  _estimatedTime == null
-                      ? 'Seleccionar fecha y hora'
-                      : DateFormats.dateTime(_estimatedTime!),
-                ),
-                onPressed: _pickTime,
+              EstimatedTimeField(
+                value: _estimatedTime,
+                errorText: _timeError,
+                onChanged: _setTime,
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),

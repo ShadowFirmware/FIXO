@@ -97,6 +97,14 @@ class PendingIncidentsViewModel extends ChangeNotifier {
     DateTime? now,
   }) {
     if (technicianId == null) return 'Selecciona un técnico';
+    return validateEstimatedTime(estimatedTime, now: now);
+  }
+
+  /// Valida la hora estimada de llegada; devuelve el error o `null`.
+  static String? validateEstimatedTime(
+    DateTime? estimatedTime, {
+    DateTime? now,
+  }) {
     if (estimatedTime == null) return 'Selecciona la hora estimada de llegada';
     if (estimatedTime.isBefore(now ?? DateTime.now())) {
       return 'La hora estimada no puede ser en el pasado';
