@@ -7,6 +7,7 @@ import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../models/assignment_plan.dart';
+import '../models/rejection_plan.dart';
 
 /// La incidencia ya no está pendiente (otro administrador la atendió).
 class IncidentNotPendingException implements Exception {
@@ -171,21 +172,17 @@ class IncidentAdminRemoteDataSource {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
       final incidentDoc = await transaction.get(incidentRef);
-      final incident = incidentDoc.data();
-      if (incident == null ||
-          incident['estado'] != IncidentStatus.pending.value) {
-        throw const IncidentNotPendingException();
-      }
+      RejectionPlan.validate(incidentDoc.data());
+      final incident = incidentDoc.data()!;
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
       );
 
-      transaction.update(incidentRef, {
-        'estado': IncidentStatus.rejected.value,
-        'comentarioRechazo': comment,
-        'fechaRechazo': FieldValue.serverTimestamp(),
-      });
+      transaction.update(
+        incidentRef,
+        RejectionPlan.incidentUpdate(comment: comment),
+      );
 
       final residentId = incident['creadaPor'] as String?;
       if (residentId != null && residentId.isNotEmpty) {
