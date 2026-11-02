@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
-import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/history_incident.dart';
 
 /// Fecha y hora para el historial, o "Sin registrar".
@@ -257,39 +256,6 @@ class HistoryEmptyMessage extends StatelessWidget {
             if (action != null) ...[const SizedBox(height: 16), action!],
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Total de incidencias y cuántas hay en cada estado.
-class HistoryStatusSummary extends StatelessWidget {
-  const HistoryStatusSummary({
-    super.key,
-    required this.total,
-    required this.counts,
-  });
-
-  final int total;
-  final Map<IncidentStatus, int> counts;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: Row(
-        children: [
-          Chip(label: Text('Total: $total')),
-          for (final status in IncidentStatus.values) ...[
-            const SizedBox(width: 8),
-            Chip(
-              key: Key('history.count.${status.value}'),
-              avatar: Icon(status.icon, size: 18, color: status.color),
-              label: Text('${status.label}: ${counts[status] ?? 0}'),
-            ),
-          ],
-        ],
       ),
     );
   }

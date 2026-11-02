@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/admin_incident_history_view_model.dart';
 import '../widgets/admin_drawer.dart';
+import '../widgets/admin_history_filters.dart';
 import '../widgets/history_incident_detail.dart';
 import '../widgets/history_incident_widgets.dart';
 
@@ -56,17 +57,7 @@ class _AdminIncidentHistoryScreenState
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
-        builder: (context, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_viewModel.incidents.isNotEmpty)
-              HistoryStatusSummary(
-                total: _viewModel.incidents.length,
-                counts: _viewModel.statusCounts,
-              ),
-            Expanded(child: _content(context)),
-          ],
-        ),
+        builder: (context, _) => _content(context),
       ),
     );
   }
@@ -81,7 +72,7 @@ class _AdminIncidentHistoryScreenState
           icon: Icons.cloud_off_outlined,
           text: vm.errorMessage!,
         );
-      case AdminHistoryState.loaded when vm.emptyMessage != null:
+      case AdminHistoryState.loaded when vm.incidents.isEmpty:
         return HistoryEmptyMessage(
           icon: Icons.receipt_long_outlined,
           text: vm.emptyMessage!,
@@ -90,26 +81,59 @@ class _AdminIncidentHistoryScreenState
         break;
     }
 
+    final filters = AdminHistoryFilters(viewModel: vm);
     final items = vm.results;
+    if (items.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          filters,
+          Expanded(
+            child: HistoryEmptyMessage(
+              icon: Icons.search_off_rounded,
+              text: vm.emptyMessage!,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // En el teléfono los filtros se desplazan junto con las tarjetas para
+    // dejarles más espacio.
     final isMobile = MediaQuery.sizeOf(context).width < 900;
     if (isMobile) {
       return ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: items.length,
+        padding: const EdgeInsets.only(bottom: 12),
+        itemCount: items.length + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemBuilder: (context, index) => HistoryIncidentCard(
-          key: ValueKey(items[index].id),
-          record: items[index],
-          onTap: () => showHistoryIncidentDetail(context, items[index]),
-        ),
+        itemBuilder: (context, index) {
+          if (index == 0) return filters;
+          final record = items[index - 1];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: HistoryIncidentCard(
+              key: ValueKey(record.id),
+              record: record,
+              onTap: () => showHistoryIncidentDetail(context, record),
+            ),
+          );
+        },
       );
     }
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: HistoryIncidentTable(
-        items: items,
-        onView: (record) => showHistoryIncidentDetail(context, record),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        filters,
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: HistoryIncidentTable(
+              items: items,
+              onView: (record) => showHistoryIncidentDetail(context, record),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
