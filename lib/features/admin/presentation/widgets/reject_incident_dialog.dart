@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../../domain/entities/rejection_rules.dart';
 import '../providers/pending_incidents_view_model.dart';
@@ -99,4 +100,85 @@ class _RejectIncidentDialogState extends State<RejectIncidentDialog> {
       ],
     );
   }
+}
+
+/// Pide confirmar el rechazo mostrando el motivo y sus consecuencias.
+/// Devuelve `true` solo si el administrador confirma.
+Future<bool> showRejectConfirmation(
+  BuildContext context, {
+  required PendingIncident pending,
+  required String comment,
+}) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      final textTheme = Theme.of(context).textTheme;
+      return AlertDialog(
+        title: const Text('Confirmar rechazo'),
+        content: SizedBox(
+          width: 480,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '¿Rechazar la incidencia ${pending.incident.reportNumber} '
+                '"${pending.incident.title}"?',
+                style: textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text('Motivo: $comment', style: textTheme.bodyMedium),
+              ),
+              const SizedBox(height: 12),
+              for (final consequence in const [
+                'Pasará a Rechazada y no se podrá asignar a un técnico.',
+                'El residente recibirá una notificación con este motivo.',
+                'Esta acción no se puede deshacer.',
+              ])
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          consequence,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          DialogButtons(
+            onCancel: () => Navigator.pop(context, false),
+            confirmLabel: 'Rechazar',
+            destructive: true,
+            onConfirm: () => Navigator.pop(context, true),
+          ),
+        ],
+      );
+    },
+  );
+  return confirmed == true;
 }

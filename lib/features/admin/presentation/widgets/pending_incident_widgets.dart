@@ -310,12 +310,10 @@ class PendingIncidentActions {
     final comment = await showRejectIncidentDialog(context, pending: pending);
     if (comment == null || !context.mounted) return;
 
-    final confirmed = await _confirm(
-      title: 'Confirmar rechazo',
-      message:
-          '¿Rechazar la incidencia ${pending.incident.reportNumber}? '
-          'Esta acción es definitiva y se notificará al residente.',
-      confirmLabel: 'Rechazar',
+    final confirmed = await showRejectConfirmation(
+      context,
+      pending: pending,
+      comment: comment,
     );
     if (!confirmed) return;
 
@@ -345,28 +343,6 @@ class PendingIncidentActions {
     if (message == null) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  Future<bool> _confirm({
-    required String title,
-    required String message,
-    required String confirmLabel,
-  }) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          DialogButtons(
-            onCancel: () => Navigator.pop(context, false),
-            confirmLabel: confirmLabel,
-            onConfirm: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
-    );
-    return ok == true;
   }
 }
 
