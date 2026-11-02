@@ -186,15 +186,16 @@ class IncidentAdminRemoteDataSource {
 
       final residentId = incident['creadaPor'] as String?;
       if (residentId != null && residentId.isNotEmpty) {
-        transaction.set(_notifications.doc(), {
-          'usuarioId': residentId,
-          'tipo': rejectedType,
-          'titulo': 'Incidencia $reportNumber rechazada',
-          'mensaje': 'Motivo: $comment',
-          'refId': incidentId,
-          'leida': false,
-          'fecha': FieldValue.serverTimestamp(),
-        });
+        transaction.set(
+          _notifications.doc(),
+          RejectionPlan.residentNotice(
+            residentId: residentId,
+            incidentId: incidentId,
+            reportNumber: reportNumber,
+            title: incident['nombre'] as String? ?? '',
+            comment: comment,
+          ),
+        );
       }
     });
   }

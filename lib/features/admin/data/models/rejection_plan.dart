@@ -26,4 +26,21 @@ abstract final class RejectionPlan {
     'tecnicoId': null,
     'horaEstimada': null,
   };
+
+  /// Aviso al residente con el motivo del rechazo.
+  static Map<String, dynamic> residentNotice({
+    required String residentId,
+    required String incidentId,
+    required String reportNumber,
+    required String title,
+    required String comment,
+  }) => {
+    'usuarioId': residentId,
+    'tipo': IncidentAdminRemoteDataSource.rejectedType,
+    'titulo': 'Incidencia $reportNumber rechazada',
+    'mensaje': 'Tu reporte "$title" fue rechazado. Motivo: $comment',
+    'refId': incidentId,
+    'leida': false,
+    'fecha': FieldValue.serverTimestamp(),
+  };
 }
