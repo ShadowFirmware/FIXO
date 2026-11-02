@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/admin_incident_history_view_model.dart';
 import '../widgets/admin_drawer.dart';
+import '../widgets/history_incident_detail.dart';
 import '../widgets/history_incident_widgets.dart';
 
 /// HU-4.11 Consultar historial de incidencias: todos los reportes, sin
@@ -99,12 +100,16 @@ class _AdminIncidentHistoryScreenState
         itemBuilder: (context, index) => HistoryIncidentCard(
           key: ValueKey(items[index].id),
           record: items[index],
+          onTap: () => showHistoryIncidentDetail(context, items[index]),
         ),
       );
     }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
-      child: HistoryIncidentTable(items: items),
+      child: HistoryIncidentTable(
+        items: items,
+        onView: (record) => showHistoryIncidentDetail(context, record),
+      ),
     );
   }
 }

@@ -11,6 +11,19 @@ import '../../domain/entities/history_incident.dart';
 String formatHistoryDate(DateTime? date) =>
     date == null ? 'Sin registrar' : DateFormats.dateTime(date);
 
+/// Técnico asignado, o "Sin asignar".
+String technicianLabel(HistoryIncident record) =>
+    record.technicianName ?? 'Sin asignar';
+
+/// Cuántas evidencias tiene: las del residente (antes) y las del técnico
+/// (después).
+String evidenceLabel(HistoryIncident record) {
+  final before = record.incident.evidenceBefore.length;
+  final after = record.incident.evidenceAfter.length;
+  if (before + after == 0) return 'Sin evidencias';
+  return 'Antes: $before · Después: $after';
+}
+
 /// Tarjeta de una incidencia del historial, para la vista móvil.
 class HistoryIncidentCard extends StatelessWidget {
   const HistoryIncidentCard({super.key, required this.record, this.onTap});
@@ -76,10 +89,31 @@ class HistoryIncidentCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
+              Text(
+                incident.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 10),
               HistoryInfoLine(Icons.apartment_outlined, record.housingLabel),
+              HistoryInfoLine(Icons.person_outline, record.reporterName),
+              HistoryInfoLine(
+                Icons.engineering_outlined,
+                technicianLabel(record),
+              ),
               HistoryInfoLine(
                 Icons.schedule_outlined,
-                formatHistoryDate(incident.createdAt),
+                'Creada: ${formatHistoryDate(incident.createdAt)}',
+              ),
+              if (incident.resolvedAt != null)
+                HistoryInfoLine(
+                  Icons.check_circle_outline_rounded,
+                  'Resuelta: ${formatHistoryDate(incident.resolvedAt)}',
+                ),
+              HistoryInfoLine(
+                Icons.photo_library_outlined,
+                evidenceLabel(record),
               ),
             ],
           ),
@@ -150,8 +184,13 @@ class HistoryIncidentTable extends StatelessWidget {
             DataColumn(label: Text('Nombre')),
             DataColumn(label: Text('Tipo')),
             DataColumn(label: Text('Estado')),
+            DataColumn(label: Text('Detalles')),
+            DataColumn(label: Text('Evidencias')),
             DataColumn(label: Text('Departamento')),
+            DataColumn(label: Text('Reportó')),
+            DataColumn(label: Text('Técnico')),
             DataColumn(label: Text('Fecha de creación')),
+            DataColumn(label: Text('Fecha de resolución')),
           ],
           rows: [
             for (final record in items)
@@ -162,8 +201,13 @@ class HistoryIncidentTable extends StatelessWidget {
                   DataCell(limited(record.incident.title, 160)),
                   DataCell(Text(record.incident.type.label)),
                   DataCell(IncidentStatusChip(status: record.incident.status)),
+                  DataCell(limited(record.incident.description, 220)),
+                  DataCell(Text(evidenceLabel(record))),
                   DataCell(Text(record.housingLabel)),
+                  DataCell(limited(record.reporterName, 160)),
+                  DataCell(limited(technicianLabel(record), 160)),
                   DataCell(Text(formatHistoryDate(record.incident.createdAt))),
+                  DataCell(Text(formatHistoryDate(record.incident.resolvedAt))),
                 ],
               ),
           ],

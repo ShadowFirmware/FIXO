@@ -7,6 +7,7 @@ class HistoryIncident {
     required this.incident,
     required this.housingLabel,
     required this.reporterName,
+    this.technicianName,
   });
 
   final Incident incident;
@@ -16,6 +17,9 @@ class HistoryIncident {
 
   /// Nombre del residente que registró la incidencia.
   final String reporterName;
+
+  /// Nombre del técnico asignado, o `null` si nunca se asignó.
+  final String? technicianName;
 
   String get id => incident.id;
 }

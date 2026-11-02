@@ -81,11 +81,16 @@ class IncidentAdminRepositoryImpl implements IncidentAdminRepository {
       compareOldestFirst(b, a);
 
   Future<HistoryIncident> _historyRecord(Incident incident) async {
-    final (housing, reporter) = await _namesOf(incident);
+    final technicianId = incident.technicianId ?? '';
+    final (names, technician) = await (
+      _namesOf(incident),
+      technicianId.isEmpty ? Future<String?>.value() : _userName(technicianId),
+    ).wait;
     return HistoryIncident(
       incident: incident,
-      housingLabel: housing,
-      reporterName: reporter,
+      housingLabel: names.$1,
+      reporterName: names.$2,
+      technicianName: technician,
     );
   }
 
