@@ -66,6 +66,9 @@ class IncidentFailure implements Exception {
   static const technicianUnavailable = IncidentFailure(
     'El técnico seleccionado ya no está disponible. Elige otro.',
   );
+  static const adminHistoryAccessDenied = IncidentFailure(
+    'Solo los administradores pueden consultar el historial completo.',
+  );
   static const actionFailed = IncidentFailure(
     'No se pudo completar la acción. Inténtalo de nuevo.',
   );

@@ -25,7 +25,7 @@ class TechnicianUnavailableException implements Exception {
 }
 
 /// Acceso a Firestore para la gestión de incidencias del administrador
-/// (HU-4.8, y las acciones de asignar y rechazar).
+/// (HU-4.8, las acciones de asignar y rechazar, y el historial HU-4.11).
 class IncidentAdminRemoteDataSource {
   IncidentAdminRemoteDataSource({FirebaseFirestore? firestore})
     : _firestoreOverride = firestore;
@@ -57,6 +57,13 @@ class IncidentAdminRemoteDataSource {
         .where('estado', isEqualTo: IncidentStatus.pending.value)
         .snapshots()
         .map((query) => [for (final doc in query.docs) ?_tryParse(doc)]);
+  }
+
+  /// Escucha todas las incidencias, sin importar su estado (HU-4.11).
+  Stream<List<IncidentModel>> watchAll() {
+    return _incidents.snapshots().map(
+      (query) => [for (final doc in query.docs) ?_tryParse(doc)],
+    );
   }
 
   static IncidentModel? _tryParse(DocumentSnapshot<Map<String, dynamic>> doc) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fixo/features/admin/data/datasources/incident_admin_remote_data_source.dart';
+import 'package:fixo/features/admin/domain/entities/history_incident.dart';
 import 'package:fixo/features/admin/domain/entities/pending_incident.dart';
 import 'package:fixo/features/admin/domain/repositories/incident_admin_repository.dart';
 import 'package:fixo/features/auth/data/models/user_model.dart';
@@ -45,6 +46,12 @@ class FakeIncidentAdminRepository implements IncidentAdminRepository {
 
   @override
   Stream<List<PendingIncident>> watchPending() => controller.stream;
+
+  /// Hace de Firestore en tiempo real para el historial (HU-4.11).
+  final historyController = StreamController<List<HistoryIncident>>.broadcast();
+
+  @override
+  Stream<List<HistoryIncident>> watchHistory() => historyController.stream;
 
   /// Si no es `null`, [availableTechnicians] falla con este error una vez.
   Object? techniciansError;
@@ -91,6 +98,12 @@ class FakeIncidentAdminRemoteDataSource
 
   @override
   Stream<List<IncidentModel>> watchPending() => controller.stream;
+
+  /// Todas las incidencias, para el historial (HU-4.11).
+  final allController = StreamController<List<IncidentModel>>.broadcast();
+
+  @override
+  Stream<List<IncidentModel>> watchAll() => allController.stream;
 
   @override
   Future<String?> userName(String uid) async {
