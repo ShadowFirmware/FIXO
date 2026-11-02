@@ -55,7 +55,17 @@ class _AdminIncidentHistoryScreenState
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
-        builder: (context, _) => _content(context),
+        builder: (context, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_viewModel.incidents.isNotEmpty)
+              HistoryStatusSummary(
+                total: _viewModel.incidents.length,
+                counts: _viewModel.statusCounts,
+              ),
+            Expanded(child: _content(context)),
+          ],
+        ),
       ),
     );
   }

@@ -57,12 +57,28 @@ class IncidentAdminRepositoryImpl implements IncidentAdminRepository {
 
   @override
   Stream<List<HistoryIncident>> watchHistory() {
-    return _remote.watchAll().asyncMap(
-      (incidents) => Future.wait([
-        for (final incident in incidents) _historyRecord(incident),
-      ]),
-    );
+    return _remote
+        .watchAll()
+        .asyncMap((incidents) {
+          final sorted = [...incidents]..sort(compareNewestFirst);
+          return Future.wait([
+            for (final incident in sorted) _historyRecord(incident),
+          ]);
+        })
+        .handleError((Object e) {
+          throw switch (e) {
+            FirebaseException(code: 'unavailable') => IncidentFailure.offline,
+            FirebaseException(code: 'permission-denied') =>
+              IncidentFailure.adminHistoryAccessDenied,
+            _ => IncidentFailure.historyLoadFailed,
+          };
+        });
   }
+
+  /// Más recientes primero. Las que aún no tienen fecha del servidor
+  /// (recién creadas) van al inicio; a igual fecha, por folio.
+  static int compareNewestFirst(Incident a, Incident b) =>
+      compareOldestFirst(b, a);
 
   Future<HistoryIncident> _historyRecord(Incident incident) async {
     final (housing, reporter) = await _namesOf(incident);

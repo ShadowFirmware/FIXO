@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/incident_failure.dart';
+import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/incident_admin_repository_impl.dart';
 import '../../domain/entities/history_incident.dart';
 import '../../domain/repositories/incident_admin_repository.dart';
@@ -34,6 +35,16 @@ class AdminIncidentHistoryViewModel extends ChangeNotifier {
 
   /// Incidencias que se muestran.
   List<HistoryIncident> get results => _incidents;
+
+  /// Cuántas incidencias hay en cada estado, incluidos los que no tienen
+  /// ninguna.
+  Map<IncidentStatus, int> get statusCounts {
+    final counts = {for (final status in IncidentStatus.values) status: 0};
+    for (final record in _incidents) {
+      counts[record.incident.status] = counts[record.incident.status]! + 1;
+    }
+    return counts;
+  }
 
   static const noIncidentsMessage = 'Aún no hay incidencias registradas.';
 
