@@ -7,6 +7,7 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/incident_admin_repository_impl.dart';
 import '../../domain/entities/pending_incident.dart';
+import '../../domain/entities/rejection_rules.dart';
 import '../../domain/repositories/incident_admin_repository.dart';
 
 /// ViewModel de las incidencias pendientes de asignación (HU-4.8).
@@ -83,12 +84,8 @@ class PendingIncidentsViewModel extends ChangeNotifier {
       _repository.availableTechnicians();
 
   /// Valida el comentario de rechazo; devuelve el error o `null`.
-  static String? validateRejection(String comment) {
-    final text = comment.trim();
-    if (text.isEmpty) return 'Escribe el motivo del rechazo';
-    if (text.length > 500) return 'El motivo no debe exceder 500 caracteres';
-    return null;
-  }
+  static String? validateRejection(String comment) =>
+      RejectionRules.validate(comment);
 
   /// Valida los datos de asignación; devuelve el error o `null`.
   static String? validateAssignment({
@@ -134,10 +131,13 @@ class PendingIncidentsViewModel extends ChangeNotifier {
       technicianId: technicianId!,
       estimatedTime: estimatedTime!,
     ),
-    invalid: validateAssignment(
-      technicianId: technicianId,
-      estimatedTime: estimatedTime,
-    ),
+    // Una incidencia rechazada es definitiva: nunca se asigna.
+    invalid: pending.incident.status == IncidentStatus.rejected
+        ? IncidentFailure.alreadyRejected.message
+        : validateAssignment(
+            technicianId: technicianId,
+            estimatedTime: estimatedTime,
+          ),
     success: 'Incidencia ${pending.incident.reportNumber} asignada.',
   );
 

@@ -7,6 +7,7 @@ import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../providers/pending_incidents_view_model.dart';
 import 'assign_incident_dialog.dart';
+import 'reject_incident_dialog.dart';
 
 String formatCreatedAt(PendingIncident pending) {
   final date = pending.incident.createdAt;
@@ -164,11 +165,13 @@ class _InfoLine extends StatelessWidget {
   }
 }
 
-/// Detalle completo de una incidencia pendiente, con sus evidencias.
+/// Detalle completo de una incidencia pendiente, con sus evidencias. Con
+/// [actions] también ofrece Rechazar y Asignar.
 Future<void> showPendingIncidentDetail(
   BuildContext context,
-  PendingIncident pending,
-) {
+  PendingIncident pending, {
+  PendingIncidentActions? actions,
+}) {
   final incident = pending.incident;
   return showDialog<void>(
     context: context,
@@ -205,16 +208,67 @@ Future<void> showPendingIncidentDetail(
         ),
       ),
       actions: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
+        if (actions == null)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          )
+        else
+          _DetailActions(
+            onReject: () {
+              Navigator.pop(context);
+              actions.reject(pending);
+            },
+            onAssign: () {
+              Navigator.pop(context);
+              actions.assign(pending);
+            },
           ),
-        ),
       ],
     ),
   );
+}
+
+/// Opciones del detalle: Rechazar y Asignar.
+class _DetailActions extends StatelessWidget {
+  const _DetailActions({required this.onReject, required this.onAssign});
+
+  final VoidCallback onReject;
+  final VoidCallback onAssign;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              key: const Key('pendingDetail.reject'),
+              onPressed: onReject,
+              icon: const Icon(Icons.close_rounded),
+              label: const Text('Rechazar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              key: const Key('pendingDetail.assign'),
+              onPressed: onAssign,
+              icon: const Icon(Icons.engineering_outlined),
+              label: const Text('Asignar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DetailRow extends StatelessWidget {
@@ -253,55 +307,13 @@ class PendingIncidentActions {
   final PendingIncidentsViewModel viewModel;
 
   Future<void> reject(PendingIncident pending) async {
-    final controller = TextEditingController();
-    String? error;
-
-    final comment = await showDialog<String>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text('Rechazar ${pending.incident.reportNumber}'),
-          content: SizedBox(
-            width: 480,
-            child: TextField(
-              controller: controller,
-              maxLines: 4,
-              maxLength: 500,
-              decoration: InputDecoration(
-                labelText: 'Motivo del rechazo',
-                hintText: 'Explica al residente por qué no procede',
-                errorText: error,
-              ),
-            ),
-          ),
-          actions: [
-            DialogButtons(
-              onCancel: () => Navigator.pop(context),
-              confirmLabel: 'Rechazar',
-              destructive: true,
-              onConfirm: () {
-                final invalid = PendingIncidentsViewModel.validateRejection(
-                  controller.text,
-                );
-                if (invalid != null) {
-                  setState(() => error = invalid);
-                  return;
-                }
-                Navigator.pop(context, controller.text.trim());
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+    final comment = await showRejectIncidentDialog(context, pending: pending);
     if (comment == null || !context.mounted) return;
 
-    final confirmed = await _confirm(
-      title: 'Confirmar rechazo',
-      message:
-          '¿Rechazar la incidencia ${pending.incident.reportNumber}? '
-          'Esta acción es definitiva y se notificará al residente.',
-      confirmLabel: 'Rechazar',
+    final confirmed = await showRejectConfirmation(
+      context,
+      pending: pending,
+      comment: comment,
     );
     if (!confirmed) return;
 
@@ -331,28 +343,6 @@ class PendingIncidentActions {
     if (message == null) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  Future<bool> _confirm({
-    required String title,
-    required String message,
-    required String confirmLabel,
-  }) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          DialogButtons(
-            onCancel: () => Navigator.pop(context, false),
-            confirmLabel: confirmLabel,
-            onConfirm: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
-    );
-    return ok == true;
   }
 }
 

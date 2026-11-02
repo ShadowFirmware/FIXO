@@ -7,10 +7,16 @@ import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../models/assignment_plan.dart';
+import '../models/rejection_plan.dart';
 
 /// La incidencia ya no está pendiente (otro administrador la atendió).
 class IncidentNotPendingException implements Exception {
   const IncidentNotPendingException();
+}
+
+/// La incidencia fue rechazada: es definitiva y ya no se puede asignar.
+class IncidentRejectedException implements Exception {
+  const IncidentRejectedException();
 }
 
 /// El técnico dejó de estar disponible o activo antes de confirmar.
@@ -171,33 +177,30 @@ class IncidentAdminRemoteDataSource {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
       final incidentDoc = await transaction.get(incidentRef);
-      final incident = incidentDoc.data();
-      if (incident == null ||
-          incident['estado'] != IncidentStatus.pending.value) {
-        throw const IncidentNotPendingException();
-      }
+      RejectionPlan.validate(incidentDoc.data());
+      final incident = incidentDoc.data()!;
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
       );
 
-      transaction.update(incidentRef, {
-        'estado': IncidentStatus.rejected.value,
-        'comentarioRechazo': comment,
-        'fechaRechazo': FieldValue.serverTimestamp(),
-      });
+      transaction.update(
+        incidentRef,
+        RejectionPlan.incidentUpdate(comment: comment),
+      );
 
       final residentId = incident['creadaPor'] as String?;
       if (residentId != null && residentId.isNotEmpty) {
-        transaction.set(_notifications.doc(), {
-          'usuarioId': residentId,
-          'tipo': rejectedType,
-          'titulo': 'Incidencia $reportNumber rechazada',
-          'mensaje': 'Motivo: $comment',
-          'refId': incidentId,
-          'leida': false,
-          'fecha': FieldValue.serverTimestamp(),
-        });
+        transaction.set(
+          _notifications.doc(),
+          RejectionPlan.residentNotice(
+            residentId: residentId,
+            incidentId: incidentId,
+            reportNumber: reportNumber,
+            title: incident['nombre'] as String? ?? '',
+            comment: comment,
+          ),
+        );
       }
     });
   }

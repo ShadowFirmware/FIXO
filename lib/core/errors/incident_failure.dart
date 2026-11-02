@@ -60,6 +60,9 @@ class IncidentFailure implements Exception {
     'La incidencia ya no está pendiente. Es posible que otro administrador '
     'la haya atendido.',
   );
+  static const alreadyRejected = IncidentFailure(
+    'La incidencia fue rechazada y ya no se puede asignar.',
+  );
   static const technicianUnavailable = IncidentFailure(
     'El técnico seleccionado ya no está disponible. Elige otro.',
   );
