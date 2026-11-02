@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/utils/date_formats.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../datasources/incident_admin_remote_data_source.dart';
@@ -40,6 +41,68 @@ abstract final class AssignmentPlan {
   /// Cambios en el técnico: queda No disponible hasta que complete el
   /// reporte de la incidencia, así no se le asigna otra mientras tanto.
   static const technicianUpdate = <String, dynamic>{'disponible': false};
+
+  /// Aviso al residente con el nombre del técnico y la hora estimada.
+  static Map<String, dynamic> residentNotice({
+    required String residentId,
+    required String incidentId,
+    required String reportNumber,
+    required String title,
+    required String technicianName,
+    required DateTime estimatedTime,
+  }) => _notice(
+    userId: residentId,
+    incidentId: incidentId,
+    title: 'Incidencia $reportNumber asignada',
+    message:
+        '$technicianName atenderá "$title". Hora estimada de llegada: '
+        '${DateFormats.dateTime(estimatedTime)}',
+  );
+
+  /// Aviso al técnico con los detalles de la incidencia asignada.
+  static Map<String, dynamic> technicianNotice({
+    required String technicianId,
+    required String incidentId,
+    required String reportNumber,
+    required String title,
+    required String typeLabel,
+    required String housingLabel,
+    required String description,
+    required DateTime estimatedTime,
+  }) {
+    final details = description.trim();
+    return _notice(
+      userId: technicianId,
+      incidentId: incidentId,
+      title: 'Nueva asignación $reportNumber',
+      message: [
+        'Se te asignó "$title" ($typeLabel) en $housingLabel.',
+        if (details.isNotEmpty) 'Detalles: ${_shorten(details)}',
+        'Hora estimada de llegada: ${DateFormats.dateTime(estimatedTime)}',
+      ].join(' '),
+    );
+  }
+
+  static const _maxDetails = 200;
+
+  static String _shorten(String text) => text.length <= _maxDetails
+      ? text
+      : '${text.substring(0, _maxDetails).trimRight()}…';
+
+  static Map<String, dynamic> _notice({
+    required String userId,
+    required String incidentId,
+    required String title,
+    required String message,
+  }) => {
+    'usuarioId': userId,
+    'tipo': IncidentAdminRemoteDataSource.assignedType,
+    'titulo': title,
+    'mensaje': message,
+    'refId': incidentId,
+    'leida': false,
+    'fecha': FieldValue.serverTimestamp(),
+  };
 
   /// Un técnico con cuenta activa y estado Disponible. Nunca uno
   /// suspendido, desactivado, dado de baja o con otro rol.
