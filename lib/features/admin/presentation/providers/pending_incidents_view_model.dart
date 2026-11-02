@@ -97,12 +97,32 @@ class PendingIncidentsViewModel extends ChangeNotifier {
     DateTime? now,
   }) {
     if (technicianId == null) return 'Selecciona un técnico';
+    return validateEstimatedTime(estimatedTime, now: now);
+  }
+
+  /// Valida la hora estimada de llegada; devuelve el error o `null`.
+  static String? validateEstimatedTime(
+    DateTime? estimatedTime, {
+    DateTime? now,
+  }) {
     if (estimatedTime == null) return 'Selecciona la hora estimada de llegada';
-    if (estimatedTime.isBefore(now ?? DateTime.now())) {
+    final current = now ?? DateTime.now();
+    if (estimatedTime.isBefore(current)) {
       return 'La hora estimada no puede ser en el pasado';
+    }
+    final limit = DateTime(
+      current.year,
+      current.month,
+      current.day + maxDaysAhead + 1,
+    );
+    if (!estimatedTime.isBefore(limit)) {
+      return 'La hora estimada no puede ser después de $maxDaysAhead días';
     }
     return null;
   }
+
+  /// Hasta cuántos días después de hoy se puede programar la visita.
+  static const maxDaysAhead = 30;
 
   Future<bool> assign(
     PendingIncident pending, {

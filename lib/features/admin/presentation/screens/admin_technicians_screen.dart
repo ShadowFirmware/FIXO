@@ -161,6 +161,10 @@ class _AdminTechniciansScreenState extends State<AdminTechniciansScreen> {
             Text('Teléfono: ${technician.phone}'),
             Text('Especialidad: ${technician.specialty ?? "Sin asignar"}'),
             Text('Estado: ${technician.accountStatus.value}'),
+            Text(
+              'Disponibilidad: '
+              '${technician.available == true ? "Disponible" : "No disponible"}',
+            ),
             Text('Conducta: ${technician.conductStatus?.value ?? "N/A"}'),
           ],
         ),

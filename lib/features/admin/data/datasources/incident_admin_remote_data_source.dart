@@ -6,6 +6,7 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../models/assignment_plan.dart';
 
 /// La incidencia ya no está pendiente (otro administrador la atendió).
 class IncidentNotPendingException implements Exception {
@@ -67,17 +68,11 @@ class IncidentAdminRemoteDataSource {
   }
 
   /// Nombre para mostrar de la vivienda [id], o `null` si no existe.
-  Future<String?> housingLabel(String id) async {
-    final doc = await _housings.doc(id).get();
-    if (!doc.exists) return null;
-    try {
-      return HousingModel.fromFirestore(doc).label;
-    } on FormatException {
-      return null;
-    }
-  }
+  Future<String?> housingLabel(String id) async =>
+      _labelOf(await _housings.doc(id).get());
 
-  /// Técnicos con cuenta activa y disponibles (HU-4.9).
+  /// Técnicos con cuenta activa y estado Disponible (HU-4.9). Un técnico
+  /// sin el campo `disponible` no se considera disponible.
   Future<List<UserModel>> availableTechnicians() async {
     final query = await _users
         .where('rol', isEqualTo: UserRole.technician.value)
@@ -87,7 +82,7 @@ class IncidentAdminRemoteDataSource {
     for (final doc in query.docs) {
       try {
         final user = UserModel.fromFirestore(doc);
-        if (user.available ?? true) technicians.add(user);
+        if (user.available == true) technicians.add(user);
       } on FormatException {
         continue;
       }
@@ -109,17 +104,19 @@ class IncidentAdminRemoteDataSource {
       final incidentDoc = await transaction.get(incidentRef);
       final technicianDoc = await transaction.get(technicianRef);
 
-      final incident = incidentDoc.data();
-      if (incident == null ||
-          incident['estado'] != IncidentStatus.pending.value) {
-        throw const IncidentNotPendingException();
-      }
-      final technician = technicianDoc.data();
-      if (technician == null ||
-          technician['estadoCuenta'] != AccountStatus.active.value ||
-          technician['disponible'] == false) {
-        throw const TechnicianUnavailableException();
-      }
+      AssignmentPlan.validate(
+        incident: incidentDoc.data(),
+        technician: technicianDoc.data(),
+        now: DateTime.now(),
+      );
+      final incident = incidentDoc.data()!;
+      final technician = technicianDoc.data()!;
+
+      // Las lecturas van antes de cualquier escritura de la transacción.
+      final housingId = incident['viviendaId'] as String? ?? '';
+      final housingDoc = housingId.isEmpty
+          ? null
+          : await transaction.get(_housings.doc(housingId));
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
@@ -127,39 +124,44 @@ class IncidentAdminRemoteDataSource {
       final title = incident['nombre'] as String? ?? '';
       final technicianName = technician['nombre'] as String? ?? 'Técnico';
 
-      transaction.update(incidentRef, {
-        'estado': IncidentStatus.assigned.value,
-        'tecnicoId': technicianId,
-        'horaEstimada': Timestamp.fromDate(estimatedTime),
-        'fechaAsignacion': FieldValue.serverTimestamp(),
-      });
-      transaction.update(technicianRef, {'disponible': false});
+      transaction.update(
+        incidentRef,
+        AssignmentPlan.incidentUpdate(
+          technicianId: technicianId,
+          estimatedTime: estimatedTime,
+        ),
+      );
+      transaction.update(technicianRef, AssignmentPlan.technicianUpdate);
 
       final residentId = incident['creadaPor'] as String?;
       if (residentId != null && residentId.isNotEmpty) {
-        transaction.set(_notifications.doc(), {
-          'usuarioId': residentId,
-          'tipo': assignedType,
-          'titulo': 'Incidencia $reportNumber asignada',
-          'mensaje':
-              '$technicianName atenderá "$title". Hora estimada de llegada: '
-              '${_hour(estimatedTime)}.',
-          'refId': incidentId,
-          'leida': false,
-          'fecha': FieldValue.serverTimestamp(),
-        });
+        transaction.set(
+          _notifications.doc(),
+          AssignmentPlan.residentNotice(
+            residentId: residentId,
+            incidentId: incidentId,
+            reportNumber: reportNumber,
+            title: title,
+            technicianName: technicianName,
+            estimatedTime: estimatedTime,
+          ),
+        );
       }
-      transaction.set(_notifications.doc(), {
-        'usuarioId': technicianId,
-        'tipo': assignedType,
-        'titulo': 'Nueva asignación $reportNumber',
-        'mensaje':
-            'Se te asignó "$title". Hora estimada de llegada: '
-            '${_hour(estimatedTime)}.',
-        'refId': incidentId,
-        'leida': false,
-        'fecha': FieldValue.serverTimestamp(),
-      });
+      transaction.set(
+        _notifications.doc(),
+        AssignmentPlan.technicianNotice(
+          technicianId: technicianId,
+          incidentId: incidentId,
+          reportNumber: reportNumber,
+          title: title,
+          typeLabel:
+              IncidentType.fromValue(incident['tipo'] as String?)?.label ??
+              IncidentType.other.label,
+          housingLabel: _labelOf(housingDoc) ?? 'Sin registrar',
+          description: incident['detalles'] as String? ?? '',
+          estimatedTime: estimatedTime,
+        ),
+      );
     });
   }
 
@@ -200,10 +202,12 @@ class IncidentAdminRemoteDataSource {
     });
   }
 
-  static String _hour(DateTime date) {
-    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-    final minute = date.minute.toString().padLeft(2, '0');
-    final period = date.hour < 12 ? 'a. m.' : 'p. m.';
-    return '${date.day}/${date.month}/${date.year} $hour:$minute $period';
+  static String? _labelOf(DocumentSnapshot<Map<String, dynamic>>? doc) {
+    if (doc == null || !doc.exists) return null;
+    try {
+      return HousingModel.fromFirestore(doc).label;
+    } on FormatException {
+      return null;
+    }
   }
 }
