@@ -125,12 +125,13 @@ class IncidentAdminRemoteDataSource {
       final title = incident['nombre'] as String? ?? '';
       final technicianName = technician['nombre'] as String? ?? 'Técnico';
 
-      transaction.update(incidentRef, {
-        'estado': IncidentStatus.assigned.value,
-        'tecnicoId': technicianId,
-        'horaEstimada': Timestamp.fromDate(estimatedTime),
-        'fechaAsignacion': FieldValue.serverTimestamp(),
-      });
+      transaction.update(
+        incidentRef,
+        AssignmentPlan.incidentUpdate(
+          technicianId: technicianId,
+          estimatedTime: estimatedTime,
+        ),
+      );
       transaction.update(technicianRef, {'disponible': false});
 
       final residentId = incident['creadaPor'] as String?;

@@ -25,6 +25,18 @@ abstract final class AssignmentPlan {
     }
   }
 
+  /// Cambios en la incidencia: pasa de Pendiente a Asignada con el técnico
+  /// y la hora estimada. La fecha de asignación la pone el servidor.
+  static Map<String, dynamic> incidentUpdate({
+    required String technicianId,
+    required DateTime estimatedTime,
+  }) => {
+    'estado': IncidentStatus.assigned.value,
+    'tecnicoId': technicianId,
+    'horaEstimada': Timestamp.fromDate(estimatedTime),
+    'fechaAsignacion': FieldValue.serverTimestamp(),
+  };
+
   /// Un técnico con cuenta activa y estado Disponible. Nunca uno
   /// suspendido, desactivado, dado de baja o con otro rol.
   static bool canReceiveAssignment(
