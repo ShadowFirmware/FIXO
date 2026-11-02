@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/incident_failure.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../data/datasources/history_pdf_exporter.dart';
+import '../../data/models/history_report.dart';
 import '../../data/repositories/incident_admin_repository_impl.dart';
 import '../../domain/entities/admin_history_filter.dart';
 import '../../domain/entities/history_incident.dart';
@@ -16,10 +18,64 @@ enum AdminHistoryState { loading, loaded, error }
 /// Escucha Firestore, así que el historial se actualiza solo cuando se
 /// registra, asigna, rechaza o resuelve una incidencia.
 class AdminIncidentHistoryViewModel extends ChangeNotifier {
-  AdminIncidentHistoryViewModel({IncidentAdminRepository? repository})
-    : _repository = repository ?? IncidentAdminRepositoryImpl();
+  AdminIncidentHistoryViewModel({
+    IncidentAdminRepository? repository,
+    HistoryPdfExporter? exporter,
+    DateTime Function()? clock,
+  }) : _repository = repository ?? IncidentAdminRepositoryImpl(),
+       _exporter = exporter ?? const HistoryPdfExporter(),
+       _clock = clock ?? DateTime.now;
 
   final IncidentAdminRepository _repository;
+  final HistoryPdfExporter _exporter;
+  final DateTime Function() _clock;
+
+  bool _isExporting = false;
+  bool get isExporting => _isExporting;
+
+  static const exportEmptyMessage =
+      'No hay incidencias para exportar con los filtros seleccionados.';
+  static const exportFailedMessage =
+      'No se pudo generar el PDF. Inténtalo de nuevo.';
+
+  /// Exporta a PDF las incidencias que se muestran, con los filtros
+  /// aplicados. Devuelve el mensaje para el usuario, o `null` si todo salió
+  /// bien.
+  Future<String?> exportPdf() async {
+    if (_isExporting) return null;
+    final records = results;
+    if (records.isEmpty) return exportEmptyMessage;
+
+    _isExporting = true;
+    _notify();
+    try {
+      final now = _clock();
+      final bytes = await _exporter.build(
+        records: records,
+        filterLines: HistoryReport.filterLines(
+          _filter,
+          technicianName: _labelOf(technicianOptions, _filter.technicianId),
+          housingLabel: _labelOf(housingOptions, _filter.housingId),
+        ),
+        generatedAt: now,
+      );
+      await _exporter.share(bytes, fileName: HistoryReport.fileName(now));
+      return null;
+    } catch (_) {
+      return exportFailedMessage;
+    } finally {
+      _isExporting = false;
+      _notify();
+    }
+  }
+
+  static String? _labelOf(List<(String, String)> options, String? id) {
+    for (final (value, label) in options) {
+      if (value == id) return label;
+    }
+    return null;
+  }
+
   StreamSubscription<List<HistoryIncident>>? _subscription;
   bool _disposed = false;
 

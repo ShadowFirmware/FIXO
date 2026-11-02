@@ -54,12 +54,34 @@ class _AdminIncidentHistoryScreenState
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
+        actions: [
+          FixoAppBarAction(
+            key: const Key('history.exportPdf'),
+            icon: Icons.picture_as_pdf_outlined,
+            tooltip: 'Exportar a PDF',
+            onPressed: _exportPdf,
+          ),
+        ],
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
-        builder: (context, _) => _content(context),
+        builder: (context, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_viewModel.isExporting) const LinearProgressIndicator(),
+            Expanded(child: _content(context)),
+          ],
+        ),
       ),
     );
+  }
+
+  /// Exporta lo que se ve en pantalla, con los filtros aplicados.
+  Future<void> _exportPdf() async {
+    final message = await _viewModel.exportPdf();
+    if (message == null || !mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _content(BuildContext context) {
