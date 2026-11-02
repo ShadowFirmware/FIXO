@@ -37,6 +37,10 @@ abstract final class AssignmentPlan {
     'fechaAsignacion': FieldValue.serverTimestamp(),
   };
 
+  /// Cambios en el técnico: queda No disponible hasta que complete el
+  /// reporte de la incidencia, así no se le asigna otra mientras tanto.
+  static const technicianUpdate = <String, dynamic>{'disponible': false};
+
   /// Un técnico con cuenta activa y estado Disponible. Nunca uno
   /// suspendido, desactivado, dado de baja o con otro rol.
   static bool canReceiveAssignment(

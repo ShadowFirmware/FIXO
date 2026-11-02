@@ -132,7 +132,7 @@ class IncidentAdminRemoteDataSource {
           estimatedTime: estimatedTime,
         ),
       );
-      transaction.update(technicianRef, {'disponible': false});
+      transaction.update(technicianRef, AssignmentPlan.technicianUpdate);
 
       final residentId = incident['creadaPor'] as String?;
       if (residentId != null && residentId.isNotEmpty) {
