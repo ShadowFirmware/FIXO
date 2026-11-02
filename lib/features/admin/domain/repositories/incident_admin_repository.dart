@@ -1,4 +1,5 @@
 import '../../../auth/domain/entities/app_user.dart';
+import '../entities/history_incident.dart';
 import '../entities/pending_incident.dart';
 
 abstract interface class IncidentAdminRepository {
@@ -6,6 +7,10 @@ abstract interface class IncidentAdminRepository {
   /// más reciente, cada vez que alguna cambia (HU-4.8). Las que cambian de
   /// estado dejan de emitirse. Los errores llegan como `IncidentFailure`.
   Stream<List<PendingIncident>> watchPending();
+
+  /// Emite todas las incidencias, sin importar su estado, cada vez que
+  /// alguna cambia (HU-4.11). Los errores llegan como `IncidentFailure`.
+  Stream<List<HistoryIncident>> watchHistory();
 
   /// Técnicos con cuenta activa y disponibles.
   Future<List<AppUser>> availableTechnicians();

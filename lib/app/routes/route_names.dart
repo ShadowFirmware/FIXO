@@ -24,6 +24,7 @@ abstract final class RouteNames {
   static const String adminTechnician = '/admin/technicians';
   static const String adminHousings = '/admin/housings';
   static const String adminPendingIncidents = '/admin/incidents/pending';
+  static const String adminIncidentHistory = '/admin/incidents/history';
 
   // Comunicación
   static const String incidentChat = '/incidents/chat';

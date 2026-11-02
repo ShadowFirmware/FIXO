@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../../../core/errors/incident_failure.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../domain/entities/history_incident.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../../domain/entities/rejection_rules.dart';
 import '../../domain/repositories/incident_admin_repository.dart';
@@ -54,23 +55,47 @@ class IncidentAdminRepositoryImpl implements IncidentAdminRepository {
     return byDate != 0 ? byDate : a.folio.compareTo(b.folio);
   }
 
+  @override
+  Stream<List<HistoryIncident>> watchHistory() {
+    return _remote.watchAll().asyncMap(
+      (incidents) => Future.wait([
+        for (final incident in incidents) _historyRecord(incident),
+      ]),
+    );
+  }
+
+  Future<HistoryIncident> _historyRecord(Incident incident) async {
+    final (housing, reporter) = await _namesOf(incident);
+    return HistoryIncident(
+      incident: incident,
+      housingLabel: housing,
+      reporterName: reporter,
+    );
+  }
+
   Future<PendingIncident> _withNames(Incident incident) async {
+    final (housing, reporter) = await _namesOf(incident);
+    return PendingIncident(
+      incident: incident,
+      housingLabel: housing,
+      reporterName: reporter,
+    );
+  }
+
+  /// Departamento y nombre de quien reportó la incidencia.
+  Future<(String, String)> _namesOf(Incident incident) async {
     final results = await Future.wait([
       _housingLabels.putIfAbsent(
         incident.housingId,
         () => _safe(() => _remote.housingLabel(incident.housingId)),
       ),
-      _userNames.putIfAbsent(
-        incident.createdBy,
-        () => _safe(() => _remote.userName(incident.createdBy)),
-      ),
+      _userName(incident.createdBy),
     ]);
-    return PendingIncident(
-      incident: incident,
-      housingLabel: results[0],
-      reporterName: results[1],
-    );
+    return (results[0], results[1]);
   }
+
+  Future<String> _userName(String uid) =>
+      _userNames.putIfAbsent(uid, () => _safe(() => _remote.userName(uid)));
 
   static Future<String> _safe(Future<String?> Function() read) async {
     try {
