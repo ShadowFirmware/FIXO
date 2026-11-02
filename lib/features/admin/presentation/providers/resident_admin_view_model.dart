@@ -37,6 +37,15 @@ class ResidentAdminViewModel extends ChangeNotifier {
   List<Housing> _housings = const [];
   List<Housing> get housings => _housings;
 
+  /// Nombre de la vivienda [housingId], o el ID si no se encuentra.
+  String housingLabel(String? housingId) {
+    if (housingId == null || housingId.isEmpty) return 'Sin asignar';
+    for (final housing in _housings) {
+      if (housing.id == housingId) return housing.label;
+    }
+    return housingId;
+  }
+
   Future<void> load() async {
     _isLoading = true;
     _errorMessage = null;
@@ -44,7 +53,8 @@ class ResidentAdminViewModel extends ChangeNotifier {
     try {
       _residents = await _repository.listResidents();
       _housings = await _repository.listHousings();
-      _availableHousings = _housings.where((h) => h.residentId == null).toList();
+      _availableHousings =
+          _housings.where((h) => h.active && h.residentId == null).toList();
     } catch (e) {
       _errorMessage = e is AuthFailure || e is ProfileFailure
           ? e.toString()

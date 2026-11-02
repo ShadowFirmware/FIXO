@@ -23,14 +23,18 @@ class RegisterIncidentViewModel extends ChangeNotifier {
     EvidencePicker? picker,
   }) : _session = session ?? AuthSession.instance,
        _housings = housings ?? HousingRepositoryImpl(),
-       _registerIncident = RegisterIncident(
-         incidents ?? IncidentRepositoryImpl(),
-       ),
+       _incidents = incidents ?? IncidentRepositoryImpl(),
        _picker = picker ?? EvidencePicker() {
     _loadHousing();
   }
 
-  final RegisterIncident _registerIncident;
+  final IncidentRepository _incidents;
+
+  /// Revisa también que la vivienda siga activa (HU-4.7).
+  late final RegisterIncident _registerIncident = RegisterIncident(
+    _incidents,
+    _housings,
+  );
 
   bool _isSaving = false;
   bool get isSaving => _isSaving;

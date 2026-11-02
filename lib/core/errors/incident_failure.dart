@@ -8,6 +8,10 @@ class IncidentFailure implements Exception {
     'No tienes una vivienda asignada. Contacta al administrador para poder '
     'registrar incidencias.',
   );
+  static const inactiveHousing = IncidentFailure(
+    'Tu vivienda está inactiva, así que no se pueden registrar incidencias '
+    'nuevas. Contacta al administrador.',
+  );
   static const notResident = IncidentFailure(
     'Solo los residentes pueden registrar incidencias.',
   );

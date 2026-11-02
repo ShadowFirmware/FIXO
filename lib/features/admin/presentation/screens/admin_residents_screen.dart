@@ -167,7 +167,7 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
           children: [
             Text('Correo: ${resident.email}'),
             Text('Teléfono: ${resident.phone}'),
-            Text('Vivienda: ${resident.housingId ?? "Sin asignar"}'),
+            Text('Vivienda: ${_viewModel.housingLabel(resident.housingId)}'),
             Text('Estado: ${resident.accountStatus.value}'),
             Text('Conducta: ${resident.conductStatus?.value ?? "N/A"}'),
           ],
@@ -207,9 +207,12 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           final housingOptions = _viewModel.housings
+              // Su vivienda actual siempre aparece, aunque esté inactiva;
+              // las demás solo si están activas y libres.
               .where((h) =>
-                  h.active &&
-                  (h.residentId == null || h.residentId == resident.uid || h.id == resident.housingId))
+                  h.id == resident.housingId ||
+                  (h.active &&
+                      (h.residentId == null || h.residentId == resident.uid)))
               .toList();
 
           return AlertDialog(
@@ -486,6 +489,14 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.apartment_outlined),
+              title: const Text('Residencias'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, RouteNames.adminHousings);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('Ver perfil'),
               onTap: () {
@@ -597,7 +608,7 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
                   DataCell(Text(r.name)),
                   DataCell(Text(r.email)),
                   DataCell(Text(r.phone)),
-                  DataCell(Text(r.housingId ?? '')),
+                  DataCell(Text(_viewModel.housingLabel(r.housingId))),
                   DataCell(Row(
                     children: [
                       IconButton(

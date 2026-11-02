@@ -47,6 +47,42 @@ class FakeHousingRepository implements HousingRepository {
   }
 
   @override
+  Future<List<Housing>> listAll() async {
+    if (error != null) throw error!;
+    return housings.values.toList();
+  }
+
+  @override
+  Future<Housing> register({
+    required HousingType type,
+    required String number,
+    String? building,
+  }) async {
+    if (error != null) throw error!;
+    return Housing(
+      id: 'vivienda-${housings.length + 1}',
+      type: type,
+      number: number,
+      building: building,
+    );
+  }
+
+  @override
+  Future<void> update({
+    required String id,
+    required HousingType type,
+    required String number,
+    String? building,
+  }) async {
+    if (error != null) throw error!;
+  }
+
+  @override
+  Future<void> setActive({required String id, required bool active}) async {
+    if (error != null) throw error!;
+  }
+
+  @override
   Future<void> assignResident({
     required String housingId,
     required String residentId,
