@@ -131,10 +131,13 @@ class PendingIncidentsViewModel extends ChangeNotifier {
       technicianId: technicianId!,
       estimatedTime: estimatedTime!,
     ),
-    invalid: validateAssignment(
-      technicianId: technicianId,
-      estimatedTime: estimatedTime,
-    ),
+    // Una incidencia rechazada es definitiva: nunca se asigna.
+    invalid: pending.incident.status == IncidentStatus.rejected
+        ? IncidentFailure.alreadyRejected.message
+        : validateAssignment(
+            technicianId: technicianId,
+            estimatedTime: estimatedTime,
+          ),
     success: 'Incidencia ${pending.incident.reportNumber} asignada.',
   );
 

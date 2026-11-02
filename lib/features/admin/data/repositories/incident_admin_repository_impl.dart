@@ -102,6 +102,8 @@ class IncidentAdminRepositoryImpl implements IncidentAdminRepository {
         technicianId: technicianId,
         estimatedTime: estimatedTime,
       );
+    } on IncidentRejectedException {
+      throw IncidentFailure.alreadyRejected;
     } on IncidentNotPendingException {
       throw IncidentFailure.notPending;
     } on TechnicianUnavailableException {

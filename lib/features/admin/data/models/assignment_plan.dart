@@ -9,14 +9,17 @@ import '../datasources/incident_admin_remote_data_source.dart';
 /// documentos que se leen dentro de la transacción. Son funciones puras
 /// para poder probarlas sin Firestore.
 abstract final class AssignmentPlan {
-  /// Lanza [IncidentNotPendingException] si la incidencia ya no está
-  /// pendiente, o [TechnicianUnavailableException] si el técnico no puede
-  /// recibirla.
+  /// Lanza [IncidentRejectedException] si la incidencia fue rechazada,
+  /// [IncidentNotPendingException] si ya no está pendiente por otra razón,
+  /// o [TechnicianUnavailableException] si el técnico no puede recibirla.
   static void validate({
     required Map<String, dynamic>? incident,
     required Map<String, dynamic>? technician,
     required DateTime now,
   }) {
+    if (incident?['estado'] == IncidentStatus.rejected.value) {
+      throw const IncidentRejectedException();
+    }
     if (incident == null ||
         incident['estado'] != IncidentStatus.pending.value) {
       throw const IncidentNotPendingException();

@@ -14,6 +14,11 @@ class IncidentNotPendingException implements Exception {
   const IncidentNotPendingException();
 }
 
+/// La incidencia fue rechazada: es definitiva y ya no se puede asignar.
+class IncidentRejectedException implements Exception {
+  const IncidentRejectedException();
+}
+
 /// El técnico dejó de estar disponible o activo antes de confirmar.
 class TechnicianUnavailableException implements Exception {
   const TechnicianUnavailableException();
