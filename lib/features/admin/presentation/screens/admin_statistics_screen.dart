@@ -6,6 +6,7 @@ import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/incident_stats_view_model.dart';
 import '../widgets/admin_drawer.dart';
 import '../widgets/history_incident_widgets.dart';
+import '../widgets/stats_period_selector.dart';
 import '../widgets/stats_widgets.dart';
 
 /// HU-4.12 Consultar estadísticas de incidencias por periodo.
@@ -58,58 +59,75 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
     );
   }
 
+  /// El selector del periodo siempre está visible, para poder cambiarlo
+  /// aunque el periodo actual esté cargando o haya fallado.
   Widget _content(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        StatsPeriodSelector(viewModel: _viewModel),
+        const SizedBox(height: 12),
+        ..._body(),
+      ],
+    );
+  }
+
+  List<Widget> _body() {
     final vm = _viewModel;
     switch (vm.state) {
       case StatsState.loading:
-        return const Center(child: CircularProgressIndicator());
+        return const [
+          Padding(
+            padding: EdgeInsets.all(48),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ];
       case StatsState.error:
-        return HistoryEmptyMessage(
-          icon: Icons.cloud_off_outlined,
-          text: vm.errorMessage!,
-        );
+        return [
+          HistoryEmptyMessage(
+            icon: Icons.cloud_off_outlined,
+            text: vm.errorMessage!,
+          ),
+        ];
       case StatsState.loaded:
         break;
     }
 
     final stats = vm.stats;
     const empty = StatsEmpty(IncidentStatsViewModel.noIncidentsMessage);
-    return ListView(
-      padding: const EdgeInsets.all(12),
-      children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            StatsSummaryTile(
-              key: const Key('stats.total'),
-              label: 'Incidencias',
-              value: stats.total,
-              icon: Icons.assignment_outlined,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        const StatsGrid(
-          children: [
-            StatsSection(
-              title: 'Incidencias por tipo',
-              icon: Icons.category_outlined,
-              child: empty,
-            ),
-            StatsSection(
-              title: 'Incidencias por estado',
-              icon: Icons.donut_large_outlined,
-              child: empty,
-            ),
-            StatsSection(
-              title: 'Asignadas por técnico',
-              icon: Icons.engineering_outlined,
-              child: empty,
-            ),
-          ],
-        ),
-      ],
-    );
+    return [
+      Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          StatsSummaryTile(
+            key: const Key('stats.total'),
+            label: 'Incidencias',
+            value: stats.total,
+            icon: Icons.assignment_outlined,
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      const StatsGrid(
+        children: [
+          StatsSection(
+            title: 'Incidencias por tipo',
+            icon: Icons.category_outlined,
+            child: empty,
+          ),
+          StatsSection(
+            title: 'Incidencias por estado',
+            icon: Icons.donut_large_outlined,
+            child: empty,
+          ),
+          StatsSection(
+            title: 'Asignadas por técnico',
+            icon: Icons.engineering_outlined,
+            child: empty,
+          ),
+        ],
+      ),
+    ];
   }
 }
