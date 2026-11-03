@@ -66,6 +66,23 @@ class IncidentAdminRemoteDataSource {
     );
   }
 
+  /// Escucha las incidencias creadas desde [start] (incluido) hasta [end]
+  /// (excluido), para las estadísticas (HU-4.12). Un rango sobre un solo
+  /// campo no necesita índice compuesto.
+  Stream<List<IncidentModel>> watchCreatedBetween(
+    DateTime start,
+    DateTime end,
+  ) {
+    return _incidents
+        .where(
+          'fechaCreacion',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+        )
+        .where('fechaCreacion', isLessThan: Timestamp.fromDate(end))
+        .snapshots()
+        .map((query) => [for (final doc in query.docs) ?_tryParse(doc)]);
+  }
+
   static IncidentModel? _tryParse(DocumentSnapshot<Map<String, dynamic>> doc) {
     try {
       return IncidentModel.fromFirestore(doc);

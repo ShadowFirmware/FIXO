@@ -7,6 +7,7 @@ import '../../features/admin/presentation/screens/admin_incident_history_screen.
 import '../../features/admin/presentation/screens/admin_pending_incidents_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_residents_screen.dart';
+import '../../features/admin/presentation/screens/admin_statistics_screen.dart';
 import '../../features/admin/presentation/screens/admin_technicians_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/auth/presentation/providers/auth_session.dart';
@@ -44,6 +45,7 @@ abstract final class AppRouter {
     RouteNames.adminHousings: {UserRole.admin},
     RouteNames.adminPendingIncidents: {UserRole.admin},
     RouteNames.adminIncidentHistory: {UserRole.admin},
+    RouteNames.adminStatistics: {UserRole.admin},
     RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
   };
 
@@ -96,6 +98,8 @@ abstract final class AppRouter {
         return _page(const AdminPendingIncidentsScreen(), settings);
       case RouteNames.adminIncidentHistory:
         return _page(const AdminIncidentHistoryScreen(), settings);
+      case RouteNames.adminStatistics:
+        return _page(const AdminStatisticsScreen(), settings);
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),

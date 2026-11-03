@@ -53,6 +53,17 @@ class FakeIncidentAdminRepository implements IncidentAdminRepository {
   @override
   Stream<List<HistoryIncident>> watchHistory() => historyController.stream;
 
+  /// Hace de Firestore para las estadísticas (HU-4.12); guarda los
+  /// periodos que se pidieron.
+  final periodController = StreamController<List<HistoryIncident>>.broadcast();
+  final requestedPeriods = <(DateTime, DateTime)>[];
+
+  @override
+  Stream<List<HistoryIncident>> watchPeriod(DateTime start, DateTime end) {
+    requestedPeriods.add((start, end));
+    return periodController.stream;
+  }
+
   /// Si no es `null`, [availableTechnicians] falla con este error una vez.
   Object? techniciansError;
   int technicianLoads = 0;
@@ -104,6 +115,15 @@ class FakeIncidentAdminRemoteDataSource
 
   @override
   Stream<List<IncidentModel>> watchAll() => allController.stream;
+
+  /// Incidencias de un periodo, para las estadísticas (HU-4.12).
+  final periodController = StreamController<List<IncidentModel>>.broadcast();
+
+  @override
+  Stream<List<IncidentModel>> watchCreatedBetween(
+    DateTime start,
+    DateTime end,
+  ) => periodController.stream;
 
   @override
   Future<String?> userName(String uid) async {
