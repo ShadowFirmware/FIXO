@@ -8,6 +8,7 @@ import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../providers/incident_stats_view_model.dart';
 import '../widgets/admin_drawer.dart';
 import '../widgets/history_incident_widgets.dart';
+import '../widgets/stats_charts.dart';
 import '../widgets/stats_entries.dart';
 import '../widgets/stats_period_selector.dart';
 import '../widgets/stats_widgets.dart';
@@ -128,7 +129,7 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
             icon: Icons.category_outlined,
             child: stats.isEmpty
                 ? empty
-                : StatsCountList(
+                : StatsBarChart(
                     entries: typeEntries(stats),
                     total: stats.total,
                   ),
@@ -139,7 +140,7 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
             icon: Icons.donut_large_outlined,
             child: stats.isEmpty
                 ? empty
-                : StatsCountList(
+                : StatsDonutChart(
                     entries: statusEntries(stats),
                     total: stats.total,
                   ),
@@ -154,7 +155,7 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
                         ? IncidentStatsViewModel.noIncidentsMessage
                         : IncidentStatsViewModel.noAssignmentsMessage,
                   )
-                : StatsCountList(
+                : StatsBarChart(
                     entries: technicianEntries(stats),
                     total: stats.assignedCount,
                   ),
