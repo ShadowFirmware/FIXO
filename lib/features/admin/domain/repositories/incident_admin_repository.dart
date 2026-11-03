@@ -12,6 +12,11 @@ abstract interface class IncidentAdminRepository {
   /// alguna cambia (HU-4.11). Los errores llegan como `IncidentFailure`.
   Stream<List<HistoryIncident>> watchHistory();
 
+  /// Emite las incidencias creadas desde [start] (incluido) hasta [end]
+  /// (excluido) cada vez que alguna cambia (HU-4.12). Los errores llegan
+  /// como `IncidentFailure`.
+  Stream<List<HistoryIncident>> watchPeriod(DateTime start, DateTime end);
+
   /// Técnicos con cuenta activa y disponibles.
   Future<List<AppUser>> availableTechnicians();
 

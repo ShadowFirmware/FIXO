@@ -75,6 +75,25 @@ class IncidentAdminRepositoryImpl implements IncidentAdminRepository {
         });
   }
 
+  @override
+  Stream<List<HistoryIncident>> watchPeriod(DateTime start, DateTime end) {
+    return _remote
+        .watchCreatedBetween(start, end)
+        .asyncMap(
+          (incidents) => Future.wait([
+            for (final incident in incidents) _historyRecord(incident),
+          ]),
+        )
+        .handleError((Object e) {
+          throw switch (e) {
+            FirebaseException(code: 'unavailable') => IncidentFailure.offline,
+            FirebaseException(code: 'permission-denied') =>
+              IncidentFailure.statsAccessDenied,
+            _ => IncidentFailure.statsLoadFailed,
+          };
+        });
+  }
+
   /// Más recientes primero. Las que aún no tienen fecha del servidor
   /// (recién creadas) van al inicio; a igual fecha, por folio.
   static int compareNewestFirst(Incident a, Incident b) =>

@@ -69,6 +69,12 @@ class IncidentFailure implements Exception {
   static const adminHistoryAccessDenied = IncidentFailure(
     'Solo los administradores pueden consultar el historial completo.',
   );
+  static const statsLoadFailed = IncidentFailure(
+    'No se pudieron cargar las estadísticas. Inténtalo de nuevo.',
+  );
+  static const statsAccessDenied = IncidentFailure(
+    'Solo los administradores pueden consultar las estadísticas.',
+  );
   static const actionFailed = IncidentFailure(
     'No se pudo completar la acción. Inténtalo de nuevo.',
   );
