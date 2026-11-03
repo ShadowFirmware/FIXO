@@ -161,3 +161,72 @@ class StatsGrid extends StatelessWidget {
     );
   }
 }
+
+/// Un renglón de una estadística: etiqueta, cantidad y color.
+class StatsEntry {
+  const StatsEntry({
+    required this.label,
+    required this.count,
+    required this.color,
+    this.icon,
+  });
+
+  final String label;
+  final int count;
+  final Color color;
+  final IconData? icon;
+}
+
+/// Lista de cantidades con su porcentaje del total.
+class StatsCountList extends StatelessWidget {
+  const StatsCountList({super.key, required this.entries, required this.total});
+
+  final List<StatsEntry> entries;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      children: [
+        for (final entry in entries)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Icon(entry.icon ?? Icons.circle, size: 16, color: entry.color),
+                const SizedBox(width: 8),
+                Expanded(child: Text(entry.label, style: textTheme.bodyMedium)),
+                Text(
+                  '${entry.count}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(
+                  width: 56,
+                  child: Text(
+                    formatPercent(entry.count, total),
+                    textAlign: TextAlign.end,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// "25 %" o "33.3 %" del total; "0 %" si no hay incidencias.
+String formatPercent(int count, int total) {
+  if (total == 0) return '0 %';
+  final value = count * 100 / total;
+  final text = value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(1);
+  return '$text %';
+}

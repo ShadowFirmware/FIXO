@@ -1,11 +1,26 @@
+import '../../../incidents/domain/entities/incident.dart';
+import 'history_incident.dart';
+
 /// Estadísticas de las incidencias de un periodo (HU-4.12).
 class IncidentStats {
-  const IncidentStats({required this.total});
+  const IncidentStats({required this.total, this.byType = const {}});
 
   static const empty = IncidentStats(total: 0);
 
+  /// Calcula las estadísticas de las incidencias del periodo.
+  factory IncidentStats.from(List<HistoryIncident> records) {
+    final byType = {for (final type in IncidentType.values) type: 0};
+    for (final record in records) {
+      byType[record.incident.type] = byType[record.incident.type]! + 1;
+    }
+    return IncidentStats(total: records.length, byType: byType);
+  }
+
   /// Incidencias creadas en el periodo.
   final int total;
+
+  /// Cuántas hay de cada tipo, incluidos los que no tienen ninguna.
+  final Map<IncidentType, int> byType;
 
   bool get isEmpty => total == 0;
 }

@@ -102,7 +102,7 @@ class IncidentStatsViewModel extends ChangeNotifier {
 
   void _onIncidents(List<HistoryIncident> incidents) {
     _incidents = List.unmodifiable(incidents);
-    _stats = IncidentStats(total: incidents.length);
+    _stats = IncidentStats.from(incidents);
     _errorMessage = null;
     _state = StatsState.loaded;
     _notify();

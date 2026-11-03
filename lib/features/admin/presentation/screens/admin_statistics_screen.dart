@@ -6,6 +6,7 @@ import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/incident_stats_view_model.dart';
 import '../widgets/admin_drawer.dart';
 import '../widgets/history_incident_widgets.dart';
+import '../widgets/stats_entries.dart';
 import '../widgets/stats_period_selector.dart';
 import '../widgets/stats_widgets.dart';
 
@@ -109,12 +110,18 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
         ],
       ),
       const SizedBox(height: 12),
-      const StatsGrid(
+      StatsGrid(
         children: [
           StatsSection(
+            key: const Key('stats.byType'),
             title: 'Incidencias por tipo',
             icon: Icons.category_outlined,
-            child: empty,
+            child: stats.isEmpty
+                ? empty
+                : StatsCountList(
+                    entries: typeEntries(stats),
+                    total: stats.total,
+                  ),
           ),
           StatsSection(
             title: 'Incidencias por estado',
