@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/incident_stats.dart';
 import 'stats_widgets.dart';
@@ -21,5 +22,16 @@ List<StatsEntry> typeEntries(IncidentStats stats) => [
       count: stats.byType[type] ?? 0,
       color: typeColor(type),
       icon: type.icon,
+    ),
+];
+
+/// Incidencias por estado, en el orden en que avanza una incidencia.
+List<StatsEntry> statusEntries(IncidentStats stats) => [
+  for (final status in IncidentStatus.values)
+    StatsEntry(
+      label: status.label,
+      count: stats.countOf(status),
+      color: status.color,
+      icon: status.icon,
     ),
 ];

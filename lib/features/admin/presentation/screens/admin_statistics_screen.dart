@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../providers/incident_stats_view_model.dart';
 import '../widgets/admin_drawer.dart';
 import '../widgets/history_incident_widgets.dart';
@@ -107,6 +109,14 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
             value: stats.total,
             icon: Icons.assignment_outlined,
           ),
+          for (final status in IncidentStatus.values)
+            StatsSummaryTile(
+              key: Key('stats.summary.${status.value}'),
+              label: status.label,
+              value: stats.countOf(status),
+              icon: status.icon,
+              color: status.color,
+            ),
         ],
       ),
       const SizedBox(height: 12),
@@ -124,9 +134,15 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
                   ),
           ),
           StatsSection(
+            key: const Key('stats.byStatus'),
             title: 'Incidencias por estado',
             icon: Icons.donut_large_outlined,
-            child: empty,
+            child: stats.isEmpty
+                ? empty
+                : StatsCountList(
+                    entries: statusEntries(stats),
+                    total: stats.total,
+                  ),
           ),
           StatsSection(
             title: 'Asignadas por técnico',
