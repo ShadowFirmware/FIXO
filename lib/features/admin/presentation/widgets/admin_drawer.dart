@@ -94,6 +94,11 @@ class AdminDrawer extends StatelessWidget {
               'Historial de incidencias',
               RouteNames.adminIncidentHistory,
             ),
+            item(
+              Icons.bar_chart_rounded,
+              'Estadísticas',
+              RouteNames.adminStatistics,
+            ),
             item(Icons.people_outline, 'Residentes', RouteNames.adminResidents),
             item(Icons.build_outlined, 'Técnicos', RouteNames.adminTechnicians),
             item(
