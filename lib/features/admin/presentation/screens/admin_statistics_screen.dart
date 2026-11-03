@@ -145,9 +145,19 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
                   ),
           ),
           StatsSection(
+            key: const Key('stats.byTechnician'),
             title: 'Asignadas por técnico',
             icon: Icons.engineering_outlined,
-            child: empty,
+            child: stats.byTechnician.isEmpty
+                ? StatsEmpty(
+                    stats.isEmpty
+                        ? IncidentStatsViewModel.noIncidentsMessage
+                        : IncidentStatsViewModel.noAssignmentsMessage,
+                  )
+                : StatsCountList(
+                    entries: technicianEntries(stats),
+                    total: stats.assignedCount,
+                  ),
           ),
         ],
       ),

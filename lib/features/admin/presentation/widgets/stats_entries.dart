@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
@@ -33,5 +34,18 @@ List<StatsEntry> statusEntries(IncidentStats stats) => [
       count: stats.countOf(status),
       color: status.color,
       icon: status.icon,
+    ),
+];
+
+/// Incidencias asignadas a cada técnico, de más a menos.
+List<StatsEntry> technicianEntries(IncidentStats stats) => [
+  for (final load in stats.byTechnician)
+    StatsEntry(
+      label:
+          '${load.name} · ${load.resolved} '
+          '${load.resolved == 1 ? 'resuelta' : 'resueltas'}',
+      count: load.assigned,
+      color: AppColors.primary,
+      icon: Icons.engineering_outlined,
     ),
 ];

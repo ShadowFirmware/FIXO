@@ -47,6 +47,8 @@ class IncidentStatsViewModel extends ChangeNotifier {
   IncidentStats get stats => _stats;
 
   static const noIncidentsMessage = 'No hay incidencias en este periodo.';
+  static const noAssignmentsMessage =
+      'Ninguna incidencia del periodo tiene técnico asignado.';
 
   late StatsPeriod _period;
 
