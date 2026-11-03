@@ -14,7 +14,8 @@ enum StatsState { loading, loaded, error }
 /// ViewModel del dashboard de estadísticas de incidencias (HU-4.12).
 ///
 /// Escucha en Firestore las incidencias creadas en el periodo
-/// seleccionado; al cambiar de periodo deja de escuchar el anterior.
+/// seleccionado, así que las estadísticas se recalculan solas con cada
+/// cambio del sistema; al cambiar de periodo deja de escuchar el anterior.
 class IncidentStatsViewModel extends ChangeNotifier {
   IncidentStatsViewModel({
     IncidentAdminRepository? repository,
@@ -93,10 +94,28 @@ class IncidentStatsViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// Vuelve a escuchar el periodo después de un error.
+  void retry() {
+    if (!_started || _state != StatsState.error) return;
+    _listen();
+    _notify();
+  }
+
+  DateTime? _updatedAt;
+
+  /// Cuándo llegaron los últimos cambios de Firestore. Cambia cada vez que
+  /// se registra, asigna, rechaza o resuelve una incidencia del periodo.
+  DateTime? get updatedAt => _updatedAt;
+
+  /// Deja de escuchar el periodo anterior, para que sus cambios no se
+  /// mezclen con los del nuevo.
   void _listen() {
     _subscription?.cancel();
     _state = StatsState.loading;
     _errorMessage = null;
+    _incidents = const [];
+    _stats = IncidentStats.empty;
+    _updatedAt = null;
     _subscription = _repository
         .watchPeriod(_period.start, _period.end)
         .listen(_onIncidents, onError: _onError);
@@ -107,6 +126,7 @@ class IncidentStatsViewModel extends ChangeNotifier {
     _stats = IncidentStats.from(incidents);
     _errorMessage = null;
     _state = StatsState.loaded;
+    _updatedAt = _clock();
     _notify();
   }
 

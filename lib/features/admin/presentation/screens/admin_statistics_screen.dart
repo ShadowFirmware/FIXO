@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_formats.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
@@ -91,6 +92,12 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
           HistoryEmptyMessage(
             icon: Icons.cloud_off_outlined,
             text: vm.errorMessage!,
+            action: OutlinedButton.icon(
+              key: const Key('stats.retry'),
+              onPressed: vm.retry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Reintentar'),
+            ),
           ),
         ];
       case StatsState.loaded:
@@ -100,6 +107,25 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
     final stats = vm.stats;
     const empty = StatsEmpty(IncidentStatsViewModel.noIncidentsMessage);
     return [
+      if (vm.updatedAt case final updatedAt?)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            key: const Key('stats.live'),
+            children: [
+              const Icon(Icons.circle, size: 10, color: AppColors.success),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'En tiempo real · Actualizado a las '
+                  '${DateFormats.time(updatedAt)}',
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+            ],
+          ),
+        ),
       Wrap(
         spacing: 12,
         runSpacing: 12,
