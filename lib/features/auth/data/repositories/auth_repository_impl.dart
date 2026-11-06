@@ -4,6 +4,7 @@ import '../../../../core/errors/auth_failure.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({AuthRemoteDataSource? remote})
@@ -47,7 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await _remote.fetchUser(uid);
       if (user == null) throw AuthFailure.notRegistered;
       _ensureCanAccess(user);
-      return user;
+      return await _applyConfirmedEmail(user);
     } on FormatException {
       await _remote.signOut();
       throw AuthFailure.notRegistered;
@@ -58,6 +59,18 @@ class AuthRepositoryImpl implements AuthRepository {
       await _remote.signOut();
       rethrow;
     }
+  }
+
+  /// Si Authentication ya tiene el correo pendiente, el enlace se confirmó y
+  /// el perfil pasa a usarlo. Solo se compara con el correo pendiente para no
+  /// deshacer los cambios de correo hechos por un administrador.
+  Future<AppUser> _applyConfirmedEmail(UserModel user) async {
+    final pending = user.pendingEmail;
+    if (pending == null || pending != _remote.currentEmail?.toLowerCase()) {
+      return user;
+    }
+    await _remote.confirmEmail(user.uid, pending);
+    return user.copyWithEmail(pending);
   }
 
   /// Una suspensión temporal cuyo plazo ya terminó no bloquea el acceso

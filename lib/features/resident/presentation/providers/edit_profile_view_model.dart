@@ -40,6 +40,13 @@ class EditProfileViewModel extends ChangeNotifier {
   String get initialPhone => _user?.phone.trim() ?? '';
   String get email => _user?.email ?? '';
 
+  /// Especialidad del técnico. Es de solo lectura: solo un administrador
+  /// puede cambiarla.
+  String get specialty {
+    final specialty = _user?.specialty?.trim() ?? '';
+    return specialty.isEmpty ? 'Sin registrar' : specialty;
+  }
+
   /// Nombre de la vivienda asignada. Es de solo lectura: solo un
   /// administrador puede cambiarla.
   String _housing = 'Cargando…';
@@ -66,6 +73,7 @@ class EditProfileViewModel extends ChangeNotifier {
   bool _hasChanges = false;
   bool _isSaving = false;
   String? _errorMessage;
+  String? _pendingEmail;
 
   /// `true` si hay cambios respecto a los datos guardados.
   bool get hasChanges => _hasChanges;
@@ -73,6 +81,13 @@ class EditProfileViewModel extends ChangeNotifier {
 
   /// Motivo por el que no se guardó, listo para mostrarse.
   String? get errorMessage => _errorMessage;
+
+  /// Mensaje para mostrar después de guardar. El correo no cambia hasta que
+  /// se confirma el enlace de verificación.
+  String get successMessage => _pendingEmail == null
+      ? 'Tu perfil se actualizó correctamente'
+      : 'Te enviamos un enlace a $_pendingEmail. Tu correo cambiará cuando '
+            'lo confirmes y vuelvas a iniciar sesión.';
 
   /// Registra lo que el usuario escribe en el formulario.
   void edit({required String name, String? email, required String phone}) {
@@ -113,15 +128,20 @@ class EditProfileViewModel extends ChangeNotifier {
       final name = _normalizedName;
       final email = _email.trim().toLowerCase();
       final phone = _phone.trim();
+      final emailChanged = email != user.email.trim().toLowerCase();
+      // Va primero porque es lo que más puede fallar: así, si falla, no se
+      // guarda ningún cambio a medias.
+      if (emailChanged) {
+        await _profiles.requestEmailChange(uid: user.uid, email: email);
+      }
       await _profiles.updateContactInfo(
         uid: user.uid,
         name: name,
-        email: email,
+        email: user.email,
         phone: phone,
       );
-      _session.update(
-        user.copyWith(name: name, phone: phone).copyWithEmail(email),
-      );
+      _session.update(user.copyWith(name: name, phone: phone));
+      _pendingEmail = emailChanged ? email : null;
       _hasChanges = false;
       return true;
     } on ProfileFailure catch (e) {

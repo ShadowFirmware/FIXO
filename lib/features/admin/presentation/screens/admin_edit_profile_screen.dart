@@ -128,7 +128,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
       return;
     }
     messenger.showSnackBar(
-      const SnackBar(content: Text('Tu perfil se actualizó correctamente')),
+      SnackBar(content: Text(_viewModel.successMessage)),
     );
     Navigator.pop(context);
   }

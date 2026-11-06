@@ -18,6 +18,12 @@ class _FailingDataSource implements ProfileRemoteDataSource {
     required String email,
     required String phone,
   }) async => throw firestoreError(code);
+
+  @override
+  Future<void> requestEmailChange({
+    required String uid,
+    required String email,
+  }) async => throw firestoreError(code);
 }
 
 /// T-2.2.6 Guardado de los cambios del perfil.

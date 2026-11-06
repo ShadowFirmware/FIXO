@@ -10,4 +10,13 @@ abstract interface class ProfileRepository {
     required String email,
     required String phone,
   });
+
+  /// Envía un enlace de verificación al correo nuevo. El correo cambia hasta
+  /// que se confirma el enlace y se vuelve a iniciar sesión.
+  ///
+  /// Si falla lanza un `ProfileFailure`.
+  Future<void> requestEmailChange({
+    required String uid,
+    required String email,
+  });
 }
