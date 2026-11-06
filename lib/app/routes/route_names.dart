@@ -14,6 +14,7 @@ abstract final class RouteNames {
 
   // Técnico
   static const String technicianHome = '/technician';
+  static const String technicianEditProfile = '/technician/profile/edit';
 
   // Administrador
   static const String adminHome = '/admin';
