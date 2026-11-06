@@ -53,6 +53,7 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     this.signInError,
     this.fetchError,
     this.currentUid,
+    this.currentEmail,
   });
 
   /// Correo → contraseña registrada en Authentication.
@@ -70,7 +71,18 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   @override
   String? currentUid;
 
+  @override
+  String? currentEmail;
+
+  /// UID → correo aplicado con [confirmEmail].
+  final confirmedEmails = <String, String>{};
+
   int signOutCalls = 0;
+
+  @override
+  Future<void> confirmEmail(String uid, String email) async {
+    confirmedEmails[uid] = email;
+  }
 
   @override
   Future<String> signIn({

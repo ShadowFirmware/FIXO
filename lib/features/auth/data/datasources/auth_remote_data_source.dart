@@ -34,6 +34,17 @@ class AuthRemoteDataSource {
   /// UID de la sesión guardada por Firebase, o `null` si no hay sesión.
   String? get currentUid => _auth.currentUser?.uid;
 
+  /// Correo con el que el usuario está registrado en Authentication.
+  String? get currentEmail => _auth.currentUser?.email;
+
+  /// Aplica en `usuarios` el correo que ya se confirmó con el enlace.
+  Future<void> confirmEmail(String uid, String email) {
+    return _firestore.collection(FirestoreCollections.users).doc(uid).update({
+      'correo': email,
+      'correoPendiente': FieldValue.delete(),
+    });
+  }
+
   /// Devuelve `null` si no existe el documento del usuario.
   Future<UserModel?> fetchUser(String uid) async {
     final doc = await _firestore

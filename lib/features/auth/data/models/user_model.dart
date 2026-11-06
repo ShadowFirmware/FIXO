@@ -18,7 +18,11 @@ class UserModel extends AppUser {
     super.specialty,
     super.available,
     super.createdAt,
+    this.pendingEmail,
   });
+
+  /// Correo nuevo que espera la confirmación del enlace de verificación.
+  final String? pendingEmail;
 
   /// Lanza [FormatException] si el documento no tiene un rol o estado de
   /// cuenta válido.
@@ -59,6 +63,7 @@ class UserModel extends AppUser {
       specialty: data['especialidad'] as String?,
       available: data['disponible'] as bool?,
       createdAt: (data['fechaRegistro'] as Timestamp?)?.toDate(),
+      pendingEmail: data['correoPendiente'] as String?,
     );
   }
 

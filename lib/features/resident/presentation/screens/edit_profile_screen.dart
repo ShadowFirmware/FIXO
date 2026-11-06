@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/edit_profile_view_model.dart';
+import '../widgets/profile_form_widgets.dart';
 
 /// HU-2.2 Modificar perfil.
 class EditProfileScreen extends StatefulWidget {
@@ -91,7 +92,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _FormSection(
+                  ProfileFormSection(
                     title: 'Información personal',
                     children: [
                       TextFormField(
@@ -131,14 +132,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _FormSection(
+                  ProfileFormSection(
                     title: 'Datos de la cuenta',
                     footnote:
                         'El correo y la vivienda no se pueden modificar desde '
                         'aquí. Solo un administrador puede cambiar tu '
                         'vivienda asignada.',
                     children: [
-                      _ReadOnlyField(
+                      ProfileReadOnlyField(
                         icon: Icons.email_outlined,
                         label: 'Correo electrónico',
                         value: _viewModel.email,
@@ -146,7 +147,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 16),
                       ListenableBuilder(
                         listenable: _viewModel,
-                        builder: (context, _) => _ReadOnlyField(
+                        builder: (context, _) => ProfileReadOnlyField(
                           icon: Icons.apartment_rounded,
                           label: 'Vivienda asignada',
                           value: _viewModel.housing,
@@ -196,111 +197,3 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 }
 
-/// Tarjeta blanca con título, como las secciones de la consulta de perfil.
-class _FormSection extends StatelessWidget {
-  const _FormSection({
-    required this.title,
-    required this.children,
-    this.footnote,
-  });
-
-  final String title;
-  final List<Widget> children;
-  final String? footnote;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            title.toUpperCase(),
-            style: textTheme.labelMedium?.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ...children,
-              if (footnote != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        footnote!,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Campo que solo muestra un valor, con un candado para indicar que el
-/// residente no puede cambiarlo.
-class _ReadOnlyField extends StatelessWidget {
-  const _ReadOnlyField({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        suffixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
-        enabled: false,
-      ),
-      child: Text(
-        value,
-        style: Theme.of(context).textTheme.bodyLarge
-            ?.copyWith(color: AppColors.textSecondary),
-      ),
-    );
-  }
-}
