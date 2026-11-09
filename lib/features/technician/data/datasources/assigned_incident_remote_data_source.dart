@@ -29,6 +29,15 @@ class AssignedIncidentRemoteDataSource {
         .map((query) => [for (final doc in query.docs) ?_tryParse(doc)]);
   }
 
+  /// Escucha el documento `incidencias/{id}`: emite cada cambio, o `null`
+  /// si no existe.
+  Stream<IncidentModel?> watchById(String id) {
+    return _incidents
+        .doc(id)
+        .snapshots()
+        .map((doc) => doc.exists ? IncidentModel.fromFirestore(doc) : null);
+  }
+
   /// Un documento con un tipo o estado que no existe (por ejemplo,
   /// capturado a mano) se omite para no dejar vacía la lista del técnico.
   static IncidentModel? _tryParse(DocumentSnapshot<Map<String, dynamic>> doc) {

@@ -20,6 +20,7 @@ import '../../features/resident/presentation/screens/incident_detail_screen.dart
 import '../../features/resident/presentation/screens/register_incident_screen.dart';
 import '../../features/resident/presentation/screens/resident_shell_screen.dart';
 import '../../features/technician/presentation/screens/technician_edit_profile_screen.dart';
+import '../../features/technician/presentation/screens/technician_incident_detail_screen.dart';
 import '../../features/technician/presentation/screens/technician_shell_screen.dart';
 import 'route_names.dart';
 
@@ -39,6 +40,7 @@ abstract final class AppRouter {
     // RouteNames.editProfile: deshabilitado, solo admin puede editar via adminEditProfile.
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.technicianEditProfile: {UserRole.technician},
+    RouteNames.technicianIncidentDetail: {UserRole.technician},
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
     RouteNames.adminEditProfile: {UserRole.admin},
@@ -86,6 +88,13 @@ abstract final class AppRouter {
         return _page(const TechnicianShellScreen(), settings);
       case RouteNames.technicianEditProfile:
         return _page(const TechnicianEditProfileScreen(), settings);
+      case RouteNames.technicianIncidentDetail:
+        return _page(
+          TechnicianIncidentDetailScreen(
+            incidentId: settings.arguments! as String,
+          ),
+          settings,
+        );
       case RouteNames.adminHome:
         return _page(const AdminHomeScreen(), settings);
       case RouteNames.adminProfile:

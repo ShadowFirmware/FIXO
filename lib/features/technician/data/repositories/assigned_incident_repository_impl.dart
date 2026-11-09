@@ -37,6 +37,25 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
         });
   }
 
+  @override
+  Stream<AssignedIncident?> watchById(String id) {
+    return _remote
+        .watchById(id)
+        .asyncMap(
+          (incident) => incident == null
+              ? Future<AssignedIncident?>.value()
+              : _withContact(incident),
+        )
+        .handleError((Object e) {
+          throw switch (e) {
+            FirebaseException(code: 'unavailable') => IncidentFailure.offline,
+            FirebaseException(code: 'permission-denied') =>
+              IncidentFailure.accessDenied,
+            _ => IncidentFailure.loadFailed,
+          };
+        });
+  }
+
   Future<AssignedIncident> _withContact(Incident incident) async {
     final (housing, resident) = await (
       _housingLabels.putIfAbsent(

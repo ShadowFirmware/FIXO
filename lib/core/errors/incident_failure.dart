@@ -86,6 +86,9 @@ class IncidentFailure implements Exception {
   static const assignedAccessDenied = IncidentFailure(
     'Solo los técnicos pueden consultar las incidencias asignadas.',
   );
+  static const notAssignedToYou = IncidentFailure(
+    'Esta incidencia no está asignada a ti.',
+  );
 
   @override
   String toString() => message;

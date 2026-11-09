@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
@@ -88,6 +89,11 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
                       return AssignedIncidentCard(
                         key: ValueKey(item.id),
                         item: item,
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          RouteNames.technicianIncidentDetail,
+                          arguments: item.id,
+                        ),
                       );
                     },
                   ),
