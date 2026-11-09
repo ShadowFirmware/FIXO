@@ -7,6 +7,7 @@ import '../../../resident/presentation/screens/incident_detail_screen.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../providers/assigned_incident_detail_view_model.dart';
 import '../widgets/assigned_detail_widgets.dart';
+import '../widgets/attended_incident_card.dart';
 
 /// HU-3.4 Consultar detalles y evidencias de una incidencia asignada.
 class TechnicianIncidentDetailScreen extends StatefulWidget {
@@ -198,12 +199,14 @@ class _DetailBody extends StatelessWidget {
               label: 'Hora estimada de llegada',
               value: vm.estimatedArrival,
             ),
-            if (vm.startedAt case final startedAt?)
-              DetailRow(
-                icon: Icons.play_circle_outline_rounded,
-                label: 'Inicio de la atención',
-                value: startedAt,
-              ),
+            // Resuelta, se ve en el resumen de la atención.
+            if (!vm.isResolved)
+              if (vm.startedAt case final startedAt?)
+                DetailRow(
+                  icon: Icons.play_circle_outline_rounded,
+                  label: 'Inicio de la atención',
+                  value: startedAt,
+                ),
             DetailRow(
               icon: Icons.notes_rounded,
               label: 'Descripción',
@@ -222,18 +225,14 @@ class _DetailBody extends StatelessWidget {
                 label: 'Solución aplicada',
                 value: vm.solution,
               ),
-              if (vm.isResolved)
-                DetailRow(
-                  icon: Icons.event_available_outlined,
-                  label: 'Fecha de resolución',
-                  value: vm.resolvedAt,
-                )
-              else if (vm.solutionRegisteredAt case final registeredAt?)
-                DetailRow(
-                  icon: Icons.edit_calendar_outlined,
-                  label: 'Registrada el',
-                  value: registeredAt,
-                ),
+              // Resuelta, las fechas se ven en el resumen de la atención.
+              if (!vm.isResolved)
+                if (vm.solutionRegisteredAt case final registeredAt?)
+                  DetailRow(
+                    icon: Icons.edit_calendar_outlined,
+                    label: 'Registrada el',
+                    value: registeredAt,
+                  ),
             ],
           ),
           AssignedEvidenceSection(
@@ -241,6 +240,36 @@ class _DetailBody extends StatelessWidget {
             urls: incident.evidenceAfter,
           ),
         ],
+        // En el historial (HU-3.8) se resume cómo fue la atención.
+        if (vm.isResolved)
+          DetailSection(
+            title: 'Resumen de la atención',
+            children: [
+              if (vm.startedAt case final startedAt?)
+                DetailRow(
+                  icon: Icons.play_circle_outline_rounded,
+                  label: 'Comenzó',
+                  value: startedAt,
+                ),
+              if (vm.solutionRegisteredAt case final registeredAt?)
+                DetailRow(
+                  icon: Icons.edit_calendar_outlined,
+                  label: 'Solución registrada',
+                  value: registeredAt,
+                ),
+              DetailRow(
+                icon: Icons.event_available_outlined,
+                label: 'Resuelta',
+                value: vm.resolvedAt,
+              ),
+              if (AttendedIncidentCard.attentionTime(incident) case final time?)
+                DetailRow(
+                  icon: Icons.timer_outlined,
+                  label: 'Duración de la atención',
+                  value: time,
+                ),
+            ],
+          ),
       ],
       secondary: [
         AssignedEvidenceSection(
