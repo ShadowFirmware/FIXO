@@ -150,8 +150,7 @@ class AdminSection {
       'Estadísticas',
       RouteNames.adminStatistics,
     ),
-    AdminSection(Icons.people_outline, 'Residentes', RouteNames.adminResidents),
-    AdminSection(Icons.build_outlined, 'Técnicos', RouteNames.adminTechnicians),
+    AdminSection(Icons.group_outlined, 'Usuarios', RouteNames.adminUsers),
     AdminSection(
       Icons.apartment_outlined,
       'Residencias',
