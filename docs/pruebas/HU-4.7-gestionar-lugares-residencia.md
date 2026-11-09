@@ -4,7 +4,7 @@
 | Módulo | 4. Administrador |
 | Historia de usuario | HU 4.7 Gestionar lugares de residencia |
 | Rama | `FEATURE/HU-4.7-Gestionar-lugares-de-residencia` |
-| Fecha | 01/11/2026 |
+| Fecha | 01/11/2026 — actualizado el 09/11/2026 |
 ---
 
 # Plan de pruebas — HU 4.7 Gestionar lugares de residencia
@@ -37,12 +37,12 @@ Verificar que el administrador pueda consultar, registrar, modificar y marcar co
 
 | # | Criterio de la HU 4.7 | Pruebas |
 |---|---|---|
-| CA-1 | Consultar los lugares de residencia registrados | PM-01, PM-02, PM-03 |
-| CA-2 | Registrar nuevas viviendas | PM-04, PM-05, PM-06 |
-| CA-3 | Cada vivienda contiene tipo, edificio/torre/sección (cuando corresponda) y número | PM-05, PM-06, PM-07, PM-08 |
-| CA-4 | No registrar dos viviendas con la misma identificación en el mismo edificio o sección | PM-09, PM-10, PM-11, PM-15 |
-| CA-5 | Modificar la información de una vivienda | PM-12, PM-13, PM-14 |
-| CA-6 | Marcar una vivienda como activa o inactiva | PM-16, PM-17, PM-18, PM-19 |
+| CA-1 | Consultar los lugares de residencia registrados | PU-589, PM-01, PM-02, PM-03 |
+| CA-2 | Registrar nuevas viviendas | PU-586, PU-587, PM-04, PM-05, PM-06 |
+| CA-3 | Cada vivienda contiene tipo, edificio/torre/sección (cuando corresponda) y número | PU-585, PU-587, PM-05, PM-06, PM-07, PM-08 |
+| CA-4 | No registrar dos viviendas con la misma identificación en el mismo edificio o sección | PU-586, PU-587, PM-09, PM-10, PM-11, PM-15 |
+| CA-5 | Modificar la información de una vivienda | PU-586, PU-588, PM-12, PM-13, PM-14 |
+| CA-6 | Marcar una vivienda como activa o inactiva | PU-586, PM-16, PM-17, PM-18, PM-19 |
 | CA-7 | Las incidencias abiertas de una vivienda inactiva continúan su flujo | PM-20 |
 | CA-8 | No se permiten incidencias nuevas en una vivienda inactiva | PM-21, PM-22 |
 | CA-9 | Al registrar o modificar un residente se selecciona una vivienda disponible y registrada | PM-23, PM-24, PM-25 |
@@ -51,12 +51,13 @@ Verificar que el administrador pueda consultar, registrar, modificar y marcar co
 
 | Tipo | Herramienta | Ubicación | Firebase |
 |---|---|---|---|
-| Manuales (PM) | App en emulador o teléfono | — | Proyecto real `fixo-a7763` |
+| Unitarias y de widgets (PU) | `flutter_test` | `test/unitarias/admin/housing_admin_test.dart` | Simulado con fakes |
+| Manuales (PM) | App en emulador, teléfono o navegador | — | Proyecto real `fixo-a7763` |
 
 ## 5. Entorno
 
-- Flutter 3.47.8 / Dart 3.13.7
-- Android (emulador o dispositivo físico)
+- Flutter 3.47.4 / Dart 3.13.3
+- Android (emulador o dispositivo físico) y web (Chrome)
 - Firebase: proyecto `fixo-a7763`
 
 ## 6. Datos de prueba
@@ -70,13 +71,27 @@ Verificar que el administrador pueda consultar, registrar, modificar y marcar co
 | Vivienda con incidencia abierta | Vivienda activa con una incidencia en estado "Pendiente" o "En proceso" |
 | Residente de prueba | Residente activo con vivienda asignada, para registrar incidencias |
 
-## 7. Casos de prueba manuales
+## 7. Casos de prueba unitarios
+
+```bash
+flutter test test/unitarias/admin/housing_admin_test.dart
+```
+
+| ID | Caso | Resultado esperado |
+|---|---|---|
+| PU-585 | Validar tipo y número | "Selecciona el tipo de residencia", "Ingresa el número o identificador" y "El número no debe exceder 20 caracteres" |
+| PU-586 | Registrar, repetir, editar y activar | Cada acción se guarda con su mensaje; la vivienda repetida (sin distinguir mayúsculas) se rechaza |
+| PU-587 | Formulario en el teléfono: vacío, repetido y correcto | Pantalla completa; mensaje en cada campo y aviso general; el duplicado se muestra arriba del formulario; después se registra |
+| PU-588 | Cancelar una edición con cambios | Pide confirmar y al descartar no guarda |
+| PU-589 | Residencias en la web | Tabla en una tarjeta y el detalle en una ventana |
+
+## 8. Casos de prueba manuales
 
 | ID | Caso | Pasos | Resultado esperado |
 |---|---|---|---|
 | PM-01 | Acceso desde el menú | Iniciar sesión como administrador, abrir el menú de hamburguesa y pulsar "Residencias" | Se abre la pantalla "Residencias" |
 | PM-02 | Consultar residencias | Abrir la pantalla "Residencias" con viviendas registradas | La tabla muestra tipo, edificio/sección, número, estado (Activa/Inactiva), ocupación (Disponible/Ocupada) y opciones Ver, Editar e Inactivar/Activar |
-| PM-03 | Ver detalle | Pulsar "Ver" en una vivienda | Se muestra un modal con tipo, edificio/sección, número, estado y ocupación |
+| PM-03 | Ver detalle | Pulsar "Ver" en una vivienda | Se abre el detalle (pantalla completa en el teléfono, ventana en la web) con tipo, edificio/sección, número, estado y ocupación |
 | PM-04 | Abrir formulario de registro | Pulsar el botón de agregar residencia en la parte derecha de la barra superior | Se abre el formulario "Registrar residencia" |
 | PM-05 | Registrar departamento | Elegir "Departamento", escribir edificio "Torre B" y número "101", pulsar "Registrar" | Se cierra el formulario, se muestra "Residencia registrada correctamente." y la vivienda aparece en la tabla como Activa y Disponible |
 | PM-06 | Registrar casa sin edificio | Elegir "Casa", dejar el edificio vacío, escribir número "15" y pulsar "Registrar" | Se registra la vivienda y en la tabla el edificio aparece como "—" |
@@ -92,19 +107,19 @@ Verificar que el administrador pueda consultar, registrar, modificar y marcar co
 | PM-16 | Inactivar vivienda | Pulsar "Inactivar" en una vivienda activa y confirmar | Se muestra "Residencia marcada como inactiva." y el estado cambia a Inactiva |
 | PM-17 | Cancelar inactivación | Pulsar "Inactivar" y luego "Cancelar" | No se realizan cambios |
 | PM-18 | Activar vivienda | Pulsar "Activar" en una vivienda inactiva y confirmar | Se muestra "Residencia activada correctamente." y el estado cambia a Activa |
-| PM-19 | Mensaje de confirmación | Pulsar "Inactivar" en una vivienda activa | El modal avisa que las incidencias abiertas seguirán su atención y que no se podrán registrar nuevas |
+| PM-19 | Mensaje de confirmación | Pulsar "Inactivar" en una vivienda activa | La confirmación avisa que las incidencias abiertas seguirán su atención y que no se podrán registrar nuevas |
 | PM-20 | Incidencias abiertas continúan | Inactivar la vivienda con incidencia abierta y revisar la incidencia como residente | La incidencia conserva su estado, se puede consultar y sigue su flujo normal de atención |
 | PM-21 | Incidencia nueva bloqueada | Inactivar la vivienda del residente de prueba e intentar registrar una incidencia como ese residente | Se muestra "Tu vivienda está inactiva, así que no se pueden registrar incidencias nuevas. Contacta al administrador." y no se registra |
 | PM-22 | Incidencia permitida tras reactivar | Activar de nuevo la vivienda y registrar una incidencia | La incidencia se registra correctamente |
-| PM-23 | Viviendas disponibles al registrar residente | En "Residentes", abrir el formulario de registro y desplegar "Vivienda" | Solo aparecen viviendas activas y sin residente asignado |
+| PM-23 | Viviendas disponibles al registrar residente | En "Usuarios", pulsar "Agregar", dejar el rol Residente y desplegar "Vivienda" | Solo aparecen viviendas activas y sin residente asignado |
 | PM-24 | Viviendas disponibles al modificar residente | Editar un residente y desplegar "Vivienda" | Aparecen su vivienda actual y las viviendas activas disponibles; no aparecen inactivas ni ocupadas por otros |
-| PM-25 | Residente con vivienda inactiva | Inactivar la vivienda de un residente y abrir su edición en "Residentes" | El formulario abre sin errores mostrando su vivienda actual, y en la tabla de residentes se ve el nombre de la vivienda |
+| PM-25 | Residente con vivienda inactiva | Inactivar la vivienda de un residente y abrir su edición en "Usuarios" | El formulario abre sin errores mostrando su vivienda actual, y en la lista de usuarios se ve el nombre de la vivienda |
 | PM-26 | Ocupación actualizada | Registrar un residente en una vivienda disponible y volver a "Residencias" | La vivienda aparece como Ocupada |
 | PM-27 | Lista vacía | Abrir "Residencias" sin viviendas registradas | Se muestra "No hay residencias registradas" |
-| PM-28 | Responsive móvil | Abrir "Residencias" en teléfono | Se muestran tarjetas con menú de opciones Ver detalles, Editar e Inactivar/Activar |
-| PM-29 | Responsive PC | Abrir "Residencias" en escritorio | Se muestra la tabla completa con sus columnas y opciones |
+| PM-28 | Responsive móvil | Abrir "Residencias" en teléfono | Se muestran tarjetas con menú de opciones Ver detalles, Editar e Inactivar/Activar; los formularios se abren como pantalla completa |
+| PM-29 | Responsive PC | Abrir "Residencias" en escritorio | Se muestra la tabla completa con sus columnas y opciones; los formularios se abren en una ventana |
 
-## 8. Criterios de aprobación
+## 9. Criterios de aprobación
 
 - El registro, la consulta, la edición y el cambio de estado funcionan correctamente.
 - No es posible registrar ni editar viviendas duplicadas en el mismo edificio o sección.
@@ -112,30 +127,39 @@ Verificar que el administrador pueda consultar, registrar, modificar y marcar co
 - Al registrar o modificar residentes solo se ofrecen viviendas disponibles.
 - No hay defectos abiertos de severidad alta.
 
-## 9. Resultados
+## 10. Resultados
+
+### Automatizadas — 09/11/2026
+
+| Conjunto | Pruebas | Resultado |
+|---|---|---|
+| HU 4.7 (PU-585 a PU-589) | 5 | Aprobadas |
+| Proyecto completo (`flutter test`) | 302 | Aprobadas |
 
 ### Manuales
+
+Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
 | PM-01 | Pendiente | | | |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | |
-| PM-05 | Pendiente | | | |
+| PM-02 | Pendiente | | | Automatizada en PU-589 |
+| PM-03 | Pendiente | | | Automatizada en PU-589 |
+| PM-04 | Pendiente | | | Automatizada en PU-587 |
+| PM-05 | Pendiente | | | Automatizada en PU-587 (sin Firebase) |
 | PM-06 | Pendiente | | | |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | |
-| PM-09 | Pendiente | | | |
-| PM-10 | Pendiente | | | |
+| PM-07 | Pendiente | | | Automatizada en PU-587 |
+| PM-08 | Pendiente | | | Automatizada en PU-587 |
+| PM-09 | Pendiente | | | Automatizada en PU-586 y PU-587 |
+| PM-10 | Pendiente | | | Automatizada en PU-586 |
 | PM-11 | Pendiente | | | |
-| PM-12 | Pendiente | | | |
+| PM-12 | Pendiente | | | Automatizada en PU-588 |
 | PM-13 | Pendiente | | | |
-| PM-14 | Pendiente | | | |
+| PM-14 | Pendiente | | | Automatizada en PU-588 |
 | PM-15 | Pendiente | | | |
-| PM-16 | Pendiente | | | |
+| PM-16 | Pendiente | | | Automatizada en PU-586 |
 | PM-17 | Pendiente | | | |
-| PM-18 | Pendiente | | | |
+| PM-18 | Pendiente | | | Automatizada en PU-586 |
 | PM-19 | Pendiente | | | |
 | PM-20 | Pendiente | | | |
 | PM-21 | Pendiente | | | |
@@ -145,5 +169,5 @@ Verificar que el administrador pueda consultar, registrar, modificar y marcar co
 | PM-25 | Pendiente | | | |
 | PM-26 | Pendiente | | | |
 | PM-27 | Pendiente | | | |
-| PM-28 | Pendiente | | | |
-| PM-29 | Pendiente | | | |
+| PM-28 | Pendiente | | | Automatizada en PU-587 y PU-588 |
+| PM-29 | Pendiente | | | Automatizada en PU-589 |
