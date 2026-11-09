@@ -15,7 +15,10 @@ import '../providers/register_incident_view_model.dart';
 
 /// HU-2.3 Registrar incidencia.
 class RegisterIncidentScreen extends StatefulWidget {
-  const RegisterIncidentScreen({super.key});
+  const RegisterIncidentScreen({super.key, this.viewModel});
+
+  /// Solo para pruebas; normalmente la pantalla crea el suyo.
+  final RegisterIncidentViewModel? viewModel;
 
   @override
   State<RegisterIncidentScreen> createState() => _RegisterIncidentScreenState();
@@ -25,7 +28,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _viewModel = RegisterIncidentViewModel();
+  late final _viewModel = widget.viewModel ?? RegisterIncidentViewModel();
 
   @override
   void initState() {
@@ -42,7 +45,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _viewModel.dispose();
+    if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
   }
 

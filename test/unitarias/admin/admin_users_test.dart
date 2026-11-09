@@ -298,5 +298,62 @@ void main() {
       expect(technicians.removed, ['tec-juan']);
       expect(find.text('Técnico dado de baja correctamente.'), findsOneWidget);
     });
+
+    testWidgets('PU-590 edita a un residente sin pedir rol ni contraseña y '
+        'confirma antes de guardar', (tester) async {
+      await pumpScreen(tester);
+      await tester.tap(find.byKey(const Key('users.menu.res-ana')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Editar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar residente'), findsOneWidget);
+      expect(find.byKey(const Key('userForm.role')), findsNothing);
+      expect(find.byKey(const Key('userForm.password')), findsNothing);
+      expect(find.text('Ana López'), findsWidgets);
+
+      await tester.enterText(
+        find.byKey(const Key('userForm.phone')),
+        '7779998877',
+      );
+      await tester.tap(find.byKey(const Key('userForm.save')));
+      await tester.pumpAndSettle();
+      // Al editar se confirma antes de guardar.
+      expect(
+        find.text('¿Deseas guardar los cambios realizados?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('userForm.confirm')));
+      await tester.pumpAndSettle();
+      expect(residents.updated.single['phone'], '7779998877');
+      expect(find.text('Residente actualizado correctamente.'), findsOneWidget);
+    });
+
+    testWidgets('PU-596 al cancelar una edición con cambios pide '
+        'confirmación para descartarlos', (tester) async {
+      await pumpScreen(tester);
+      await tester.tap(find.byKey(const Key('users.menu.tec-juan')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Editar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Editar técnico'), findsOneWidget);
+      expect(find.text('Electricidad'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const Key('userForm.specialty')),
+        'Plomería',
+      );
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('¿Deseas descartar los cambios realizados?'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('userForm.confirm')));
+      await tester.pumpAndSettle();
+      expect(find.text('Editar técnico'), findsNothing);
+      expect(technicians.updated, isEmpty);
+    });
   });
 }

@@ -8,7 +8,10 @@ import '../../../resident/presentation/providers/edit_profile_view_model.dart';
 
 /// HU-4.2 Modificar perfil del administrador.
 class AdminEditProfileScreen extends StatefulWidget {
-  const AdminEditProfileScreen({super.key});
+  const AdminEditProfileScreen({super.key, this.viewModel});
+
+  /// Solo para pruebas; normalmente la pantalla crea el suyo.
+  final EditProfileViewModel? viewModel;
 
   @override
   State<AdminEditProfileScreen> createState() => _AdminEditProfileScreenState();
@@ -19,7 +22,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _viewModel = EditProfileViewModel();
+  late final _viewModel = widget.viewModel ?? EditProfileViewModel();
 
   @override
   void initState() {
@@ -43,7 +46,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _viewModel.dispose();
+    if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
   }
 
@@ -183,11 +186,15 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
                           icon: const Icon(Icons.arrow_back_ios_new_rounded),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          'Modificar perfil',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                        // En pantallas angostas el título se recorta en
+                        // lugar de desbordarse.
+                        Expanded(
+                          child: Text(
+                            'Modificar perfil',
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
