@@ -5,6 +5,7 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/form_error_banner.dart';
+import '../../data/models/user_model.dart';
 import '../providers/auth_session.dart';
 import '../providers/login_view_model.dart';
 
@@ -52,6 +53,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     AuthSession.instance.start(user);
+    // Mientras el correo nuevo no se confirme, se recuerda que hay que abrir
+    // el enlace. El aviso sigue visible en la pantalla de inicio.
+    if (user case UserModel(:final pendingEmail?)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(
+              'Tu correo cambiará a $pendingEmail cuando abras el enlace que '
+              'te enviamos a ese correo. Mientras tanto, sigue entrando con '
+              'tu correo actual.',
+            ),
+          ),
+        );
+    }
     Navigator.pushReplacementNamed(context, RouteNames.homeFor(user.role));
   }
 

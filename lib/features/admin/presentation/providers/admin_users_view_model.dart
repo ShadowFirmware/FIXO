@@ -157,8 +157,18 @@ class AdminUsersViewModel extends ChangeNotifier {
     String specialty = '',
   }) {
     final role = ManagedRole.of(user)!;
+    final emailChanged =
+        email.trim().toLowerCase() != user.email.trim().toLowerCase();
     return _run(
       role,
+      // La app no puede cambiar el correo de acceso de otra persona: queda
+      // pendiente hasta que el usuario abra el enlace (HU-4.5).
+      note: emailChanged
+          ? 'El correo cambiará a ${email.trim().toLowerCase()} cuando '
+                '${user.name} inicie sesión y abra el enlace que le '
+                'enviaremos. Mientras tanto, sigue entrando con su correo '
+                'actual.'
+          : null,
       () => switch (role) {
         ManagedRole.resident => _residents.update(
           user,
@@ -202,14 +212,20 @@ class AdminUsersViewModel extends ChangeNotifier {
     );
   }
 
-  Future<bool> _run(ManagedRole role, Future<bool> Function() action) async {
+  /// Ejecuta [action] y guarda su mensaje. Si salió bien, agrega [note].
+  Future<bool> _run(
+    ManagedRole role,
+    Future<bool> Function() action, {
+    String? note,
+  }) async {
     final ok = await action();
-    _message = switch (role) {
+    final message = switch (role) {
       ManagedRole.resident =>
         ok ? _residents.successMessage : _residents.errorMessage,
       ManagedRole.technician =>
         ok ? _technicians.successMessage : _technicians.errorMessage,
     };
+    _message = ok && note != null ? '$message $note' : message;
     notifyListeners();
     return ok;
   }

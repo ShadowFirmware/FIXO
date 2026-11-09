@@ -105,7 +105,7 @@ flutter test test/unitarias/resident/profile_view_model_test.dart test/unitarias
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
 | HU 2.1 (PU-36 a PU-44 y PU-47 a PU-51) | 14 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 

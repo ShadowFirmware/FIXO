@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../providers/admin_users_view_model.dart';
 
@@ -89,6 +90,12 @@ class UserDetails extends StatelessWidget {
     final rows = <(IconData, String, String)>[
       (Icons.badge_outlined, 'Rol', role?.label ?? 'Administrador'),
       (Icons.email_outlined, 'Correo electrónico', user.email),
+      if (user case UserModel(:final pendingEmail?))
+        (
+          Icons.mark_email_unread_outlined,
+          'Correo nuevo (sin confirmar)',
+          pendingEmail,
+        ),
       (Icons.phone_outlined, 'Teléfono', user.phone),
       if (role == ManagedRole.resident)
         (Icons.apartment_rounded, 'Vivienda', housing),

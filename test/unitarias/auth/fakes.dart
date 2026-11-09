@@ -84,6 +84,18 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     confirmedEmails[uid] = email;
   }
 
+  /// UID → correo al que se envió el enlace con [sendEmailChangeLink].
+  final sentLinks = <String, String>{};
+
+  /// Error que lanza [sendEmailChangeLink], por ejemplo sin conexión.
+  Exception? sendLinkError;
+
+  @override
+  Future<void> sendEmailChangeLink(String uid, String email) async {
+    if (sendLinkError != null) throw sendLinkError!;
+    sentLinks[uid] = email;
+  }
+
   @override
   Future<String> signIn({
     required String email,

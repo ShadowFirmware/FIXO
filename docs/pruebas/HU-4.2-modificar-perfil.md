@@ -156,7 +156,7 @@ Pruebas propias de la pantalla del administrador, agregadas el 09/11/2026 (las a
 |---|---|---|
 | Formulario compartido (reutiliza PU-52 a PU-60) | 9 | Aprobadas |
 | Pantalla del administrador (PU-582 a PU-584) | 3 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 

@@ -70,14 +70,22 @@ flutter test test/unitarias/admin/admin_users_test.dart test/unitarias/admin/adm
 | PM-10 | Web | Abrir el panel del administrador en la PC | Barra lateral fija con FIXO y las secciones; encabezado con título y botones; tablas a todo lo ancho |
 | PM-11 | Teléfono | Usar la app de residente, técnico y administrador en un teléfono pequeño | No hay textos cortados ni franjas amarillas de desborde |
 
-## 5. Resultados
+## 5. Correcciones reportadas durante la revisión
+
+| ID | Corrección | Pruebas | Caso manual |
+|---|---|---|---|
+| C-1 | El residente no podía abrir "Modificar perfil" ("No disponible para este rol"); la ruta de la HU 2.2 estaba deshabilitada | PU-601 | Como residente, en Perfil pulsar "Modificar perfil": se abre el formulario y se pueden guardar el nombre y el teléfono |
+| C-2 | Al cambiar el administrador el correo de un usuario, el usuario seguía entrando con el anterior (Firebase Authentication no se actualizaba) | PU-597 a PU-600 | PM-13 de la HU 4.5 |
+| C-3 | El texto y el ícono de los filtros sin seleccionar se veían en blanco sobre blanco | PU-593 | PM-03 de este plan |
+
+## 6. Resultados
 
 ### Automatizadas — 09/11/2026
 
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
-| Mejoras (PU-574 a PU-596) | 23 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Mejoras y correcciones (PU-574 a PU-601) | 28 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 

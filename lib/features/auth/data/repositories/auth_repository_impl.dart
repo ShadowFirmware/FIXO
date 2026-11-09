@@ -66,7 +66,19 @@ class AuthRepositoryImpl implements AuthRepository {
   /// deshacer los cambios de correo hechos por un administrador.
   Future<AppUser> _applyConfirmedEmail(UserModel user) async {
     final pending = user.pendingEmail;
-    if (pending == null || pending != _remote.currentEmail?.toLowerCase()) {
+    if (pending == null) return user;
+    if (pending != _remote.currentEmail?.toLowerCase()) {
+      // El administrador cambió el correo (HU-4.5): como la app no puede
+      // cambiar el correo de acceso de otra persona, se le envía el enlace
+      // ahora que inició sesión. Si falla, se intenta en el siguiente inicio.
+      if (!user.pendingEmailLinkSent) {
+        try {
+          await _remote.sendEmailChangeLink(user.uid, pending);
+        } on Exception {
+          return user;
+        }
+        return user.withPendingLinkSent();
+      }
       return user;
     }
     await _remote.confirmEmail(user.uid, pending);

@@ -12,6 +12,8 @@
 Verificar que el administrador pueda editar el nombre, correo y teléfono de residentes y técnicos, la vivienda de los residentes y la especialidad de los técnicos, con correo único, solo viviendas activas y disponibles, y que los cambios se reflejen de inmediato.
 
 > **Cambio del 09/11/2026:** la edición se hace desde la sección **Usuarios** (opción "Editar" del menú de cada usuario). El formulario es el mismo que el de registro, sin rol ni contraseña, y conserva la confirmación al guardar y al descartar cambios.
+>
+> **Cambio de correo:** desde la app no se puede cambiar el correo con el que otra persona inicia sesión (requiere un servidor, que el plan Spark no tiene). Por eso el correo nuevo queda pendiente en `correoPendiente`; en el siguiente inicio de sesión del usuario (con su correo anterior) se le envía el enlace de verificación, y al abrirlo cambia su correo de acceso.
 
 ## 2. Alcance
 
@@ -37,6 +39,7 @@ Verificar que el administrador pueda editar el nombre, correo y teléfono de res
 | CA-1 | Editar nombre, correo y teléfono | PU-576, PU-590, PM-02, PM-05 |
 | CA-2 | Residentes: modificar vivienda; técnicos: especialidad | PU-576, PM-02, PM-05 |
 | CA-3 | Correo único al modificar | PM-07 |
+| CA-1 | Cambio de correo (acceso con el correo nuevo) | PU-597 a PU-600, PM-13 |
 | CA-4 | Cambios reflejados inmediatamente | PU-590, PM-05, PM-06 |
 | CA-5 | Solo vivienda activa y disponible | PM-08 |
 | CA-6 | No asignar vivienda con residente activo | PM-08 |
@@ -67,6 +70,7 @@ flutter test test/unitarias/admin/admin_users_test.dart
 | PU-576 | Editar un residente con otra vivienda | Se guarda con la vivienda nueva |
 | PU-590 | Editar el teléfono de un residente | No pide rol ni contraseña; pide confirmar, guarda y avisa "Residente actualizado correctamente." |
 | PU-596 | Cambiar la especialidad de un técnico y cancelar | Pide confirmar; al descartar se cierra sin guardar |
+| PU-597 a PU-600 | Cambiar el correo de un usuario (`test/unitarias/auth/pending_email_test.dart`) | El correo queda en `correoPendiente`; al iniciar sesión se envía el enlace una sola vez; si falla, entra igual; el administrador ve el aviso |
 
 ## 7. Casos de prueba manuales
 
@@ -84,11 +88,12 @@ flutter test test/unitarias/admin/admin_users_test.dart
 | PM-10 | Incidencias no trasladadas | Cambiar la vivienda de un residente con incidencias | Las incidencias siguen asociadas a la vivienda original |
 | PM-11 | Teléfono | Editar en el teléfono | El formulario se abre como pantalla completa |
 | PM-12 | Web | Editar en el navegador | El formulario se abre como ventana |
+| PM-13 | Cambio de correo | Cambiar el correo de un usuario a uno nuevo; iniciar sesión como ese usuario con su correo anterior; abrir el enlace que llega al correo nuevo; cerrar sesión y entrar con el correo nuevo | Al guardar, el administrador ve que el correo queda pendiente. Al iniciar sesión, el usuario ve el aviso y recibe el enlace. Después de abrirlo entra con el correo nuevo, y `correo` cambia en `usuarios` |
 
 ## 8. Criterios de aprobación
 
 - Todas las pruebas unitarias pasan (`flutter test`).
-- Los casos manuales PM-01 a PM-12 se cumplen.
+- Los casos manuales PM-01 a PM-13 se cumplen.
 - No hay defectos abiertos de severidad alta.
 
 ## 9. Resultados
@@ -98,7 +103,7 @@ flutter test test/unitarias/admin/admin_users_test.dart
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
 | Usuarios (PU-574 a PU-581, PU-590 y PU-596) | 10 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 
@@ -118,3 +123,4 @@ Las observaciones indican qué prueba automatizada ya cubre el caso con datos si
 | PM-10 | Pendiente | | | Requiere incidencias reales |
 | PM-11 | Pendiente | | | Automatizada en PU-577 (formulario de registro) |
 | PM-12 | Pendiente | | | Automatizada en PU-580 (formulario de registro) |
+| PM-13 | Pendiente | | | Automatizada en PU-597 a PU-600 (sin Firebase); el enlace solo se puede probar con Firebase real |

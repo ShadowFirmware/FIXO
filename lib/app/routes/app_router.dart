@@ -16,6 +16,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/communication/presentation/screens/incident_chat_screen.dart';
 
+import '../../features/resident/presentation/screens/edit_profile_screen.dart';
 import '../../features/resident/presentation/screens/incident_detail_screen.dart';
 import '../../features/resident/presentation/screens/register_incident_screen.dart';
 import '../../features/resident/presentation/screens/resident_shell_screen.dart';
@@ -39,7 +40,8 @@ abstract final class AppRouter {
     RouteNames.residentShell: {UserRole.resident},
     RouteNames.registerIncident: {UserRole.resident},
     RouteNames.incidentDetail: {UserRole.resident},
-    // RouteNames.editProfile: deshabilitado, solo admin puede editar via adminEditProfile.
+    // HU-2.2: el residente modifica su nombre y su teléfono.
+    RouteNames.editProfile: {UserRole.resident},
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.technicianEditProfile: {UserRole.technician},
     RouteNames.technicianIncidentDetail: {UserRole.technician},
@@ -80,14 +82,7 @@ abstract final class AppRouter {
           settings,
         );
       case RouteNames.editProfile:
-        return _page(
-          Scaffold(
-            body: Center(
-              child: Text('No disponible para este rol'),
-            ),
-          ),
-          settings,
-        );
+        return _page(const EditProfileScreen(), settings);
       case RouteNames.technicianHome:
         return _page(const TechnicianShellScreen(), settings);
       case RouteNames.technicianEditProfile:

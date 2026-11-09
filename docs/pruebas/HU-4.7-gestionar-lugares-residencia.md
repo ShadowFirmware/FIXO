@@ -134,7 +134,7 @@ flutter test test/unitarias/admin/housing_admin_test.dart
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
 | HU 4.7 (PU-585 a PU-589) | 5 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 

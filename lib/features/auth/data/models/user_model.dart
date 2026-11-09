@@ -19,10 +19,16 @@ class UserModel extends AppUser {
     super.available,
     super.createdAt,
     this.pendingEmail,
+    this.pendingEmailLinkSent = false,
   });
 
   /// Correo nuevo que espera la confirmación del enlace de verificación.
   final String? pendingEmail;
+
+  /// `true` si ya se envió el enlace al correo pendiente. Cuando el
+  /// administrador cambia el correo, el enlace se envía en el siguiente
+  /// inicio de sesión del usuario.
+  final bool pendingEmailLinkSent;
 
   /// Lanza [FormatException] si el documento no tiene un rol o estado de
   /// cuenta válido.
@@ -64,8 +70,28 @@ class UserModel extends AppUser {
       available: data['disponible'] as bool?,
       createdAt: (data['fechaRegistro'] as Timestamp?)?.toDate(),
       pendingEmail: data['correoPendiente'] as String?,
+      pendingEmailLinkSent: data['enlaceCorreoEnviado'] == true,
     );
   }
+
+  /// El mismo usuario después de enviarle el enlace al correo pendiente.
+  UserModel withPendingLinkSent() => UserModel(
+    uid: uid,
+    name: name,
+    email: email,
+    phone: phone,
+    role: role,
+    accountStatus: accountStatus,
+    conductStatus: conductStatus,
+    validatedReports: validatedReports,
+    suspendedUntil: suspendedUntil,
+    housingId: housingId,
+    specialty: specialty,
+    available: available,
+    createdAt: createdAt,
+    pendingEmail: pendingEmail,
+    pendingEmailLinkSent: true,
+  );
 
   Map<String, dynamic> toFirestore() {
     return {

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../../../core/constants/firestore_collections.dart';
 import '../../../../firebase_options.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../models/email_change_plan.dart';
 
 class TechnicianAdminRemoteDataSource {
   TechnicianAdminRemoteDataSource({
@@ -98,13 +99,17 @@ class TechnicianAdminRemoteDataSource {
     required String phone,
     String? specialty,
   }) async {
+    final ref = _firestore.collection(FirestoreCollections.users).doc(uid);
+    final current = (await ref.get()).data()?['correo'] as String?;
+    // El correo de acceso no se puede cambiar desde aquí: queda pendiente
+    // hasta que el usuario confirme el enlace (ver [EmailChangePlan]).
     final data = <String, dynamic>{
       'nombre': name,
-      'correo': email.trim().toLowerCase(),
       'telefono': phone.trim(),
+      ...EmailChangePlan.update(currentEmail: current, newEmail: email),
     };
     if (specialty != null) data['especialidad'] = specialty.trim();
-    await _firestore.collection(FirestoreCollections.users).doc(uid).update(data);
+    await ref.update(data);
   }
 
   Future<void> deleteTechnicianProfile(String uid) async {

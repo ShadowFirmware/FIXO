@@ -54,6 +54,8 @@ class ProfileRemoteDataSource {
 
     await _firestore.collection(FirestoreCollections.users).doc(uid).update({
       'correoPendiente': normalizedEmail,
+      // El enlace ya se envió: no hay que reenviarlo al iniciar sesión.
+      'enlaceCorreoEnviado': true,
     });
   }
 

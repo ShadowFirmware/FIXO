@@ -42,6 +42,18 @@ class AuthRemoteDataSource {
     return _firestore.collection(FirestoreCollections.users).doc(uid).update({
       'correo': email,
       'correoPendiente': FieldValue.delete(),
+      'enlaceCorreoEnviado': FieldValue.delete(),
+    });
+  }
+
+  /// Envía el enlace de verificación al correo [email] que dejó pendiente el
+  /// administrador (HU-4.5). Authentication cambia el correo cuando se abre.
+  Future<void> sendEmailChangeLink(String uid, String email) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await user.verifyBeforeUpdateEmail(email);
+    await _firestore.collection(FirestoreCollections.users).doc(uid).update({
+      'enlaceCorreoEnviado': true,
     });
   }
 

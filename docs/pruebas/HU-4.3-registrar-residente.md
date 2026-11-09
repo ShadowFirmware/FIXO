@@ -112,7 +112,7 @@ flutter test test/unitarias/admin/admin_users_test.dart
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
 | Usuarios (PU-574 a PU-581, PU-590 y PU-596) | 10 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 

@@ -109,7 +109,7 @@ Son las mismas pruebas de la sección Usuarios que la HU 4.3 (PU-574 a PU-580). 
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
 | Usuarios (PU-574 a PU-581, PU-590 y PU-596) | 10 | Aprobadas |
-| Proyecto completo (`flutter test`) | 302 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 
