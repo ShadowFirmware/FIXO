@@ -6,21 +6,27 @@ import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../incidents/data/datasources/evidence_picker.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
+import '../../domain/repositories/assigned_incident_repository.dart';
+import '../../domain/usecases/register_solution.dart';
 
 /// ViewModel del registro de la solución de una incidencia (HU-3.6).
 class SolutionFormViewModel extends ChangeNotifier {
   SolutionFormViewModel({
     required this.item,
     AuthSession? session,
+    AssignedIncidentRepository? repository,
     EvidencePicker? picker,
   }) : _session = session ?? AuthSession.instance,
+       _repository = repository ?? AssignedIncidentRepositoryImpl(),
        _picker = picker ?? EvidencePicker();
 
   /// Incidencia a la que se le registra la solución.
   final AssignedIncident item;
 
   final AuthSession _session;
+  final AssignedIncidentRepository _repository;
 
   /// Por qué no se puede registrar la solución, o `null` si se puede: la
   /// incidencia debe ser del técnico en sesión y estar En proceso. Se
@@ -117,8 +123,7 @@ class SolutionFormViewModel extends ChangeNotifier {
   /// guardarlas.
   bool get isReviewing => _reviewing;
 
-  static const missingEvidenceMessage =
-      'Agrega al menos una foto o video del trabajo realizado.';
+  static const missingEvidenceMessage = RegisterSolution.missingEvidenceMessage;
 
   /// Los errores se muestran después del primer intento de revisar.
   bool _showErrors = false;
@@ -141,9 +146,40 @@ class SolutionFormViewModel extends ChangeNotifier {
     return _reviewing;
   }
 
+  bool _saving = false;
+
+  /// Se están subiendo las evidencias y guardando la solución.
+  bool get isSaving => _saving;
+
+  /// Guarda la solución y las evidencias; la incidencia pasa a Resuelta.
+  /// Devuelve el mensaje de error, o `null` si se guardó.
+  Future<String?> save() async {
+    if (_saving || !_reviewing) return null;
+    _saving = true;
+    notifyListeners();
+    try {
+      await RegisterSolution(_repository)(
+        technician: _session.currentUser,
+        incidentId: item.id,
+        solution: _description,
+        evidence: _evidence,
+      );
+      return null;
+    } on SolutionIncompleteException catch (e) {
+      return e.message;
+    } on IncidentFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return IncidentFailure.actionFailed.message;
+    } finally {
+      _saving = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
   /// Vuelve al formulario para corregir la información.
   void edit() {
-    if (!_reviewing) return;
+    if (!_reviewing || _saving) return;
     _reviewing = false;
     notifyListeners();
   }

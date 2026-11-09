@@ -38,7 +38,22 @@ class EvidenceStorageDataSource {
   Future<List<String>> uploadBefore(
     String incidentId,
     List<EvidenceFile> files,
-  ) async {
+  ) => _uploadAll(files, folder: _incidentFolder(incidentId, 'antes'));
+
+  /// Sube las evidencias del trabajo realizado por el técnico (HU-3.6) a
+  /// `fixo/incidencias/{incidentId}/despues`. Igual que [uploadBefore].
+  Future<List<String>> uploadAfter(
+    String incidentId,
+    List<EvidenceFile> files,
+  ) => _uploadAll(files, folder: _incidentFolder(incidentId, 'despues'));
+
+  static String _incidentFolder(String incidentId, String stage) =>
+      '${CloudinaryConfig.folder}/incidencias/$incidentId/$stage';
+
+  Future<List<String>> _uploadAll(
+    List<EvidenceFile> files, {
+    required String folder,
+  }) async {
     if (files.isEmpty) return const [];
     if (!_isConfigured) {
       throw const EvidenceUploadException();
@@ -48,12 +63,7 @@ class EvidenceStorageDataSource {
     try {
       return [
         for (var i = 0; i < files.length; i++)
-          await _upload(
-            client,
-            files[i],
-            folder: '${CloudinaryConfig.folder}/incidencias/$incidentId/antes',
-            publicId: '${i + 1}',
-          ),
+          await _upload(client, files[i], folder: folder, publicId: '${i + 1}'),
       ];
     } on SocketException {
       throw const EvidenceUploadException(network: true);

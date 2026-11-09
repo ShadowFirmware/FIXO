@@ -83,6 +83,19 @@ class FakeEvidenceStorage implements EvidenceStorageDataSource {
         'https://storage/$incidentId/${i + 1}.${files[i].extension}',
     ];
   }
+
+  /// Evidencias del técnico (HU-3.6), en la carpeta `despues`.
+  @override
+  Future<List<String>> uploadAfter(
+    String incidentId,
+    List<EvidenceFile> files,
+  ) async {
+    if (error != null) throw error!;
+    return [
+      for (var i = 0; i < files.length; i++)
+        'https://storage/$incidentId/despues/${i + 1}.${files[i].extension}',
+    ];
+  }
 }
 
 /// Registra los avisos que se mandarían a los administradores.

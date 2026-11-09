@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fixo/features/housing/domain/entities/housing.dart';
 import 'package:fixo/features/incidents/data/models/incident_model.dart';
+import 'package:fixo/features/incidents/domain/entities/evidence_file.dart';
 import 'package:fixo/features/incidents/domain/entities/incident.dart';
 import 'package:fixo/features/technician/data/datasources/assigned_incident_remote_data_source.dart';
 import 'package:fixo/features/technician/domain/entities/assigned_incident.dart';
@@ -97,6 +98,40 @@ class FakeAssignedIncidentRepository implements AssignedIncidentRepository {
     if (startError != null) throw startError!;
     started.add((incidentId: incidentId, technicianId: technicianId));
   }
+
+  /// Error que lanza [registerSolution].
+  Object? solutionError;
+
+  /// Si no es `null`, [registerSolution] espera a que se complete.
+  Completer<void>? solutionGate;
+
+  /// Soluciones registradas.
+  final solutions =
+      <
+        ({
+          String incidentId,
+          String technicianId,
+          String solution,
+          List<EvidenceFile> evidence,
+        })
+      >[];
+
+  @override
+  Future<void> registerSolution({
+    required String incidentId,
+    required String technicianId,
+    required String solution,
+    required List<EvidenceFile> evidence,
+  }) async {
+    await solutionGate?.future;
+    if (solutionError != null) throw solutionError!;
+    solutions.add((
+      incidentId: incidentId,
+      technicianId: technicianId,
+      solution: solution,
+      evidence: evidence,
+    ));
+  }
 }
 
 /// Simula Firestore para probar el repositorio real.
@@ -156,6 +191,30 @@ class FakeAssignedIncidentRemoteDataSource
   }) async {
     if (startError != null) throw startError!;
     started.add((incidentId: incidentId, technicianId: technicianId));
+    notifiedAdmins.add(adminIds);
+  }
+
+  /// Error que lanza [registerSolution], por ejemplo una excepción de
+  /// [SolutionPlan] o de Firestore.
+  Object? solutionError;
+
+  final solutions =
+      <({String incidentId, String solution, List<String> evidenceUrls})>[];
+
+  @override
+  Future<void> registerSolution({
+    required String incidentId,
+    required String technicianId,
+    required String solution,
+    required List<String> evidenceUrls,
+    List<String> adminIds = const [],
+  }) async {
+    if (solutionError != null) throw solutionError!;
+    solutions.add((
+      incidentId: incidentId,
+      solution: solution,
+      evidenceUrls: evidenceUrls,
+    ));
     notifiedAdmins.add(adminIds);
   }
 }

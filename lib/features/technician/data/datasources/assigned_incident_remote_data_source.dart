@@ -6,6 +6,7 @@ import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../notifications/data/datasources/notification_remote_data_source.dart';
+import '../models/solution_plan.dart';
 import '../models/start_attention_plan.dart';
 
 /// Acceso a Firestore para las incidencias asignadas al técnico (HU-3.3).
@@ -132,6 +133,69 @@ class AssignedIncidentRemoteDataSource {
             title: incident['nombre'] as String? ?? '',
             technicianName:
                 technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
+          ),
+        );
+      }
+    });
+  }
+
+  /// Registra la solución (HU-3.6) en una sola transacción: la incidencia
+  /// pasa a Resuelta con la solución y las URLs de las evidencias, el
+  /// técnico vuelve a estar Disponible y se avisa al residente y a los
+  /// administradores [adminIds]. Lanza las excepciones de [SolutionPlan] si
+  /// no se puede registrar.
+  Future<void> registerSolution({
+    required String incidentId,
+    required String technicianId,
+    required String solution,
+    required List<String> evidenceUrls,
+    List<String> adminIds = const [],
+  }) {
+    return _firestore.runTransaction((transaction) async {
+      final incidentRef = _incidents.doc(incidentId);
+      final technicianRef = _firestore
+          .collection(FirestoreCollections.users)
+          .doc(technicianId);
+      final incidentDoc = await transaction.get(incidentRef);
+      final technicianDoc = await transaction.get(technicianRef);
+      final incident = incidentDoc.data();
+      SolutionPlan.validate(
+        incident: incident,
+        technician: technicianDoc.data(),
+        technicianId: technicianId,
+        now: DateTime.now(),
+      );
+
+      transaction
+        ..update(
+          incidentRef,
+          SolutionPlan.incidentUpdate(
+            solution: solution,
+            evidenceUrls: evidenceUrls,
+          ),
+        )
+        ..update(technicianRef, SolutionPlan.technicianUpdate);
+
+      final residentId = incident!['creadaPor'] as String? ?? '';
+      final notifications = _firestore.collection(
+        FirestoreCollections.notifications,
+      );
+      for (final userId in {
+        if (residentId.isNotEmpty) residentId,
+        ...adminIds,
+      }) {
+        transaction.set(
+          notifications.doc(),
+          SolutionPlan.notice(
+            userId: userId,
+            incidentId: incidentId,
+            reportNumber: Incident.formatReportNumber(
+              (incident['folio'] as num?)?.toInt() ?? 0,
+            ),
+            title: incident['nombre'] as String? ?? '',
+            technicianName:
+                technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
+            solution: solution,
           ),
         );
       }

@@ -101,6 +101,23 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
     }
   }
 
+  /// Sube las evidencias y guarda la solución. Si se guardó, vuelve al
+  /// detalle, que ya muestra la incidencia como Resuelta.
+  Future<void> _save() async {
+    final reportNumber = _viewModel.item.incident.reportNumber;
+    final error = await _viewModel.save();
+    if (!mounted) return;
+    // Reemplaza el aviso de un intento anterior, si sigue visible.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Registraste la solución de $reportNumber.'),
+        ),
+      );
+    if (error == null) Navigator.pop(context, true);
+  }
+
   Widget _form() {
     return Form(
       key: _formKey,
@@ -196,9 +213,21 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
           ],
         ),
         const SizedBox(height: 32),
+        ElevatedButton.icon(
+          key: const Key('solution.save'),
+          onPressed: vm.isSaving ? null : _save,
+          icon: vm.isSaving
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                )
+              : const Icon(Icons.save_outlined),
+          label: Text(vm.isSaving ? 'Guardando…' : 'Guardar solución'),
+        ),
+        const SizedBox(height: 12),
         OutlinedButton.icon(
           key: const Key('solution.edit'),
-          onPressed: vm.edit,
+          onPressed: vm.isSaving ? null : vm.edit,
           icon: const Icon(Icons.edit_outlined),
           label: const Text('Corregir'),
         ),

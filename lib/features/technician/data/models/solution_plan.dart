@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../incidents/domain/entities/incident.dart';
 import 'start_attention_plan.dart';
 
@@ -52,5 +54,52 @@ abstract final class SolutionPlan {
       case IncidentStatus.pending || IncidentStatus.rejected || null:
         throw const SolutionNotAvailableException();
     }
+  }
+
+  static const resolvedType = 'incidencia_resuelta';
+
+  /// La incidencia pasa a Resuelta con la solución y las evidencias del
+  /// trabajo. La fecha de resolución la pone el servidor.
+  static Map<String, dynamic> incidentUpdate({
+    required String solution,
+    required List<String> evidenceUrls,
+  }) => {
+    'estado': IncidentStatus.resolved.value,
+    'solucion': solution.trim(),
+    'evidenciasDespues': evidenceUrls,
+    'fechaResolucion': FieldValue.serverTimestamp(),
+  };
+
+  /// El técnico vuelve a estar Disponible: se le había marcado como No
+  /// disponible al asignarle la incidencia (HU-4.9).
+  static const technicianUpdate = <String, dynamic>{'disponible': true};
+
+  /// Aviso para el residente y cada administrador de que la incidencia se
+  /// resolvió, con la solución resumida.
+  static Map<String, dynamic> notice({
+    required String userId,
+    required String incidentId,
+    required String reportNumber,
+    required String title,
+    required String technicianName,
+    required String solution,
+  }) => {
+    'usuarioId': userId,
+    'tipo': resolvedType,
+    'titulo': 'Incidencia $reportNumber resuelta',
+    'mensaje':
+        '$technicianName resolvió "$title". Solución: ${_shorten(solution)}',
+    'refId': incidentId,
+    'leida': false,
+    'fecha': FieldValue.serverTimestamp(),
+  };
+
+  static const _maxSolution = 200;
+
+  static String _shorten(String text) {
+    final solution = text.trim();
+    return solution.length <= _maxSolution
+        ? solution
+        : '${solution.substring(0, _maxSolution).trimRight()}…';
   }
 }
