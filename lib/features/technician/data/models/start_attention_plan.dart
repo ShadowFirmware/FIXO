@@ -1,10 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
 
 /// La incidencia no está asignada al técnico que quiere atenderla.
 class NotAssignedToTechnicianException implements Exception {
   const NotAssignedToTechnicianException();
+}
+
+/// La cuenta del técnico no está activa o está suspendida.
+class TechnicianCannotAttendException implements Exception {
+  const TechnicianCannotAttendException();
 }
 
 /// La atención ya había comenzado (por ejemplo, desde otro dispositivo).
@@ -18,19 +24,25 @@ class AttentionNotAvailableException implements Exception {
   const AttentionNotAvailableException();
 }
 
-/// Reglas para comenzar la atención de una incidencia (HU-3.4), aplicadas
-/// sobre el documento que se lee dentro de la transacción. Son funciones
-/// puras para poder probarlas sin Firestore.
+/// Reglas para comenzar la atención de una incidencia (HU-3.4 y HU-3.5),
+/// aplicadas sobre los documentos que se leen dentro de la transacción.
+/// Son funciones puras para poder probarlas sin Firestore.
 abstract final class StartAttentionPlan {
   static const inProgressType = 'incidencia_en_proceso';
 
-  /// Solo el técnico asignado puede comenzarla, y solo si está Asignada.
+  /// Solo el técnico asignado, con su cuenta activa, puede comenzarla, y
+  /// solo si está Asignada.
   static void validate({
     required Map<String, dynamic>? incident,
+    required Map<String, dynamic>? technician,
     required String technicianId,
+    required DateTime now,
   }) {
     if (incident == null || incident['tecnicoId'] != technicianId) {
       throw const NotAssignedToTechnicianException();
+    }
+    if (!canAttend(technician, now: now)) {
+      throw const TechnicianCannotAttendException();
     }
     final status = incident['estado'];
     if (status == IncidentStatus.inProgress.value) {
@@ -39,6 +51,21 @@ abstract final class StartAttentionPlan {
     if (status != IncidentStatus.assigned.value) {
       throw const AttentionNotAvailableException();
     }
+  }
+
+  /// Un técnico con cuenta activa y sin suspensión vigente. A diferencia de
+  /// la asignación, no importa si está Disponible: al asignarle la
+  /// incidencia dejó de estarlo.
+  static bool canAttend(
+    Map<String, dynamic>? technician, {
+    required DateTime now,
+  }) {
+    if (technician == null) return false;
+    if (technician['rol'] != UserRole.technician.value) return false;
+    if (technician['estadoCuenta'] != AccountStatus.active.value) return false;
+    final suspendedUntil = technician['suspendidaHasta'];
+    return !(suspendedUntil is Timestamp &&
+        suspendedUntil.toDate().isAfter(now));
   }
 
   /// La incidencia pasa a En proceso. La hora de inicio la pone el

@@ -70,6 +70,8 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
       );
     } on NotAssignedToTechnicianException {
       throw IncidentFailure.notAssignedToYou;
+    } on TechnicianCannotAttendException {
+      throw IncidentFailure.technicianCannotAttend;
     } on AttentionAlreadyStartedException {
       throw IncidentFailure.attentionAlreadyStarted;
     } on AttentionNotAvailableException {

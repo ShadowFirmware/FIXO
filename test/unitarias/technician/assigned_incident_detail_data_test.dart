@@ -22,7 +22,9 @@ void main() {
       };
       void validate(Map<String, dynamic>? data) => StartAttentionPlan.validate(
         incident: data,
+        technician: const {'rol': 'tecnico', 'estadoCuenta': 'activa'},
         technicianId: technicianId,
+        now: DateTime(2026, 11, 9),
       );
 
       expect(() => validate(incident('asignada')), returnsNormally);

@@ -98,7 +98,9 @@ class AssignedIncidentRemoteDataSource {
       final incident = incidentDoc.data();
       StartAttentionPlan.validate(
         incident: incident,
+        technician: technicianDoc.data(),
         technicianId: technicianId,
+        now: DateTime.now(),
       );
 
       transaction.update(incidentRef, StartAttentionPlan.incidentUpdate);
