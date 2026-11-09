@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
@@ -68,12 +69,31 @@ class _TechnicianIncidentDetailScreenState
       appBar: const FixoAppBar(title: 'Detalle de la incidencia'),
       bottomNavigationBar: ListenableBuilder(
         listenable: _viewModel,
-        builder: (context, _) => _viewModel.canStartAttention
-            ? _StartAttentionBar(
-                starting: _viewModel.isStarting,
-                onPressed: _startAttention,
-              )
-            : const SizedBox.shrink(),
+        builder: (context, _) {
+          if (_viewModel.canStartAttention) {
+            return _ActionBar(
+              buttonKey: const Key('detail.startAttention'),
+              icon: Icons.play_arrow_rounded,
+              label: 'Comenzar atención',
+              busy: _viewModel.isStarting,
+              busyLabel: 'Comenzando…',
+              onPressed: _startAttention,
+            );
+          }
+          if (_viewModel.canRegisterSolution) {
+            return _ActionBar(
+              buttonKey: const Key('detail.registerSolution'),
+              icon: Icons.task_alt_rounded,
+              label: 'Registrar solución',
+              onPressed: () => Navigator.pushNamed(
+                context,
+                RouteNames.technicianRegisterSolution,
+                arguments: _viewModel.item,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
@@ -237,13 +257,26 @@ class _DetailBody extends StatelessWidget {
   }
 }
 
-/// Barra inferior con la opción Comenzar atención.
-class _StartAttentionBar extends StatelessWidget {
-  const _StartAttentionBar({required this.starting, required this.onPressed});
+/// Barra inferior con la acción disponible según el estado: Comenzar
+/// atención (Asignada) o Registrar solución (En proceso).
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.buttonKey,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.busy = false,
+    this.busyLabel,
+  });
+
+  final Key buttonKey;
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
 
   /// Se está guardando: el botón se deshabilita y muestra el progreso.
-  final bool starting;
-  final VoidCallback onPressed;
+  final bool busy;
+  final String? busyLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -263,15 +296,15 @@ class _StartAttentionBar extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
               child: ElevatedButton.icon(
-                key: const Key('detail.startAttention'),
-                onPressed: starting ? null : onPressed,
-                icon: starting
+                key: buttonKey,
+                onPressed: busy ? null : onPressed,
+                icon: busy
                     ? const SizedBox.square(
                         dimension: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.play_arrow_rounded),
-                label: Text(starting ? 'Comenzando…' : 'Comenzar atención'),
+                    : Icon(icon),
+                label: Text(busy ? busyLabel ?? label : label),
               ),
             ),
           ),

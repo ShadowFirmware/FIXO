@@ -20,6 +20,7 @@ import '../../features/resident/presentation/screens/incident_detail_screen.dart
 import '../../features/resident/presentation/screens/register_incident_screen.dart';
 import '../../features/resident/presentation/screens/resident_shell_screen.dart';
 import '../../features/technician/domain/entities/assigned_incident.dart';
+import '../../features/technician/presentation/screens/register_solution_screen.dart';
 import '../../features/technician/presentation/screens/technician_edit_profile_screen.dart';
 import '../../features/technician/presentation/screens/technician_incident_detail_screen.dart';
 import '../../features/technician/presentation/screens/technician_shell_screen.dart';
@@ -42,6 +43,7 @@ abstract final class AppRouter {
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.technicianEditProfile: {UserRole.technician},
     RouteNames.technicianIncidentDetail: {UserRole.technician},
+    RouteNames.technicianRegisterSolution: {UserRole.technician},
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
     RouteNames.adminEditProfile: {UserRole.admin},
@@ -102,6 +104,11 @@ abstract final class AppRouter {
               : TechnicianIncidentDetailScreen(
                   incidentId: arguments! as String,
                 ),
+          settings,
+        );
+      case RouteNames.technicianRegisterSolution:
+        return _page(
+          RegisterSolutionScreen(item: settings.arguments! as AssignedIncident),
           settings,
         );
       case RouteNames.adminHome:
