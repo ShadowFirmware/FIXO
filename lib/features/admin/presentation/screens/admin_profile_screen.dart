@@ -7,6 +7,7 @@ import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../resident/presentation/widgets/profile_header.dart';
 import '../../../resident/presentation/widgets/profile_info_section.dart';
 import '../providers/admin_profile_view_model.dart';
+import '../widgets/admin_drawer.dart';
 
 /// HU-4.1 Consultar perfil del administrador.
 class AdminProfileScreen extends StatefulWidget {
@@ -36,50 +37,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(child: Text('Administrador')),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, RouteNames.adminHome);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('Residentes'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminResidents);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.build_outlined),
-              title: const Text('Técnicos'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminTechnicians);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline_rounded),
-              title: const Text('Ver perfil'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
-              title: const Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.pop(context);
-                signOutAndGoToLogin(context);
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: const AdminDrawer(currentRoute: RouteNames.adminProfile),
       appBar: FixoAppBar(
         title: 'Mi perfil',
         leading: Builder(

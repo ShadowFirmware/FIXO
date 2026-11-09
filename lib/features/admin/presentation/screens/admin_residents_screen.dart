@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
-import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/domain/entities/housing.dart';
 
 import '../providers/resident_admin_view_model.dart';
+import '../widgets/admin_drawer.dart';
 
 /// Pantalla de gestión de residentes del administrador.
 class AdminResidentsScreen extends StatefulWidget {
@@ -463,66 +463,7 @@ class _AdminResidentsScreenState extends State<AdminResidentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(child: Text('Administrador')),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, RouteNames.adminHome);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.assignment_outlined),
-              title: const Text('Reportes pendientes'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminPendingIncidents);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('Residentes'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.build_outlined),
-              title: const Text('Técnicos'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminTechnicians);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.apartment_outlined),
-              title: const Text('Residencias'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminHousings);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Ver perfil'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminProfile);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
-              title: const Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.pop(context);
-                signOutAndGoToLogin(context);
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: const AdminDrawer(currentRoute: RouteNames.adminResidents),
       appBar: FixoAppBar(
         title: 'Residentes',
         leading: Builder(

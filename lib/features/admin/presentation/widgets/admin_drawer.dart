@@ -27,10 +27,12 @@ class AdminDrawer extends StatelessWidget {
         onTap: () {
           Navigator.pop(context);
           if (selected) return;
+          // Cada sección se abre sobre Inicio, sin apilar las anteriores: el
+          // botón Atrás siempre regresa a Inicio.
           if (route == RouteNames.adminHome) {
             Navigator.popUntil(context, (r) => r.isFirst);
           } else {
-            Navigator.pushNamed(context, route);
+            Navigator.pushNamedAndRemoveUntil(context, route, (r) => r.isFirst);
           }
         },
       );
@@ -82,36 +84,16 @@ class AdminDrawer extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
-            if (currentRoute != null && currentRoute != RouteNames.adminHome)
-              item(Icons.home_outlined, 'Inicio', RouteNames.adminHome),
-            item(
-              Icons.assignment_outlined,
-              'Reportes pendientes',
-              RouteNames.adminPendingIncidents,
+            // Las secciones se desplazan si no caben; Cerrar sesión queda fijo.
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  for (final section in AdminSection.all)
+                    item(section.icon, section.label, section.route),
+                ],
+              ),
             ),
-            item(
-              Icons.history_rounded,
-              'Historial de incidencias',
-              RouteNames.adminIncidentHistory,
-            ),
-            item(
-              Icons.bar_chart_rounded,
-              'Estadísticas',
-              RouteNames.adminStatistics,
-            ),
-            item(Icons.people_outline, 'Residentes', RouteNames.adminResidents),
-            item(Icons.build_outlined, 'Técnicos', RouteNames.adminTechnicians),
-            item(
-              Icons.apartment_outlined,
-              'Residencias',
-              RouteNames.adminHousings,
-            ),
-            item(
-              Icons.person_outline_rounded,
-              'Ver perfil',
-              RouteNames.adminProfile,
-            ),
-            const Spacer(),
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.logout_rounded, color: AppColors.error),
@@ -140,4 +122,45 @@ class AdminDrawer extends StatelessWidget {
     final letters = words.map((word) => word[0].toUpperCase()).join();
     return letters.isEmpty ? '?' : letters;
   }
+}
+
+/// Sección del panel del administrador, con su ícono y su ruta.
+class AdminSection {
+  const AdminSection(this.icon, this.label, this.route);
+
+  final IconData icon;
+  final String label;
+  final String route;
+
+  /// Todas las secciones, en el orden en que aparecen en el menú.
+  static const all = [
+    AdminSection(Icons.home_outlined, 'Inicio', RouteNames.adminHome),
+    AdminSection(
+      Icons.assignment_outlined,
+      'Reportes pendientes',
+      RouteNames.adminPendingIncidents,
+    ),
+    AdminSection(
+      Icons.history_rounded,
+      'Historial de incidencias',
+      RouteNames.adminIncidentHistory,
+    ),
+    AdminSection(
+      Icons.bar_chart_rounded,
+      'Estadísticas',
+      RouteNames.adminStatistics,
+    ),
+    AdminSection(Icons.people_outline, 'Residentes', RouteNames.adminResidents),
+    AdminSection(Icons.build_outlined, 'Técnicos', RouteNames.adminTechnicians),
+    AdminSection(
+      Icons.apartment_outlined,
+      'Residencias',
+      RouteNames.adminHousings,
+    ),
+    AdminSection(
+      Icons.person_outline_rounded,
+      'Ver perfil',
+      RouteNames.adminProfile,
+    ),
+  ];
 }
