@@ -74,6 +74,11 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
       _state == AssignedIncidentDetailState.loaded &&
       incident?.status == IncidentStatus.assigned;
 
+  /// La solución se registra cuando la incidencia está En proceso (HU-3.6).
+  bool get canRegisterSolution =>
+      _state == AssignedIncidentDetailState.loaded &&
+      incident?.status == IncidentStatus.inProgress;
+
   /// Pasa la incidencia a En proceso. Devuelve el mensaje de error, o
   /// `null` si se guardó; la pantalla se actualiza sola con el nuevo
   /// estado.

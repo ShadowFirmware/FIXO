@@ -1,3 +1,4 @@
+import '../../../incidents/domain/entities/evidence_file.dart';
 import '../entities/assigned_incident.dart';
 
 abstract interface class AssignedIncidentRepository {
@@ -15,5 +16,15 @@ abstract interface class AssignedIncidentRepository {
   Future<void> startAttention({
     required String incidentId,
     required String technicianId,
+  });
+
+  /// Sube las evidencias del trabajo y registra la solución de la
+  /// incidencia [incidentId], que pasa a Resuelta (HU-3.6). Si no se puede,
+  /// lanza un `IncidentFailure`.
+  Future<void> registerSolution({
+    required String incidentId,
+    required String technicianId,
+    required String solution,
+    required List<EvidenceFile> evidence,
   });
 }
