@@ -110,7 +110,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
                         onTap: () => Navigator.pushNamed(
                           context,
                           RouteNames.technicianIncidentDetail,
-                          arguments: item.id,
+                          arguments: item,
                         ),
                       );
                     },

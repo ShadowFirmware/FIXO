@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
-import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
-import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../../../resident/presentation/screens/incident_detail_screen.dart';
+import '../../domain/entities/assigned_incident.dart';
 import '../providers/assigned_incident_detail_view_model.dart';
+import '../widgets/assigned_detail_widgets.dart';
 
-/// HU-3.3: información general de una incidencia asignada al técnico.
+/// HU-3.4 Consultar detalles y evidencias de una incidencia asignada.
 class TechnicianIncidentDetailScreen extends StatefulWidget {
   const TechnicianIncidentDetailScreen({
     super.key,
     required this.incidentId,
+    this.initial,
     this.viewModel,
   });
 
   final String incidentId;
+
+  /// Datos que ya se tenían en la lista, para mostrarlos de inmediato.
+  final AssignedIncident? initial;
 
   /// Solo para pruebas; normalmente la pantalla crea el suyo.
   final AssignedIncidentDetailViewModel? viewModel;
@@ -30,12 +34,62 @@ class _TechnicianIncidentDetailScreenState
     extends State<TechnicianIncidentDetailScreen> {
   late final _viewModel =
       widget.viewModel ??
-      AssignedIncidentDetailViewModel(incidentId: widget.incidentId);
+      AssignedIncidentDetailViewModel(
+        incidentId: widget.incidentId,
+        initial: widget.initial,
+      );
 
   @override
   void dispose() {
     if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
+  }
+
+  /// Pide confirmación y pasa la incidencia a En proceso.
+  Future<void> _startAttention() async {
+    final reportNumber = _viewModel.incident!.reportNumber;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Comenzar la atención?'),
+        content: Text(
+          'La incidencia $reportNumber pasará a "En proceso" y se avisará '
+          'al residente.',
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    key: const Key('detail.startConfirm'),
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Comenzar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final error = await _viewModel.startAttention();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Comenzaste la atención de $reportNumber.'),
+      ),
+    );
   }
 
   @override
@@ -44,21 +98,38 @@ class _TechnicianIncidentDetailScreenState
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
       appBar: const FixoAppBar(title: 'Detalle de la incidencia'),
+      bottomNavigationBar: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) => _viewModel.canStartAttention
+            ? _StartAttentionBar(
+                starting: _viewModel.isStarting,
+                onPressed: _startAttention,
+              )
+            : const SizedBox.shrink(),
+      ),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) => switch (_viewModel.state) {
           AssignedIncidentDetailState.loading => const Center(
             child: CircularProgressIndicator(),
           ),
-          AssignedIncidentDetailState.notFound => const _MessageView(
+          AssignedIncidentDetailState.notFound => const AssignedDetailMessage(
             icon: Icons.search_off_rounded,
             message: 'No se encontró la incidencia.',
           ),
-          AssignedIncidentDetailState.error => _MessageView(
+          AssignedIncidentDetailState.error => AssignedDetailMessage(
             icon: _viewModel.isAccessDenied
                 ? Icons.lock_outline_rounded
                 : Icons.error_outline_rounded,
             message: _viewModel.errorMessage!,
+            action: _viewModel.canRetry
+                ? FilledButton.icon(
+                    key: const Key('detail.retry'),
+                    onPressed: _viewModel.retry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Reintentar'),
+                  )
+                : null,
           ),
           AssignedIncidentDetailState.loaded => _DetailBody(
             viewModel: _viewModel,
@@ -78,202 +149,158 @@ class _DetailBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = viewModel;
     final incident = vm.incident!;
-    final padding = MediaQuery.paddingOf(context);
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        padding.top + 16,
-        20,
-        padding.bottom + 24,
+    return AssignedDetailLayout(
+      header: AssignedDetailSummary(
+        incident: incident,
+        arrival: incident.estimatedTime == null ? null : vm.estimatedArrival,
+        countdown: vm.arrivalCountdown,
       ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _SummaryCard(incident: incident),
-              const SizedBox(height: 24),
-              DetailSection(
-                title: 'Información general',
-                children: [
-                  DetailRow(
-                    icon: Icons.category_outlined,
-                    label: 'Tipo',
-                    value: vm.type,
-                  ),
-                  DetailRow(
-                    icon: Icons.apartment_rounded,
-                    label: 'Departamento',
-                    value: vm.housing,
-                  ),
-                  DetailRow(
-                    icon: Icons.calendar_today_outlined,
-                    label: 'Fecha de creación',
-                    value: vm.createdAt,
-                  ),
-                  DetailRow(
-                    icon: Icons.schedule_rounded,
-                    label: 'Hora estimada de llegada',
-                    value: vm.estimatedArrival,
-                  ),
-                  DetailRow(
-                    icon: Icons.notes_rounded,
-                    label: 'Descripción',
-                    value: vm.description,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              DetailSection(
-                title: 'Residente',
-                children: [
-                  DetailRow(
-                    icon: Icons.person_outline_rounded,
-                    label: 'Reportó',
-                    value: vm.residentName,
-                  ),
-                  DetailRow(
-                    icon: Icons.phone_outlined,
-                    label: 'Teléfono',
-                    value: vm.residentPhone,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              DetailSection(
-                title: 'Evidencias del residente',
-                children: [EvidenceGallery(urls: incident.evidenceBefore)],
-              ),
-              if (vm.isResolved) ...[
-                const SizedBox(height: 24),
-                DetailSection(
-                  title: 'Solución',
-                  children: [
-                    DetailRow(
-                      icon: Icons.task_alt_rounded,
-                      label: 'Solución aplicada',
-                      value: vm.solution,
-                    ),
-                    DetailRow(
-                      icon: Icons.event_available_outlined,
-                      label: 'Fecha de resolución',
-                      value: vm.resolvedAt,
-                    ),
-                    EvidenceGallery(urls: incident.evidenceAfter),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Tarjeta superior con el número de reporte, el título y el estado.
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.incident});
-
-  final Incident incident;
-
-  /// Qué significa el estado para el técnico.
-  static String descriptionOf(IncidentStatus status) => switch (status) {
-    IncidentStatus.assigned =>
-      'Acude a la hora estimada para atender el problema.',
-    IncidentStatus.inProgress => 'Estás atendiendo el problema.',
-    IncidentStatus.resolved =>
-      'Resolviste esta incidencia; ya está en tu historial.',
-    IncidentStatus.pending => 'La incidencia está en espera de asignación.',
-    IncidentStatus.rejected => 'El administrador rechazó el reporte.',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final status = incident.status;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.navy, AppColors.primary],
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  incident.reportNumber,
-                  style: textTheme.labelLarge?.copyWith(
-                    color: AppColors.white.withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ),
-              IncidentStatusBadge(status: status),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            incident.title,
-            style: textTheme.titleLarge?.copyWith(
-              color: AppColors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            descriptionOf(status),
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.white.withValues(alpha: 0.85),
-            ),
-          ),
-          const SizedBox(height: 20),
-          IncidentStatusProgress(status: status),
-        ],
-      ),
-    );
-  }
-}
-
-/// Mensaje centrado cuando no se puede mostrar la incidencia.
-class _MessageView extends StatelessWidget {
-  const _MessageView({required this.icon, required this.message});
-
-  final IconData icon;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      primary: [
+        DetailSection(
+          title: 'Información general',
           children: [
-            Icon(icon, size: 56, color: AppColors.textSecondary),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
+            DetailRow(
+              icon: Icons.category_outlined,
+              label: 'Tipo',
+              value: vm.type,
             ),
-            const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: () => Navigator.maybePop(context),
-              child: const Text('Volver'),
+            DetailRow(
+              icon: Icons.flag_outlined,
+              label: 'Estado',
+              value: vm.status,
+            ),
+            DetailRow(
+              icon: Icons.calendar_today_outlined,
+              label: 'Fecha de creación',
+              value: vm.createdAt,
+            ),
+            DetailRow(
+              icon: Icons.schedule_rounded,
+              label: 'Hora estimada de llegada',
+              value: vm.estimatedArrival,
+            ),
+            DetailRow(
+              icon: Icons.notes_rounded,
+              label: 'Descripción',
+              value: vm.description,
             ),
           ],
+        ),
+        if (vm.isResolved)
+          DetailSection(
+            title: 'Solución',
+            children: [
+              DetailRow(
+                icon: Icons.task_alt_rounded,
+                label: 'Solución aplicada',
+                value: vm.solution,
+              ),
+              DetailRow(
+                icon: Icons.event_available_outlined,
+                label: 'Fecha de resolución',
+                value: vm.resolvedAt,
+              ),
+              EvidenceGallery(urls: incident.evidenceAfter),
+            ],
+          ),
+      ],
+      secondary: [
+        AssignedEvidenceSection(
+          title: 'Evidencias del residente',
+          urls: incident.evidenceBefore,
+        ),
+        DetailSection(
+          title: 'Ubicación',
+          children: [
+            DetailRow(
+              icon: Icons.place_outlined,
+              label: 'Lugar',
+              value: vm.housing,
+            ),
+            DetailRow(
+              icon: Icons.home_work_outlined,
+              label: 'Tipo de vivienda',
+              value: vm.housingType,
+            ),
+            if (vm.building case final building?)
+              DetailRow(
+                icon: Icons.apartment_rounded,
+                label: 'Edificio o torre',
+                value: building,
+              ),
+            DetailRow(
+              icon: Icons.tag_rounded,
+              label: 'Número',
+              value: vm.housingNumber,
+            ),
+          ],
+        ),
+        DetailSection(
+          title: 'Residente',
+          children: [
+            DetailRow(
+              icon: Icons.person_outline_rounded,
+              label: 'Reportó',
+              value: vm.residentName,
+            ),
+            CopyableDetailRow(
+              icon: Icons.phone_outlined,
+              label: 'Teléfono',
+              value: vm.residentPhone,
+              copyValue: vm.phoneToCopy,
+              copiedMessage: 'Teléfono copiado',
+            ),
+            DetailRow(
+              icon: Icons.email_outlined,
+              label: 'Correo electrónico',
+              value: vm.residentEmail,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Barra inferior con la opción Comenzar atención.
+class _StartAttentionBar extends StatelessWidget {
+  const _StartAttentionBar({required this.starting, required this.onPressed});
+
+  /// Se está guardando: el botón se deshabilita y muestra el progreso.
+  final bool starting;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(
+          top: BorderSide(color: AppColors.border.withValues(alpha: 0.6)),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: ElevatedButton.icon(
+                key: const Key('detail.startAttention'),
+                onPressed: starting ? null : onPressed,
+                icon: starting
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.play_arrow_rounded),
+                label: Text(starting ? 'Comenzando…' : 'Comenzar atención'),
+              ),
+            ),
+          ),
         ),
       ),
     );

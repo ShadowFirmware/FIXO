@@ -9,4 +9,11 @@ abstract interface class AssignedIncidentRepository {
   /// Emite la incidencia [id] cada vez que cambia, o `null` si no existe.
   /// Los errores llegan como `IncidentFailure`.
   Stream<AssignedIncident?> watchById(String id);
+
+  /// Pasa la incidencia [incidentId] de Asignada a En proceso y avisa al
+  /// residente (HU-3.4). Si no se puede, lanza un `IncidentFailure`.
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  });
 }

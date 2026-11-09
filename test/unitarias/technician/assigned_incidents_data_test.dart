@@ -17,8 +17,14 @@ void main() {
 
     setUp(() {
       remote = FakeAssignedIncidentRemoteDataSource()
-        ..housingLabels = {'viv-4b': 'Torre A – 4B'}
-        ..contacts = {'res-ana': (name: 'Ana López', phone: '7771112233')};
+        ..housings = {'viv-4b': towerA4B}
+        ..contacts = {
+          'res-ana': (
+            name: 'Ana López',
+            phone: '7771112233',
+            email: 'ana@correo.com',
+          ),
+        };
       repository = AssignedIncidentRepositoryImpl(remote: remote);
     });
 
@@ -38,8 +44,11 @@ void main() {
       ]);
       expect(list.first.residentName, 'Ana López');
       expect(list.first.residentPhone, '7771112233');
+      expect(list.first.residentEmail, 'ana@correo.com');
+      expect(list.first.housing?.building, 'Torre A');
       expect(list.last.residentName, 'Sin registrar');
       expect(list.last.residentPhone, isNull);
+      expect(list.last.housing, isNull);
       // La vivienda y el residente repetidos se consultan una sola vez.
       expect(remote.lookups['viv-4b'], 1);
       expect(remote.lookups['res-ana'], 1);

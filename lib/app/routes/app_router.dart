@@ -19,6 +19,7 @@ import '../../features/communication/presentation/screens/incident_chat_screen.d
 import '../../features/resident/presentation/screens/incident_detail_screen.dart';
 import '../../features/resident/presentation/screens/register_incident_screen.dart';
 import '../../features/resident/presentation/screens/resident_shell_screen.dart';
+import '../../features/technician/domain/entities/assigned_incident.dart';
 import '../../features/technician/presentation/screens/technician_edit_profile_screen.dart';
 import '../../features/technician/presentation/screens/technician_incident_detail_screen.dart';
 import '../../features/technician/presentation/screens/technician_shell_screen.dart';
@@ -89,10 +90,18 @@ abstract final class AppRouter {
       case RouteNames.technicianEditProfile:
         return _page(const TechnicianEditProfileScreen(), settings);
       case RouteNames.technicianIncidentDetail:
+        // Desde la lista llega la incidencia completa; desde un aviso,
+        // solo su ID.
+        final arguments = settings.arguments;
         return _page(
-          TechnicianIncidentDetailScreen(
-            incidentId: settings.arguments! as String,
-          ),
+          arguments is AssignedIncident
+              ? TechnicianIncidentDetailScreen(
+                  incidentId: arguments.id,
+                  initial: arguments,
+                )
+              : TechnicianIncidentDetailScreen(
+                  incidentId: arguments! as String,
+                ),
           settings,
         );
       case RouteNames.adminHome:

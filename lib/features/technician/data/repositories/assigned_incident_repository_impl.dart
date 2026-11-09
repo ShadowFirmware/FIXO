@@ -1,10 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 
 import '../../../../core/errors/incident_failure.dart';
+import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
 import '../datasources/assigned_incident_remote_data_source.dart';
+import '../models/start_attention_plan.dart';
 
 class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
   AssignedIncidentRepositoryImpl({AssignedIncidentRemoteDataSource? remote})
@@ -13,8 +15,8 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
   final AssignedIncidentRemoteDataSource _remote;
 
   // Se consultan una sola vez aunque la lista se emita muchas veces.
-  final _housingLabels = <String, Future<String>>{};
-  final _contacts = <String, Future<({String name, String? phone})>>{};
+  final _housings = <String, Future<Housing?>>{};
+  final _contacts = <String, Future<_Contact>>{};
 
   static const _unknown = 'Sin registrar';
 
@@ -56,11 +58,36 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
         });
   }
 
+  @override
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    try {
+      await _remote.startAttention(
+        incidentId: incidentId,
+        technicianId: technicianId,
+      );
+    } on NotAssignedToTechnicianException {
+      throw IncidentFailure.notAssignedToYou;
+    } on AttentionAlreadyStartedException {
+      throw IncidentFailure.attentionAlreadyStarted;
+    } on AttentionNotAvailableException {
+      throw IncidentFailure.attentionNotAvailable;
+    } on FirebaseException catch (e) {
+      throw switch (e.code) {
+        'unavailable' || 'deadline-exceeded' => IncidentFailure.offline,
+        'permission-denied' => IncidentFailure.notAssignedToYou,
+        _ => IncidentFailure.actionFailed,
+      };
+    }
+  }
+
   Future<AssignedIncident> _withContact(Incident incident) async {
     final (housing, resident) = await (
-      _housingLabels.putIfAbsent(
+      _housings.putIfAbsent(
         incident.housingId,
-        () => _housingLabel(incident.housingId),
+        () => _housing(incident.housingId),
       ),
       _contacts.putIfAbsent(
         incident.createdBy,
@@ -69,29 +96,32 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
     ).wait;
     return AssignedIncident(
       incident: incident,
-      housingLabel: housing,
+      housingLabel: _textOr(housing?.label) ?? _unknown,
+      housing: housing,
       residentName: resident.name,
       residentPhone: resident.phone,
+      residentEmail: resident.email,
     );
   }
 
-  Future<String> _housingLabel(String id) async {
+  Future<Housing?> _housing(String id) async {
     try {
-      return _textOr(await _remote.housingLabel(id)) ?? _unknown;
+      return await _remote.housing(id);
     } catch (_) {
-      return _unknown;
+      return null;
     }
   }
 
-  Future<({String name, String? phone})> _contact(String uid) async {
+  Future<_Contact> _contact(String uid) async {
     try {
       final contact = await _remote.contact(uid);
       return (
         name: _textOr(contact?.name) ?? _unknown,
         phone: _textOr(contact?.phone),
+        email: _textOr(contact?.email),
       );
     } catch (_) {
-      return (name: _unknown, phone: null);
+      return (name: _unknown, phone: null, email: null);
     }
   }
 
@@ -100,3 +130,5 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
     return text.isEmpty ? null : text;
   }
 }
+
+typedef _Contact = ({String name, String? phone, String? email});

@@ -153,7 +153,8 @@ void main() {
 
       await tester.tap(find.text('Fuga 2'));
       await tester.pumpAndSettle();
-      expect(opened, ['inc-2']);
+      // Se envía la incidencia completa para mostrarla de inmediato.
+      expect(opened, [items[1]]);
       expect(find.text('Detalle'), findsOneWidget);
     });
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fixo/features/housing/domain/entities/housing.dart';
 import 'package:fixo/features/incidents/data/models/incident_model.dart';
 import 'package:fixo/features/incidents/domain/entities/incident.dart';
 import 'package:fixo/features/technician/data/datasources/assigned_incident_remote_data_source.dart';
@@ -38,11 +39,23 @@ AssignedIncident assignedItem(
   String housingLabel = 'Torre A – 4B',
   String residentName = 'Ana López',
   String? residentPhone = '7771112233',
+  String? residentEmail = 'ana@correo.com',
+  Housing? housing = towerA4B,
 }) => AssignedIncident(
   incident: incident,
   housingLabel: housingLabel,
   residentName: residentName,
   residentPhone: residentPhone,
+  residentEmail: residentEmail,
+  housing: housing,
+);
+
+/// Departamento 4B de la Torre A.
+const towerA4B = Housing(
+  id: 'viv-4b',
+  type: HousingType.apartment,
+  number: '4B',
+  building: 'Torre A',
 );
 
 /// Simula el repositorio: las pruebas emiten las incidencias a mano.
@@ -65,6 +78,25 @@ class FakeAssignedIncidentRepository implements AssignedIncidentRepository {
     requestedIds.add(id);
     return detailController.stream;
   }
+
+  /// Error que lanza [startAttention], por ejemplo sin conexión.
+  Object? startError;
+
+  /// Si no es `null`, [startAttention] espera a que se complete.
+  Completer<void>? startGate;
+
+  /// Incidencias cuya atención se comenzó, con el técnico.
+  final started = <({String incidentId, String technicianId})>[];
+
+  @override
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    await startGate?.future;
+    if (startError != null) throw startError!;
+    started.add((incidentId: incidentId, technicianId: technicianId));
+  }
 }
 
 /// Simula Firestore para probar el repositorio real.
@@ -73,8 +105,8 @@ class FakeAssignedIncidentRemoteDataSource
   final listController = StreamController<List<IncidentModel>>.broadcast();
   final detailController = StreamController<IncidentModel?>.broadcast();
 
-  Map<String, String> housingLabels = {};
-  Map<String, ({String? name, String? phone})> contacts = {};
+  Map<String, Housing> housings = {};
+  Map<String, ({String? name, String? phone, String? email})> contacts = {};
 
   /// Cuántas veces se consultó cada vivienda y cada usuario.
   final lookups = <String, int>{};
@@ -87,14 +119,31 @@ class FakeAssignedIncidentRemoteDataSource
   Stream<IncidentModel?> watchById(String id) => detailController.stream;
 
   @override
-  Future<String?> housingLabel(String id) async {
+  Future<Housing?> housing(String id) async {
     lookups.update(id, (n) => n + 1, ifAbsent: () => 1);
-    return housingLabels[id];
+    return housings[id];
   }
 
   @override
-  Future<({String? name, String? phone})?> contact(String uid) async {
+  Future<({String? name, String? phone, String? email})?> contact(
+    String uid,
+  ) async {
     lookups.update(uid, (n) => n + 1, ifAbsent: () => 1);
     return contacts[uid];
+  }
+
+  /// Error que lanza [startAttention], por ejemplo una excepción de
+  /// [StartAttentionPlan] o de Firestore.
+  Object? startError;
+
+  final started = <({String incidentId, String technicianId})>[];
+
+  @override
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    if (startError != null) throw startError!;
+    started.add((incidentId: incidentId, technicianId: technicianId));
   }
 }
