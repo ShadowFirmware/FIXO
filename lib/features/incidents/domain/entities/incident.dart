@@ -62,6 +62,7 @@ class Incident {
     this.evidenceAfter = const [],
     this.createdAt,
     this.startedAt,
+    this.solutionRegisteredAt,
     this.resolvedAt,
   });
 
@@ -103,6 +104,10 @@ class Incident {
 
   /// Cuándo el técnico comenzó la atención (HU-3.5).
   final DateTime? startedAt;
+
+  /// Cuándo el técnico registró la solución (HU-3.6). La incidencia sigue
+  /// En proceso hasta que la finaliza (HU-3.7).
+  final DateTime? solutionRegisteredAt;
 
   final DateTime? resolvedAt;
 

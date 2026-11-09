@@ -31,11 +31,17 @@ class SolutionFormViewModel extends ChangeNotifier {
   /// Por qué no se puede registrar la solución, o `null` si se puede: la
   /// incidencia debe ser del técnico en sesión y estar En proceso. Se
   /// revisa de nuevo al guardar, por si cambió mientras tanto.
+  bool get hasRegisteredSolution =>
+      item.incident.solution?.trim().isNotEmpty ?? false;
+
   IncidentFailure? get statusError {
     if (item.incident.technicianId != _session.currentUser?.uid) {
       return IncidentFailure.notAssignedToYou;
     }
     return switch (item.status) {
+      // La solución se registra una sola vez (HU-3.7).
+      IncidentStatus.inProgress when hasRegisteredSolution =>
+        IncidentFailure.solutionAlreadyRegistered,
       IncidentStatus.inProgress => null,
       IncidentStatus.resolved => IncidentFailure.solutionAlreadyRegistered,
       IncidentStatus.assigned => IncidentFailure.attentionNotStarted,

@@ -91,6 +91,13 @@ class _TechnicianIncidentDetailScreenState
               ),
             );
           }
+          if (_viewModel.canFinalize) {
+            return const _ActionBar(
+              buttonKey: Key('detail.finalize'),
+              icon: Icons.flag_rounded,
+              label: 'Finalizar incidencia',
+            );
+          }
           return const SizedBox.shrink();
         },
       ),
@@ -180,7 +187,9 @@ class _DetailBody extends StatelessWidget {
             ),
           ],
         ),
-        if (vm.isResolved) ...[
+        // La solución se muestra desde que se registra (HU-3.6), aunque la
+        // incidencia siga En proceso hasta que se finaliza (HU-3.7).
+        if (vm.hasSolution) ...[
           DetailSection(
             title: 'Solución',
             children: [
@@ -189,11 +198,18 @@ class _DetailBody extends StatelessWidget {
                 label: 'Solución aplicada',
                 value: vm.solution,
               ),
-              DetailRow(
-                icon: Icons.event_available_outlined,
-                label: 'Fecha de resolución',
-                value: vm.resolvedAt,
-              ),
+              if (vm.isResolved)
+                DetailRow(
+                  icon: Icons.event_available_outlined,
+                  label: 'Fecha de resolución',
+                  value: vm.resolvedAt,
+                )
+              else if (vm.solutionRegisteredAt case final registeredAt?)
+                DetailRow(
+                  icon: Icons.edit_calendar_outlined,
+                  label: 'Registrada el',
+                  value: registeredAt,
+                ),
             ],
           ),
           AssignedEvidenceSection(
@@ -261,13 +277,14 @@ class _DetailBody extends StatelessWidget {
 }
 
 /// Barra inferior con la acción disponible según el estado: Comenzar
-/// atención (Asignada) o Registrar solución (En proceso).
+/// atención (Asignada), Registrar solución o Finalizar incidencia (En
+/// proceso, sin o con la solución registrada).
 class _ActionBar extends StatelessWidget {
   const _ActionBar({
     required this.buttonKey,
     required this.icon,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.busy = false,
     this.busyLabel,
   });
@@ -275,7 +292,9 @@ class _ActionBar extends StatelessWidget {
   final Key buttonKey;
   final IconData icon;
   final String label;
-  final VoidCallback onPressed;
+
+  /// `null` deshabilita el botón.
+  final VoidCallback? onPressed;
 
   /// Se está guardando: el botón se deshabilita y muestra el progreso.
   final bool busy;

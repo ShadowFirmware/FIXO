@@ -121,15 +121,11 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
     }
 
     try {
-      final adminIds = await _remote.activeAdminIds().catchError(
-        (Object _) => const <String>[],
-      );
       await _remote.registerSolution(
         incidentId: incidentId,
         technicianId: technicianId,
         solution: solution,
         evidenceUrls: urls,
-        adminIds: adminIds,
       );
     } on NotAssignedToTechnicianException {
       throw IncidentFailure.notAssignedToYou;

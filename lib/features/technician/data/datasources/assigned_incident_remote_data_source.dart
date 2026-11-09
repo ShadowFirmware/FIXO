@@ -139,66 +139,35 @@ class AssignedIncidentRemoteDataSource {
     });
   }
 
-  /// Registra la solución (HU-3.6) en una sola transacción: la incidencia
-  /// pasa a Resuelta con la solución y las URLs de las evidencias, el
-  /// técnico vuelve a estar Disponible y se avisa al residente y a los
-  /// administradores [adminIds]. Lanza las excepciones de [SolutionPlan] si
-  /// no se puede registrar.
+  /// Registra la solución (HU-3.6) con las URLs de las evidencias, en una
+  /// transacción que antes revisa las reglas de [SolutionPlan]. La
+  /// incidencia sigue En proceso hasta que el técnico la finaliza (HU-3.7).
   Future<void> registerSolution({
     required String incidentId,
     required String technicianId,
     required String solution,
     required List<String> evidenceUrls,
-    List<String> adminIds = const [],
   }) {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
-      final technicianRef = _firestore
-          .collection(FirestoreCollections.users)
-          .doc(technicianId);
       final incidentDoc = await transaction.get(incidentRef);
-      final technicianDoc = await transaction.get(technicianRef);
-      final incident = incidentDoc.data();
+      final technicianDoc = await transaction.get(
+        _firestore.collection(FirestoreCollections.users).doc(technicianId),
+      );
       SolutionPlan.validate(
-        incident: incident,
+        incident: incidentDoc.data(),
         technician: technicianDoc.data(),
         technicianId: technicianId,
         now: DateTime.now(),
       );
 
-      transaction
-        ..update(
-          incidentRef,
-          SolutionPlan.incidentUpdate(
-            solution: solution,
-            evidenceUrls: evidenceUrls,
-          ),
-        )
-        ..update(technicianRef, SolutionPlan.technicianUpdate);
-
-      final residentId = incident!['creadaPor'] as String? ?? '';
-      final notifications = _firestore.collection(
-        FirestoreCollections.notifications,
+      transaction.update(
+        incidentRef,
+        SolutionPlan.incidentUpdate(
+          solution: solution,
+          evidenceUrls: evidenceUrls,
+        ),
       );
-      for (final userId in {
-        if (residentId.isNotEmpty) residentId,
-        ...adminIds,
-      }) {
-        transaction.set(
-          notifications.doc(),
-          SolutionPlan.notice(
-            userId: userId,
-            incidentId: incidentId,
-            reportNumber: Incident.formatReportNumber(
-              (incident['folio'] as num?)?.toInt() ?? 0,
-            ),
-            title: incident['nombre'] as String? ?? '',
-            technicianName:
-                technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
-            solution: solution,
-          ),
-        );
-      }
     });
   }
 }

@@ -207,7 +207,6 @@ class FakeAssignedIncidentRemoteDataSource
     required String technicianId,
     required String solution,
     required List<String> evidenceUrls,
-    List<String> adminIds = const [],
   }) async {
     if (solutionError != null) throw solutionError!;
     solutions.add((
@@ -215,6 +214,5 @@ class FakeAssignedIncidentRemoteDataSource
       solution: solution,
       evidenceUrls: evidenceUrls,
     ));
-    notifiedAdmins.add(adminIds);
   }
 }

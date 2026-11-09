@@ -22,9 +22,12 @@ class SolutionNotAvailableException implements Exception {
 /// Reglas para registrar la solución de una incidencia (HU-3.6), aplicadas
 /// sobre los documentos que se leen dentro de la transacción. Son funciones
 /// puras para poder probarlas sin Firestore.
+///
+/// Registrar la solución no cambia el estado: la incidencia sigue En
+/// proceso hasta que el técnico la finaliza (HU-3.7).
 abstract final class SolutionPlan {
-  /// Solo el técnico asignado, con su cuenta activa, puede registrarla, y
-  /// solo si la incidencia está En proceso.
+  /// Solo el técnico asignado, con su cuenta activa, puede registrarla, solo
+  /// si la incidencia está En proceso y solo una vez.
   static void validate({
     required Map<String, dynamic>? incident,
     required Map<String, dynamic>? technician,
@@ -40,6 +43,9 @@ abstract final class SolutionPlan {
     throwIfNotInProgress(
       IncidentStatus.fromValue(incident['estado'] as String?),
     );
+    if (hasSolution(incident)) {
+      throw const SolutionAlreadyRegisteredException();
+    }
   }
 
   /// Lanza la excepción que corresponde si [status] no es En proceso.
@@ -56,50 +62,18 @@ abstract final class SolutionPlan {
     }
   }
 
-  static const resolvedType = 'incidencia_resuelta';
+  /// La incidencia ya tiene una solución registrada.
+  static bool hasSolution(Map<String, dynamic> incident) =>
+      (incident['solucion'] as String?)?.trim().isNotEmpty ?? false;
 
-  /// La incidencia pasa a Resuelta con la solución y las evidencias del
-  /// trabajo. La fecha de resolución la pone el servidor.
+  /// Se guardan la solución y las evidencias del trabajo; la fecha del
+  /// registro la pone el servidor.
   static Map<String, dynamic> incidentUpdate({
     required String solution,
     required List<String> evidenceUrls,
   }) => {
-    'estado': IncidentStatus.resolved.value,
     'solucion': solution.trim(),
     'evidenciasDespues': evidenceUrls,
-    'fechaResolucion': FieldValue.serverTimestamp(),
+    'fechaSolucion': FieldValue.serverTimestamp(),
   };
-
-  /// El técnico vuelve a estar Disponible: se le había marcado como No
-  /// disponible al asignarle la incidencia (HU-4.9).
-  static const technicianUpdate = <String, dynamic>{'disponible': true};
-
-  /// Aviso para el residente y cada administrador de que la incidencia se
-  /// resolvió, con la solución resumida.
-  static Map<String, dynamic> notice({
-    required String userId,
-    required String incidentId,
-    required String reportNumber,
-    required String title,
-    required String technicianName,
-    required String solution,
-  }) => {
-    'usuarioId': userId,
-    'tipo': resolvedType,
-    'titulo': 'Incidencia $reportNumber resuelta',
-    'mensaje':
-        '$technicianName resolvió "$title". Solución: ${_shorten(solution)}',
-    'refId': incidentId,
-    'leida': false,
-    'fecha': FieldValue.serverTimestamp(),
-  };
-
-  static const _maxSolution = 200;
-
-  static String _shorten(String text) {
-    final solution = text.trim();
-    return solution.length <= _maxSolution
-        ? solution
-        : '${solution.substring(0, _maxSolution).trimRight()}…';
-  }
 }

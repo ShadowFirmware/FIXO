@@ -77,7 +77,15 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   /// La solución se registra cuando la incidencia está En proceso (HU-3.6).
   bool get canRegisterSolution =>
       _state == AssignedIncidentDetailState.loaded &&
-      incident?.status == IncidentStatus.inProgress;
+      incident?.status == IncidentStatus.inProgress &&
+      !hasSolution;
+
+  /// Con la solución registrada, la incidencia En proceso se puede
+  /// finalizar (HU-3.7).
+  bool get canFinalize =>
+      _state == AssignedIncidentDetailState.loaded &&
+      incident?.status == IncidentStatus.inProgress &&
+      hasSolution;
 
   /// Pasa la incidencia a En proceso. Devuelve el mensaje de error, o
   /// `null` si se guardó; la pantalla se actualiza sola con el nuevo
@@ -186,6 +194,16 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   /// La incidencia ya se resolvió: dejó la lista de asignadas y está en el
   /// historial.
   bool get isResolved => incident?.status == IncidentStatus.resolved;
+
+  /// El técnico ya registró la solución (HU-3.6), aunque la incidencia siga
+  /// En proceso.
+  bool get hasSolution => incident?.solution?.trim().isNotEmpty ?? false;
+
+  /// Cuándo se registró la solución, o `null` si no se sabe.
+  String? get solutionRegisteredAt {
+    final date = incident?.solutionRegisteredAt;
+    return date == null ? null : DateFormats.dateTime(date);
+  }
 
   String get solution {
     final text = incident?.solution?.trim() ?? '';
