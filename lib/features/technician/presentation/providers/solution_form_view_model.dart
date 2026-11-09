@@ -8,4 +8,17 @@ class SolutionFormViewModel extends ChangeNotifier {
 
   /// Incidencia a la que se le registra la solución.
   final AssignedIncident item;
+
+  static const maxDescriptionLength = 500;
+
+  String _description = '';
+
+  /// Descripción de la solución aplicada, tal como la escribe el técnico.
+  String get description => _description;
+
+  void setDescription(String value) {
+    if (value == _description) return;
+    _description = value;
+    notifyListeners();
+  }
 }

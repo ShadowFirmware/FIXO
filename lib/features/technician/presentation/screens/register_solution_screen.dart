@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../providers/solution_form_view_model.dart';
@@ -23,9 +24,12 @@ class RegisterSolutionScreen extends StatefulWidget {
 class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
   late final _viewModel =
       widget.viewModel ?? SolutionFormViewModel(item: widget.item);
+  final _formKey = GlobalKey<FormState>();
+  late final _description = TextEditingController(text: _viewModel.description);
 
   @override
   void dispose() {
+    _description.dispose();
     if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
   }
@@ -55,25 +59,55 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
                 children: [
                   SolutionIncidentBanner(item: _viewModel.item),
                   const SizedBox(height: 20),
-                  const SolutionFormSection(
-                    title: 'Solución aplicada',
-                    footnote:
-                        'Describe qué hiciste para resolver el problema. El '
-                        'residente y el administrador podrán consultarlo.',
-                    children: [],
-                  ),
-                  const SizedBox(height: 24),
-                  const SolutionFormSection(
-                    title: 'Evidencias del trabajo',
-                    footnote:
-                        'Agrega fotografías o videos del trabajo terminado.',
-                    children: [],
-                  ),
+                  _form(),
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _form() {
+    return Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SolutionFormSection(
+            title: 'Solución aplicada',
+            footnote:
+                'Describe qué hiciste para resolver el problema. El residente '
+                'y el administrador podrán consultarlo.',
+            children: [
+              TextFormField(
+                key: const Key('solution.description'),
+                controller: _description,
+                onChanged: _viewModel.setDescription,
+                textCapitalization: TextCapitalization.sentences,
+                minLines: 4,
+                maxLines: 8,
+                maxLength: SolutionFormViewModel.maxDescriptionLength,
+                validator: Validators.solutionDescription,
+                decoration: const InputDecoration(
+                  labelText: 'Descripción de la solución',
+                  hintText:
+                      'Ej. Se cambió el empaque de la llave y se revisó que '
+                      'no hubiera más fugas',
+                  alignLabelWithHint: true,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const SolutionFormSection(
+            title: 'Evidencias del trabajo',
+            footnote: 'Agrega fotografías o videos del trabajo terminado.',
+            children: [],
+          ),
+        ],
       ),
     );
   }

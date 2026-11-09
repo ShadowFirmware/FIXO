@@ -59,4 +59,17 @@ abstract final class Validators {
     }
     return null;
   }
+
+  /// Descripción de la solución aplicada por el técnico (HU-3.6).
+  static String? solutionDescription(String? value) {
+    final description = value?.trim() ?? '';
+    if (description.isEmpty) return 'Describe la solución aplicada';
+    if (description.length < 10) {
+      return 'La descripción debe tener al menos 10 caracteres';
+    }
+    if (description.length > 500) {
+      return 'La descripción no debe pasar de 500 caracteres';
+    }
+    return null;
+  }
 }
