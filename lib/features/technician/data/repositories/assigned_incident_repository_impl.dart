@@ -30,6 +30,8 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
         .handleError((Object e) {
           throw switch (e) {
             FirebaseException(code: 'unavailable') => IncidentFailure.offline,
+            FirebaseException(code: 'permission-denied') =>
+              IncidentFailure.assignedAccessDenied,
             _ => IncidentFailure.assignedLoadFailed,
           };
         });

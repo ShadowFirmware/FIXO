@@ -7,6 +7,7 @@ import '../../../auth/presentation/providers/auth_session.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
+import '../../domain/usecases/watch_assigned_incidents.dart';
 
 enum AssignedIncidentsState { loading, loaded, error }
 
@@ -19,11 +20,11 @@ class AssignedIncidentsViewModel extends ChangeNotifier {
     AuthSession? session,
     AssignedIncidentRepository? repository,
   }) {
-    final technicianId =
-        (session ?? AuthSession.instance).currentUser?.uid ?? '';
-    _subscription = (repository ?? AssignedIncidentRepositoryImpl())
-        .watchByTechnician(technicianId)
-        .listen(_onIncidents, onError: _onError);
+    // Solo se reciben las incidencias del técnico en sesión.
+    _subscription =
+        WatchAssignedIncidents(repository ?? AssignedIncidentRepositoryImpl())(
+          technician: (session ?? AuthSession.instance).currentUser,
+        ).listen(_onIncidents, onError: _onError);
   }
 
   late final StreamSubscription<List<AssignedIncident>> _subscription;

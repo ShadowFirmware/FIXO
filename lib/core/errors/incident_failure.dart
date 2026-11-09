@@ -83,6 +83,9 @@ class IncidentFailure implements Exception {
   static const assignedLoadFailed = IncidentFailure(
     'No se pudieron cargar tus incidencias asignadas. Inténtalo de nuevo.',
   );
+  static const assignedAccessDenied = IncidentFailure(
+    'Solo los técnicos pueden consultar las incidencias asignadas.',
+  );
 
   @override
   String toString() => message;
