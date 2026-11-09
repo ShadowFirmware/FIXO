@@ -1,17 +1,42 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../incidents/data/datasources/evidence_picker.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
+import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/assigned_incident.dart';
 
 /// ViewModel del registro de la solución de una incidencia (HU-3.6).
 class SolutionFormViewModel extends ChangeNotifier {
-  SolutionFormViewModel({required this.item, EvidencePicker? picker})
-    : _picker = picker ?? EvidencePicker();
+  SolutionFormViewModel({
+    required this.item,
+    AuthSession? session,
+    EvidencePicker? picker,
+  }) : _session = session ?? AuthSession.instance,
+       _picker = picker ?? EvidencePicker();
 
   /// Incidencia a la que se le registra la solución.
   final AssignedIncident item;
+
+  final AuthSession _session;
+
+  /// Por qué no se puede registrar la solución, o `null` si se puede: la
+  /// incidencia debe ser del técnico en sesión y estar En proceso. Se
+  /// revisa de nuevo al guardar, por si cambió mientras tanto.
+  IncidentFailure? get statusError {
+    if (item.incident.technicianId != _session.currentUser?.uid) {
+      return IncidentFailure.notAssignedToYou;
+    }
+    return switch (item.status) {
+      IncidentStatus.inProgress => null,
+      IncidentStatus.resolved => IncidentFailure.solutionAlreadyRegistered,
+      IncidentStatus.assigned => IncidentFailure.attentionNotStarted,
+      IncidentStatus.pending ||
+      IncidentStatus.rejected => IncidentFailure.solutionNotAvailable,
+    };
+  }
 
   final EvidencePicker _picker;
   bool _disposed = false;

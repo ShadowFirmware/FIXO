@@ -5,6 +5,7 @@ import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../providers/solution_form_view_model.dart';
+import '../widgets/assigned_detail_widgets.dart';
 import '../widgets/solution_form_widgets.dart';
 
 /// HU-3.6 Registrar la solución y evidencias de una incidencia.
@@ -44,38 +45,44 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
       appBar: const FixoAppBar(title: 'Registrar solución'),
       body: ListenableBuilder(
         listenable: _viewModel,
-        builder: (context, _) => SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            padding.top + 16,
-            20,
-            padding.bottom + 24,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SolutionIncidentBanner(item: _viewModel.item),
-                  const SizedBox(height: 20),
-                  if (_viewModel.isReviewing)
-                    _review()
-                  else ...[
-                    _form(),
-                    const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      key: const Key('solution.review'),
-                      onPressed: _goToReview,
-                      icon: const Icon(Icons.fact_check_outlined),
-                      label: const Text('Revisar solución'),
+        // Si la incidencia ya no está En proceso no se muestra el formulario.
+        builder: (context, _) => _viewModel.statusError != null
+            ? AssignedDetailMessage(
+                icon: Icons.block_rounded,
+                message: _viewModel.statusError!.message,
+              )
+            : SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  padding.top + 16,
+                  20,
+                  padding.bottom + 24,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SolutionIncidentBanner(item: _viewModel.item),
+                        const SizedBox(height: 20),
+                        if (_viewModel.isReviewing)
+                          _review()
+                        else ...[
+                          _form(),
+                          const SizedBox(height: 32),
+                          ElevatedButton.icon(
+                            key: const Key('solution.review'),
+                            onPressed: _goToReview,
+                            icon: const Icon(Icons.fact_check_outlined),
+                            label: const Text('Revisar solución'),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
       ),
     );
   }

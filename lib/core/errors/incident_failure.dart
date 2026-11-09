@@ -79,7 +79,7 @@ class IncidentFailure implements Exception {
     'No se pudo completar la acción. Inténtalo de nuevo.',
   );
 
-  // Técnico (HU-3.3, HU-3.4 y HU-3.5)
+  // Técnico (HU-3.3 a HU-3.6)
   static const assignedLoadFailed = IncidentFailure(
     'No se pudieron cargar tus incidencias asignadas. Inténtalo de nuevo.',
   );
@@ -106,6 +106,17 @@ class IncidentFailure implements Exception {
   static const attentionNotAvailable = IncidentFailure(
     'La incidencia ya no está asignada, así que no se puede comenzar su '
     'atención.',
+  );
+  static const solutionAlreadyRegistered = IncidentFailure(
+    'La incidencia ya tiene una solución registrada.',
+  );
+  static const attentionNotStarted = IncidentFailure(
+    'Primero comienza la atención de la incidencia para registrar su '
+    'solución.',
+  );
+  static const solutionNotAvailable = IncidentFailure(
+    'La incidencia ya no está En proceso, así que no se puede registrar su '
+    'solución.',
   );
 
   @override
