@@ -79,9 +79,20 @@ class AssignedDetailLayout extends StatelessWidget {
 
 /// Tarjeta superior con el número de reporte, el título y el estado.
 class AssignedDetailSummary extends StatelessWidget {
-  const AssignedDetailSummary({super.key, required this.incident});
+  const AssignedDetailSummary({
+    super.key,
+    required this.incident,
+    this.arrival,
+    this.countdown,
+  });
 
   final Incident incident;
+
+  /// Hora estimada de llegada ya con formato, si la incidencia la tiene.
+  final String? arrival;
+
+  /// Cuánto falta para la llegada, por ejemplo "Faltan 2 h 15 min".
+  final String? countdown;
 
   /// Qué significa el estado para el técnico.
   static String descriptionOf(IncidentStatus status) => switch (status) {
@@ -144,6 +155,45 @@ class AssignedDetailSummary extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           IncidentStatusProgress(status: status),
+          if (arrival case final arrival?) ...[
+            const SizedBox(height: 16),
+            Container(
+              key: const Key('detail.arrival'),
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, color: AppColors.white),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Llegada estimada: $arrival',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (countdown case final countdown?)
+                          Text(
+                            countdown,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -95,7 +95,11 @@ class _DetailBody extends StatelessWidget {
     final incident = vm.incident!;
 
     return AssignedDetailLayout(
-      header: AssignedDetailSummary(incident: incident),
+      header: AssignedDetailSummary(
+        incident: incident,
+        arrival: incident.estimatedTime == null ? null : vm.estimatedArrival,
+        countdown: vm.arrivalCountdown,
+      ),
       primary: [
         DetailSection(
           title: 'Información general',
@@ -104,6 +108,11 @@ class _DetailBody extends StatelessWidget {
               icon: Icons.category_outlined,
               label: 'Tipo',
               value: vm.type,
+            ),
+            DetailRow(
+              icon: Icons.flag_outlined,
+              label: 'Estado',
+              value: vm.status,
             ),
             DetailRow(
               icon: Icons.calendar_today_outlined,

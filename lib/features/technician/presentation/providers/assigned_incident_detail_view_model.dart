@@ -23,7 +23,9 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
     AssignedIncident? initial,
     AuthSession? session,
     AssignedIncidentRepository? repository,
+    DateTime Function()? clock,
   }) : _incidentId = incidentId,
+       _clock = clock ?? DateTime.now,
        _session = session ?? AuthSession.instance,
        _watch = WatchAssignedIncident(
          repository ?? AssignedIncidentRepositoryImpl(),
@@ -37,6 +39,7 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   static const _noData = 'Sin registrar';
 
   final String _incidentId;
+  final DateTime Function() _clock;
   final AuthSession _session;
   final WatchAssignedIncident _watch;
   StreamSubscription<AssignedIncident?>? _subscription;
@@ -88,8 +91,35 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
     return text.isEmpty ? _noData : text;
   }
 
+  String get status => incident?.status.label ?? _noData;
   String get createdAt => _date(incident?.createdAt);
   String get estimatedArrival => _date(incident?.estimatedTime);
+
+  /// Cuánto falta para la hora estimada de llegada, o cuánto pasó. Solo
+  /// mientras la incidencia está Asignada: después ya no hace falta.
+  String? get arrivalCountdown {
+    final arrival = incident?.estimatedTime;
+    if (arrival == null || incident!.status != IncidentStatus.assigned) {
+      return null;
+    }
+    return countdown(arrival, _clock());
+  }
+
+  static String countdown(DateTime arrival, DateTime now) {
+    final minutes = arrival.difference(now).inMinutes;
+    if (minutes == 0) return 'Es la hora estimada de llegada';
+    final text = _duration(minutes.abs());
+    return minutes > 0 ? 'Faltan $text' : 'La hora estimada pasó hace $text';
+  }
+
+  static String _duration(int minutes) {
+    final days = minutes ~/ (24 * 60);
+    final hours = minutes % (24 * 60) ~/ 60;
+    final rest = minutes % 60;
+    if (days > 0) return hours > 0 ? '$days d $hours h' : '$days d';
+    if (hours > 0) return rest > 0 ? '$hours h $rest min' : '$hours h';
+    return '$rest min';
+  }
 
   /// La incidencia ya se resolvió: dejó la lista de asignadas y está en el
   /// historial.
@@ -112,12 +142,29 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
     _state = item == null
         ? AssignedIncidentDetailState.notFound
         : AssignedIncidentDetailState.loaded;
+    _updateTicker();
     notifyListeners();
+  }
+
+  Timer? _ticker;
+
+  /// Actualiza cada minuto el tiempo que falta para la llegada, solo
+  /// mientras la pantalla está abierta.
+  void _updateTicker() {
+    if (arrivalCountdown == null || !hasListeners) {
+      _ticker?.cancel();
+      _ticker = null;
+    } else {
+      _ticker ??= Timer.periodic(const Duration(minutes: 1), (_) {
+        notifyListeners();
+      });
+    }
   }
 
   void _onError(Object error) {
     // No se conserva nada de una incidencia que el técnico no puede ver.
     _item = null;
+    _updateTicker();
     _accessDenied = identical(error, IncidentFailure.notAssignedToYou);
     _errorMessage = error is IncidentFailure
         ? error.message
@@ -127,8 +174,21 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   }
 
   @override
+  void addListener(VoidCallback listener) {
+    super.addListener(listener);
+    _updateTicker();
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    super.removeListener(listener);
+    _updateTicker();
+  }
+
+  @override
   void dispose() {
     _subscription?.cancel();
+    _ticker?.cancel();
     super.dispose();
   }
 }
