@@ -79,7 +79,7 @@ class IncidentFailure implements Exception {
     'No se pudo completar la acción. Inténtalo de nuevo.',
   );
 
-  // Técnico (HU-3.3 a HU-3.7)
+  // Técnico (HU-3.3 a HU-3.8)
   static const assignedLoadFailed = IncidentFailure(
     'No se pudieron cargar tus incidencias asignadas. Inténtalo de nuevo.',
   );
@@ -126,6 +126,10 @@ class IncidentFailure implements Exception {
   );
   static const finalizeNotAvailable = IncidentFailure(
     'La incidencia no está En proceso, así que no se puede finalizar.',
+  );
+  static const technicianHistoryLoadFailed = IncidentFailure(
+    'No se pudo cargar tu historial de incidencias atendidas. Inténtalo de '
+    'nuevo.',
   );
 
   @override

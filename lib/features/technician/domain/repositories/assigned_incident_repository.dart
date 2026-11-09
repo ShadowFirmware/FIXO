@@ -7,6 +7,11 @@ abstract interface class AssignedIncidentRepository {
   /// `IncidentFailure`.
   Stream<List<AssignedIncident>> watchByTechnician(String technicianId);
 
+  /// Emite las incidencias que el técnico [technicianId] finalizó como
+  /// resueltas (HU-3.8), cada vez que alguna cambia. Los errores llegan
+  /// como `IncidentFailure`.
+  Stream<List<AssignedIncident>> watchResolved(String technicianId);
+
   /// Emite la incidencia [id] cada vez que cambia, o `null` si no existe.
   /// Los errores llegan como `IncidentFailure`.
   Stream<AssignedIncident?> watchById(String id);

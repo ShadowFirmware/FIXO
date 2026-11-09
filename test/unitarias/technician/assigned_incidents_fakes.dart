@@ -74,6 +74,17 @@ class FakeAssignedIncidentRepository implements AssignedIncidentRepository {
     return listController.stream;
   }
 
+  /// Técnicos cuyo historial se consultó.
+  final requestedHistories = <String>[];
+
+  /// Emite al historial lo mismo que a la lista: el caso de uso filtra las
+  /// resueltas.
+  @override
+  Stream<List<AssignedIncident>> watchResolved(String technicianId) {
+    requestedHistories.add(technicianId);
+    return listController.stream;
+  }
+
   @override
   Stream<AssignedIncident?> watchById(String id) {
     requestedIds.add(id);
@@ -158,6 +169,7 @@ class FakeAssignedIncidentRemoteDataSource
     implements AssignedIncidentRemoteDataSource {
   final listController = StreamController<List<IncidentModel>>.broadcast();
   final detailController = StreamController<IncidentModel?>.broadcast();
+  final resolvedController = StreamController<List<IncidentModel>>.broadcast();
 
   Map<String, Housing> housings = {};
   Map<String, ({String? name, String? phone, String? email})> contacts = {};
@@ -168,6 +180,10 @@ class FakeAssignedIncidentRemoteDataSource
   @override
   Stream<List<IncidentModel>> watchByTechnician(String technicianId) =>
       listController.stream;
+
+  @override
+  Stream<List<IncidentModel>> watchResolvedByTechnician(String technicianId) =>
+      resolvedController.stream;
 
   @override
   Stream<IncidentModel?> watchById(String id) => detailController.stream;

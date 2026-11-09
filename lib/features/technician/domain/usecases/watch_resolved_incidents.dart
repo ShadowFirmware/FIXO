@@ -4,8 +4,9 @@ import '../../../incidents/domain/entities/incident.dart';
 import '../entities/assigned_incident.dart';
 import '../repositories/assigned_incident_repository.dart';
 
-/// Historial del técnico (HU-3.6): las incidencias que resolvió, con su
-/// solución, de la resuelta más recientemente a la más antigua.
+/// Historial de incidencias atendidas (HU-3.8): las que el técnico
+/// autenticado finalizó como resueltas, con su solución, de la resuelta más
+/// recientemente a la más antigua.
 class WatchResolvedIncidents {
   const WatchResolvedIncidents(this._repository);
 
@@ -17,7 +18,9 @@ class WatchResolvedIncidents {
     }
     final uid = technician!.uid;
 
-    return _repository.watchByTechnician(uid).map((incidents) {
+    // La consulta ya trae solo las resueltas; se revisa de nuevo por si
+    // llegara otra.
+    return _repository.watchResolved(uid).map((incidents) {
       final resolved = [
         for (final item in incidents)
           if (item.incident.technicianId == uid &&

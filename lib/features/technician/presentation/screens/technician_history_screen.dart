@@ -70,6 +70,12 @@ class _TechnicianHistoryScreenState extends State<TechnicianHistoryScreen> {
         child: HistoryMessage(
           icon: Icons.error_outline_rounded,
           message: vm.errorMessage!,
+          action: OutlinedButton.icon(
+            key: const Key('history.retry'),
+            onPressed: vm.retry,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Reintentar'),
+          ),
         ),
       ),
       ResolvedIncidentsState.loaded when vm.incidents.isEmpty =>

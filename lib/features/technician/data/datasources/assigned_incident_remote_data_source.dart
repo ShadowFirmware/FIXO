@@ -35,6 +35,17 @@ class AssignedIncidentRemoteDataSource {
         .map((query) => [for (final doc in query.docs) ?_tryParse(doc)]);
   }
 
+  /// Escucha las incidencias que el técnico [technicianId] finalizó como
+  /// resueltas (HU-3.8). Dos filtros de igualdad no necesitan índice
+  /// compuesto en Firestore; el orden se da en la app.
+  Stream<List<IncidentModel>> watchResolvedByTechnician(String technicianId) {
+    return _incidents
+        .where('tecnicoId', isEqualTo: technicianId)
+        .where('estado', isEqualTo: IncidentStatus.resolved.value)
+        .snapshots()
+        .map((query) => [for (final doc in query.docs) ?_tryParse(doc)]);
+  }
+
   /// Escucha el documento `incidencias/{id}`: emite cada cambio, o `null`
   /// si no existe.
   Stream<IncidentModel?> watchById(String id) {
