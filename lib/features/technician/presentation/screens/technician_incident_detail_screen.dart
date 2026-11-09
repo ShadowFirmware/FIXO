@@ -150,9 +150,9 @@ class _DetailBody extends StatelessWidget {
           ),
       ],
       secondary: [
-        DetailSection(
+        AssignedEvidenceSection(
           title: 'Evidencias del residente',
-          children: [EvidenceGallery(urls: incident.evidenceBefore)],
+          urls: incident.evidenceBefore,
         ),
         DetailSection(
           title: 'Ubicación y residente',

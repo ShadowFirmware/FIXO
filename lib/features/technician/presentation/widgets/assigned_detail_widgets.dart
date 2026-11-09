@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
+import '../../../resident/presentation/screens/incident_detail_screen.dart';
 
 /// Acomoda el detalle de la incidencia: en el teléfono todo va en una
 /// columna; en pantallas anchas, [primary] a la izquierda y [secondary] a
@@ -243,6 +245,63 @@ class AssignedDetailMessage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Fotos y videos que adjuntó el residente, con cuántos hay de cada uno.
+/// Al tocar uno se abre en pantalla completa.
+class AssignedEvidenceSection extends StatelessWidget {
+  const AssignedEvidenceSection({
+    super.key,
+    required this.title,
+    required this.urls,
+  });
+
+  final String title;
+  final List<String> urls;
+
+  /// Por ejemplo "2 fotos · 1 video", o `null` si no hay evidencias.
+  static String? summaryOf(List<String> urls) {
+    if (urls.isEmpty) return null;
+    final videos = urls.where(EvidenceGallery.isVideo).length;
+    final photos = urls.length - videos;
+    return [
+      if (photos > 0) '$photos ${photos == 1 ? 'foto' : 'fotos'}',
+      if (videos > 0) '$videos ${videos == 1 ? 'video' : 'videos'}',
+    ].join(' · ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = summaryOf(urls);
+
+    return DetailSection(
+      title: title,
+      children: [
+        if (summary != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.perm_media_outlined,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$summary · Toca una para verla completa.',
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        EvidenceGallery(urls: urls),
+      ],
     );
   }
 }
