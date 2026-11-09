@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../providers/incident_stats_view_model.dart';
-import '../widgets/admin_drawer.dart';
+import '../widgets/admin_page.dart';
 import '../widgets/history_incident_widgets.dart';
 import '../widgets/stats_charts.dart';
 import '../widgets/stats_entries.dart';
@@ -43,20 +42,10 @@ class _AdminStatisticsScreenState extends State<AdminStatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: const AdminDrawer(currentRoute: RouteNames.adminStatistics),
-      appBar: FixoAppBar(
-        title: 'Estadísticas',
-        subtitle: 'Incidencias por periodo',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
+    return AdminPage(
+      currentRoute: RouteNames.adminStatistics,
+      title: 'Estadísticas',
+      subtitle: 'Incidencias por periodo',
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) => _content(context),

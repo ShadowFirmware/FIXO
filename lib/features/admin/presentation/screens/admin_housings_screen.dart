@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/adaptive_form.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../housing/domain/entities/housing.dart';
 
 import '../providers/housing_admin_view_model.dart';
-import '../widgets/admin_drawer.dart';
+import '../widgets/admin_page.dart';
 import '../widgets/housing_form.dart';
 
 /// Pantalla de gestión de lugares de residencia del administrador (HU-4.7).
@@ -184,26 +183,16 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: const AdminDrawer(currentRoute: RouteNames.adminHousings),
-      appBar: FixoAppBar(
-        title: 'Residencias',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+    return AdminPage(
+      currentRoute: RouteNames.adminHousings,
+      title: 'Residencias',
+      actions: [
+        AdminPageAction(
+          icon: Icons.add_home_outlined,
+          label: 'Agregar residencia',
+          onPressed: _showHousingForm,
         ),
-        actions: [
-          FixoAppBarAction(
-            icon: Icons.add_home_outlined,
-            tooltip: 'Agregar residencia',
-            onPressed: _showHousingForm,
-          ),
-        ],
-      ),
+      ],
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -254,56 +243,88 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
               },
             );
           }
+          // En la web, la tabla ocupa todo el ancho dentro de una tarjeta y se
+          // desplaza si las columnas no caben.
           return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Tipo')),
-                DataColumn(label: Text('Edificio / Sección')),
-                DataColumn(label: Text('Número')),
-                DataColumn(label: Text('Estado')),
-                DataColumn(label: Text('Ocupación')),
-                DataColumn(label: Text('Opciones')),
-              ],
-              rows: _viewModel.housings.map((h) {
-                return DataRow(
-                  cells: [
-                    DataCell(Text(h.type.displayName)),
-                    DataCell(Text(h.building ?? '—')),
-                    DataCell(Text(h.number)),
-                    DataCell(Text(h.active ? 'Activa' : 'Inactiva')),
-                    DataCell(Text(_occupancy(h))),
-                    DataCell(
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.visibility_outlined),
-                            tooltip: 'Ver',
-                            onPressed: () => _viewHousing(h),
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
+                        ),
+                        child: DataTable(
+                          headingRowColor: WidgetStateProperty.all(
+                            AppColors.surfaceAlt,
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined),
-                            tooltip: 'Editar',
-                            onPressed: () => _showHousingForm(housing: h),
-                          ),
-                          if (h.active)
-                            IconButton(
-                              icon: const Icon(Icons.block_outlined),
-                              tooltip: 'Inactivar',
-                              onPressed: () => _toggleActive(h),
-                            )
-                          else
-                            IconButton(
-                              icon: const Icon(Icons.check_circle_outline),
-                              tooltip: 'Activar',
-                              onPressed: () => _toggleActive(h),
-                            ),
-                        ],
+                          columns: const [
+                            DataColumn(label: Text('Tipo')),
+                            DataColumn(label: Text('Edificio / Sección')),
+                            DataColumn(label: Text('Número')),
+                            DataColumn(label: Text('Estado')),
+                            DataColumn(label: Text('Ocupación')),
+                            DataColumn(label: Text('Opciones')),
+                          ],
+                          rows: _viewModel.housings.map((h) {
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(h.type.displayName)),
+                                DataCell(Text(h.building ?? '—')),
+                                DataCell(Text(h.number)),
+                                DataCell(
+                                  Text(h.active ? 'Activa' : 'Inactiva'),
+                                ),
+                                DataCell(Text(_occupancy(h))),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.visibility_outlined,
+                                        ),
+                                        tooltip: 'Ver',
+                                        onPressed: () => _viewHousing(h),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit_outlined),
+                                        tooltip: 'Editar',
+                                        onPressed: () =>
+                                            _showHousingForm(housing: h),
+                                      ),
+                                      if (h.active)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.block_outlined,
+                                          ),
+                                          tooltip: 'Inactivar',
+                                          onPressed: () => _toggleActive(h),
+                                        )
+                                      else
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.check_circle_outline,
+                                          ),
+                                          tooltip: 'Activar',
+                                          onPressed: () => _toggleActive(h),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
-                  ],
-                );
-              }).toList(),
+                  ),
+                ),
+              ),
             ),
           );
         },

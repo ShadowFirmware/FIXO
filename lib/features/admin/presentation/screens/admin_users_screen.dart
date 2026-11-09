@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/adaptive_form.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../providers/admin_users_view_model.dart';
-import '../widgets/admin_drawer.dart';
+import '../widgets/admin_page.dart';
 import '../widgets/user_form.dart';
 import '../widgets/user_widgets.dart';
 
@@ -122,22 +121,23 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   @override
   Widget build(BuildContext context) {
     final wide = isWideLayout(context);
+    // En la web, Agregar va en el encabezado; en el teléfono, flotante.
+    final sidebar = AdminPage.isWide(context);
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: const AdminDrawer(currentRoute: RouteNames.adminUsers),
-      appBar: FixoAppBar(
-        title: 'Usuarios',
-        subtitle: 'Residentes y técnicos',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
+    return AdminPage(
+      currentRoute: RouteNames.adminUsers,
+      title: 'Usuarios',
+      subtitle: 'Residentes y técnicos',
+      actions: [
+        if (sidebar)
+          AdminPageAction(
+            key: const Key('users.add'),
+            icon: Icons.person_add_alt_1_rounded,
+            label: 'Agregar usuario',
+            onPressed: _register,
           ),
-        ),
-      ),
-      floatingActionButton: wide
+      ],
+      floatingActionButton: sidebar
           ? null
           : FloatingActionButton.extended(
               key: const Key('users.add'),
@@ -153,7 +153,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _Toolbar(viewModel: _viewModel, onAdd: wide ? _register : null),
+                _Toolbar(viewModel: _viewModel),
                 Expanded(child: _content(wide)),
               ],
             ),
@@ -317,12 +317,11 @@ Widget _roleTag(AppUser user) {
 Widget _statusTag(AppUser user) =>
     UserTag(label: user.accountStatus.label, color: user.accountStatus.color);
 
-/// Búsqueda, filtro por rol y, en pantallas anchas, el botón de agregar.
+/// Búsqueda y filtro por rol.
 class _Toolbar extends StatefulWidget {
-  const _Toolbar({required this.viewModel, this.onAdd});
+  const _Toolbar({required this.viewModel});
 
   final AdminUsersViewModel viewModel;
-  final VoidCallback? onAdd;
 
   @override
   State<_Toolbar> createState() => _ToolbarState();
@@ -340,15 +339,9 @@ class _ToolbarState extends State<_Toolbar> {
   @override
   Widget build(BuildContext context) {
     final vm = widget.viewModel;
-    final add = widget.onAdd;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        add == null ? 16 : 24,
-        12,
-        add == null ? 16 : 24,
-        8,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -375,18 +368,6 @@ class _ToolbarState extends State<_Toolbar> {
                   ),
                 ),
               ),
-              if (add != null) ...[
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 200,
-                  child: ElevatedButton.icon(
-                    key: const Key('users.add'),
-                    onPressed: add,
-                    icon: const Icon(Icons.person_add_alt_1_rounded),
-                    label: const Text('Agregar usuario'),
-                  ),
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 12),
