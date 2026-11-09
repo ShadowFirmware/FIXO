@@ -6,6 +6,7 @@ import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../../shared/widgets/chip_icon.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
@@ -270,7 +271,7 @@ class _TypeSelector extends StatelessWidget {
         for (final type in IncidentType.values)
           ChoiceChip(
             key: Key('registerIncident.type.${type.value}'),
-            avatar: Icon(type.icon, size: 18),
+            avatar: ChipIcon(type.icon, selected: selected == type),
             label: Text(type.label),
             selected: selected == type,
             onSelected: (_) => onSelected(type),

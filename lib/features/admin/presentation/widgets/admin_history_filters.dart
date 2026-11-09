@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../../shared/widgets/chip_icon.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
 import '../providers/admin_incident_history_view_model.dart';
@@ -38,7 +39,10 @@ class AdminHistoryFilters extends StatelessWidget {
                   const SizedBox(width: 8),
                   ChoiceChip(
                     key: Key('history.status.${status.value}'),
-                    avatar: Icon(status.icon, size: 18, color: status.color),
+                    avatar: ChipIcon(
+                      status.icon,
+                      selected: filter.status == status,
+                    ),
                     label: Text('${status.label} (${counts[status]})'),
                     selected: filter.status == status,
                     onSelected: (_) => vm.setStatus(status),

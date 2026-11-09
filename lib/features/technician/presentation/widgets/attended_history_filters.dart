@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../../shared/widgets/chip_icon.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../providers/resolved_incidents_view_model.dart';
@@ -124,7 +125,7 @@ class _TypeChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
-        avatar: icon == null ? null : Icon(icon, size: 18),
+        avatar: icon == null ? null : ChipIcon(icon!, selected: selected),
         label: Text(label),
         selected: selected,
         showCheckmark: false,
