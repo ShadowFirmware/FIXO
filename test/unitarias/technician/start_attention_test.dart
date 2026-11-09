@@ -362,7 +362,8 @@ extension on Incident {
     housingId: housingId,
     createdBy: createdBy,
     status: status,
-    technicianId: technicianId,
+    // Con this: `technicianId` solo es la constante del técnico de prueba.
+    technicianId: this.technicianId,
     estimatedTime: estimatedTime,
     createdAt: createdAt,
     startedAt: date,
