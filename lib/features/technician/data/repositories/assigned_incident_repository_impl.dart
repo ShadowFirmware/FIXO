@@ -64,16 +64,28 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
     required String technicianId,
   }) async {
     try {
+      // Si no se pueden consultar los administradores, la atención
+      // comienza de todos modos y solo se avisa al residente.
+      final adminIds = await _remote.activeAdminIds().catchError(
+        (Object _) => const <String>[],
+      );
       await _remote.startAttention(
         incidentId: incidentId,
         technicianId: technicianId,
+        adminIds: adminIds,
       );
     } on NotAssignedToTechnicianException {
       throw IncidentFailure.notAssignedToYou;
+    } on TechnicianCannotAttendException {
+      throw IncidentFailure.technicianCannotAttend;
     } on AttentionAlreadyStartedException {
       throw IncidentFailure.attentionAlreadyStarted;
-    } on AttentionNotAvailableException {
-      throw IncidentFailure.attentionNotAvailable;
+    } on AttentionNotAvailableException catch (e) {
+      throw switch (e.status) {
+        IncidentStatus.resolved => IncidentFailure.attentionResolved,
+        IncidentStatus.rejected => IncidentFailure.attentionRejected,
+        _ => IncidentFailure.attentionNotAvailable,
+      };
     } on FirebaseException catch (e) {
       throw switch (e.code) {
         'unavailable' || 'deadline-exceeded' => IncidentFailure.offline,

@@ -8,11 +8,12 @@ import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
+import '../../domain/usecases/start_attention.dart';
 import '../../domain/usecases/watch_assigned_incidents.dart';
 
 enum AssignedIncidentsState { loading, loaded, error }
 
-/// ViewModel de las incidencias asignadas al técnico (HU-3.3).
+/// ViewModel de las incidencias asignadas al técnico (HU-3.3 y HU-3.5).
 ///
 /// Escucha las incidencias en Firestore, así que la lista se actualiza
 /// sola cuando el administrador asigna una nueva o cambia su estado.
@@ -20,15 +21,50 @@ class AssignedIncidentsViewModel extends ChangeNotifier {
   AssignedIncidentsViewModel({
     AuthSession? session,
     AssignedIncidentRepository? repository,
-  }) {
+  }) : _session = session ?? AuthSession.instance,
+       _repository = repository ?? AssignedIncidentRepositoryImpl() {
     // Solo se reciben las incidencias del técnico en sesión.
-    _subscription =
-        WatchAssignedIncidents(repository ?? AssignedIncidentRepositoryImpl())(
-          technician: (session ?? AuthSession.instance).currentUser,
-        ).listen(_onIncidents, onError: _onError);
+    _subscription = WatchAssignedIncidents(_repository)(
+      technician: _session.currentUser,
+    ).listen(_onIncidents, onError: _onError);
   }
 
+  final AuthSession _session;
+  final AssignedIncidentRepository _repository;
   late final StreamSubscription<List<AssignedIncident>> _subscription;
+  bool _disposed = false;
+
+  final _starting = <String>{};
+
+  /// Se está guardando el inicio de la atención de [item].
+  bool isStarting(AssignedIncident item) => _starting.contains(item.id);
+
+  /// La opción Comenzar atención solo está disponible mientras la
+  /// incidencia está Asignada (HU-3.5).
+  bool canStartAttention(AssignedIncident item) =>
+      item.status == IncidentStatus.assigned && !isStarting(item);
+
+  /// Pasa [item] a En proceso desde la lista. Devuelve el mensaje de error,
+  /// o `null` si se guardó; la lista se actualiza sola con el nuevo estado.
+  Future<String?> startAttention(AssignedIncident item) async {
+    if (!canStartAttention(item)) return null;
+    _starting.add(item.id);
+    notifyListeners();
+    try {
+      await StartAttention(_repository)(
+        technician: _session.currentUser,
+        incidentId: item.id,
+      );
+      return null;
+    } on IncidentFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return IncidentFailure.actionFailed.message;
+    } finally {
+      _starting.remove(item.id);
+      if (!_disposed) notifyListeners();
+    }
+  }
 
   AssignedIncidentsState _state = AssignedIncidentsState.loading;
   AssignedIncidentsState get state => _state;
@@ -97,6 +133,7 @@ class AssignedIncidentsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _subscription.cancel();
     super.dispose();
   }

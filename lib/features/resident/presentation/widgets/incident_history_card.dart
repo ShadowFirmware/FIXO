@@ -22,8 +22,9 @@ class IncidentHistoryCard extends StatelessWidget {
 
   static final _radius = BorderRadius.circular(20);
 
-  /// Dato adicional según el estado: la llegada del técnico, la solución o
-  /// el motivo del rechazo. `null` si no hay nada que agregar.
+  /// Dato adicional según el estado: la llegada del técnico, el inicio de
+  /// la atención, la solución o el motivo del rechazo. `null` si no hay
+  /// nada que agregar.
   static String? noteFor(Incident incident) {
     String? text(String? value) =>
         (value?.trim().isEmpty ?? true) ? null : value!.trim();
@@ -50,7 +51,12 @@ class IncidentHistoryCard extends StatelessWidget {
         return rejectedAt == null
             ? null
             : 'Rechazada el ${DateFormats.longDate(rejectedAt)}';
-      case IncidentStatus.pending || IncidentStatus.inProgress:
+      case IncidentStatus.inProgress:
+        final startedAt = incident.startedAt;
+        return startedAt == null
+            ? null
+            : 'En atención desde ${DateFormats.dateTime(startedAt)}';
+      case IncidentStatus.pending:
         return null;
     }
   }

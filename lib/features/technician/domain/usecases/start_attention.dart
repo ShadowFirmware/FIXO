@@ -3,7 +3,8 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../repositories/assigned_incident_repository.dart';
 
 /// Comenzar la atención de una incidencia asignada (HU-3.4): pasa de
-/// Asignada a En proceso. Solo puede hacerlo el técnico asignado.
+/// Asignada a En proceso. Solo puede hacerlo el técnico asignado, con su
+/// cuenta activa (HU-3.5).
 class StartAttention {
   const StartAttention(this._repository);
 
@@ -17,9 +18,13 @@ class StartAttention {
     if (technician?.role != UserRole.technician) {
       throw IncidentFailure.assignedAccessDenied;
     }
+    // Se revisa de nuevo en la transacción, por si cambió mientras tanto.
+    if (technician!.accountStatus != AccountStatus.active) {
+      throw IncidentFailure.technicianCannotAttend;
+    }
     await _repository.startAttention(
       incidentId: incidentId,
-      technicianId: technician!.uid,
+      technicianId: technician.uid,
     );
   }
 }

@@ -6,7 +6,9 @@ import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../resident/presentation/screens/incident_history_screen.dart';
 import '../providers/assigned_incidents_view_model.dart';
+import '../../domain/entities/assigned_incident.dart';
 import '../widgets/assigned_incident_card.dart';
+import '../widgets/assigned_detail_widgets.dart';
 import '../widgets/assigned_status_filter.dart';
 
 /// Pantalla de inicio del técnico: HU-3.3 Consultar incidencias asignadas.
@@ -27,6 +29,22 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
   void dispose() {
     if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
+  }
+
+  /// Pide confirmación y pasa la incidencia a En proceso sin abrir el
+  /// detalle (HU-3.5).
+  Future<void> _startAttention(AssignedIncident item) async {
+    final reportNumber = item.incident.reportNumber;
+    final confirmed = await confirmStartAttention(context, reportNumber);
+    if (!confirmed || !mounted) return;
+
+    final error = await _viewModel.startAttention(item);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Comenzaste la atención de $reportNumber.'),
+      ),
+    );
   }
 
   @override
@@ -112,6 +130,10 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
                           RouteNames.technicianIncidentDetail,
                           arguments: item,
                         ),
+                        starting: vm.isStarting(item),
+                        onStartAttention: vm.canStartAttention(item)
+                            ? () => _startAttention(item)
+                            : null,
                       );
                     },
                   ),

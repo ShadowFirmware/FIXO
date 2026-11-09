@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fixo/core/errors/incident_failure.dart';
+import 'package:fixo/features/incidents/domain/entities/incident.dart';
 import 'package:fixo/features/technician/data/models/start_attention_plan.dart';
 import 'package:fixo/features/technician/data/repositories/assigned_incident_repository_impl.dart';
 import 'package:fixo/features/technician/domain/usecases/start_attention.dart';
@@ -22,7 +23,9 @@ void main() {
       };
       void validate(Map<String, dynamic>? data) => StartAttentionPlan.validate(
         incident: data,
+        technician: const {'rol': 'tecnico', 'estadoCuenta': 'activa'},
         technicianId: technicianId,
+        now: DateTime(2026, 11, 9),
       );
 
       expect(() => validate(incident('asignada')), returnsNormally);
@@ -49,8 +52,8 @@ void main() {
       expect(update['estado'], 'en_proceso');
       expect(update['fechaInicioAtencion'], isA<FieldValue>());
 
-      final notice = StartAttentionPlan.residentNotice(
-        residentId: 'res-ana',
+      final notice = StartAttentionPlan.notice(
+        userId: 'res-ana',
         incidentId: 'inc-1',
         reportNumber: 'INC-0001',
         title: 'Fuga 1',
@@ -87,7 +90,7 @@ void main() {
           IncidentFailure.attentionAlreadyStarted,
         ),
         (
-          const AttentionNotAvailableException(),
+          const AttentionNotAvailableException(IncidentStatus.pending),
           IncidentFailure.attentionNotAvailable,
         ),
         (

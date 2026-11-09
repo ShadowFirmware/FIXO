@@ -5,6 +5,7 @@ import '../../../housing/data/models/housing_model.dart';
 import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../notifications/data/datasources/notification_remote_data_source.dart';
 import '../models/start_attention_plan.dart';
 
 /// Acceso a Firestore para las incidencias asignadas al técnico (HU-3.3).
@@ -82,12 +83,19 @@ class AssignedIncidentRemoteDataSource {
     );
   }
 
-  /// Pasa la incidencia de Asignada a En proceso y avisa al residente, en
-  /// una sola transacción. Lanza las excepciones de [StartAttentionPlan] si
-  /// la incidencia no se puede comenzar.
+  /// UIDs de los administradores activos, para avisarles (HU-3.5).
+  Future<List<String>> activeAdminIds() =>
+      NotificationRemoteDataSource(firestore: _firestoreOverride)
+          .activeAdminIds();
+
+  /// Pasa la incidencia de Asignada a En proceso y avisa al residente y a
+  /// los administradores [adminIds], en una sola transacción. Lanza las
+  /// excepciones de [StartAttentionPlan] si la incidencia no se puede
+  /// comenzar.
   Future<void> startAttention({
     required String incidentId,
     required String technicianId,
+    List<String> adminIds = const [],
   }) {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
@@ -98,26 +106,35 @@ class AssignedIncidentRemoteDataSource {
       final incident = incidentDoc.data();
       StartAttentionPlan.validate(
         incident: incident,
+        technician: technicianDoc.data(),
         technicianId: technicianId,
+        now: DateTime.now(),
       );
 
       transaction.update(incidentRef, StartAttentionPlan.incidentUpdate);
 
       final residentId = incident!['creadaPor'] as String? ?? '';
-      if (residentId.isEmpty) return;
-      transaction.set(
-        _firestore.collection(FirestoreCollections.notifications).doc(),
-        StartAttentionPlan.residentNotice(
-          residentId: residentId,
-          incidentId: incidentId,
-          reportNumber: Incident.formatReportNumber(
-            (incident['folio'] as num?)?.toInt() ?? 0,
-          ),
-          title: incident['nombre'] as String? ?? '',
-          technicianName:
-              technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
-        ),
+      final notifications = _firestore.collection(
+        FirestoreCollections.notifications,
       );
+      for (final userId in {
+        if (residentId.isNotEmpty) residentId,
+        ...adminIds,
+      }) {
+        transaction.set(
+          notifications.doc(),
+          StartAttentionPlan.notice(
+            userId: userId,
+            incidentId: incidentId,
+            reportNumber: Incident.formatReportNumber(
+              (incident['folio'] as num?)?.toInt() ?? 0,
+            ),
+            title: incident['nombre'] as String? ?? '',
+            technicianName:
+                technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
+          ),
+        );
+      }
     });
   }
 }
