@@ -55,10 +55,12 @@ abstract final class FinalizePlan {
 
   static const resolvedType = 'incidencia_resuelta';
 
-  /// La incidencia pasa de En proceso a Resuelta y su chat se cierra: ya
-  /// no se pueden enviar mensajes (HU-5.1).
+  /// La incidencia pasa de En proceso a Resuelta con la fecha de resolución,
+  /// que pone el servidor, y su chat se cierra: ya no se pueden enviar
+  /// mensajes (HU-5.1).
   static Map<String, dynamic> get incidentUpdate => {
     'estado': IncidentStatus.resolved.value,
+    'fechaResolucion': FieldValue.serverTimestamp(),
     'chatCerrado': true,
   };
 
