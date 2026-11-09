@@ -1,15 +1,26 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../incidents/data/datasources/evidence_picker.dart';
+import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../domain/entities/assigned_incident.dart';
 
 /// ViewModel del registro de la solución de una incidencia (HU-3.6).
 class SolutionFormViewModel extends ChangeNotifier {
-  SolutionFormViewModel({required this.item});
+  SolutionFormViewModel({required this.item, EvidencePicker? picker})
+    : _picker = picker ?? EvidencePicker();
 
   /// Incidencia a la que se le registra la solución.
   final AssignedIncident item;
 
+  final EvidencePicker _picker;
+  bool _disposed = false;
+
   static const maxDescriptionLength = 500;
+
+  // Mismos límites que las evidencias del residente (HU-2.3).
+  static const maxEvidence = 5;
+  static const maxPhotoBytes = 10 * 1024 * 1024;
+  static const maxVideoBytes = 50 * 1024 * 1024;
 
   String _description = '';
 
@@ -20,5 +31,66 @@ class SolutionFormViewModel extends ChangeNotifier {
     if (value == _description) return;
     _description = value;
     notifyListeners();
+  }
+
+  final List<EvidenceFile> _evidence = [];
+
+  /// Fotos y videos del trabajo realizado, en el orden en que se agregaron.
+  List<EvidenceFile> get evidence => List.unmodifiable(_evidence);
+  bool get canAddEvidence => _evidence.length < maxEvidence;
+
+  /// Mensaje para mostrar si no se pudo agregar una evidencia.
+  String? _evidenceMessage;
+  String? get evidenceMessage => _evidenceMessage;
+
+  Future<void> addPhotos({required bool fromCamera}) =>
+      _add(() => _picker.pickPhotos(fromCamera: fromCamera));
+
+  Future<void> addVideo({required bool fromCamera}) => _add(() async {
+    final video = await _picker.pickVideo(fromCamera: fromCamera);
+    return [?video];
+  });
+
+  void removeEvidence(EvidenceFile file) {
+    if (!_evidence.remove(file)) return;
+    _evidenceMessage = null;
+    notifyListeners();
+  }
+
+  Future<void> _add(Future<List<EvidenceFile>> Function() pick) async {
+    if (!canAddEvidence) return;
+    _evidenceMessage = null;
+
+    List<EvidenceFile> picked;
+    try {
+      picked = await pick();
+    } catch (_) {
+      picked = const [];
+      _evidenceMessage = 'No se pudo abrir la cámara o la galería.';
+    }
+    if (_disposed) return;
+
+    // Los archivos muy pesados tardarían mucho en subirse.
+    final accepted = picked.where(_fitsSizeLimit).toList();
+    if (accepted.length < picked.length) {
+      _evidenceMessage =
+          'Las fotos pueden pesar hasta 10 MB y los videos hasta 50 MB.';
+    }
+
+    final room = maxEvidence - _evidence.length;
+    if (accepted.length > room) {
+      _evidenceMessage = 'Solo puedes adjuntar hasta $maxEvidence evidencias.';
+    }
+    _evidence.addAll(accepted.take(room));
+    notifyListeners();
+  }
+
+  static bool _fitsSizeLimit(EvidenceFile file) =>
+      file.sizeBytes <= (file.isVideo ? maxVideoBytes : maxPhotoBytes);
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

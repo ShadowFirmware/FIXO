@@ -102,10 +102,12 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const SolutionFormSection(
+          SolutionFormSection(
             title: 'Evidencias del trabajo',
-            footnote: 'Agrega fotografías o videos del trabajo terminado.',
-            children: [],
+            footnote:
+                'Agrega fotografías o videos del trabajo terminado. Los videos '
+                'pueden durar hasta 1 minuto.',
+            children: [SolutionEvidencePicker(viewModel: _viewModel)],
           ),
         ],
       ),
