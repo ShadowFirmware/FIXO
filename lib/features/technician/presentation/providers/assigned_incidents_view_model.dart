@@ -62,6 +62,20 @@ class AssignedIncidentsViewModel extends ChangeNotifier {
       ? _incidents.length
       : _incidents.where((item) => item.status == status).length;
 
+  static const noIncidentsMessage =
+      'No tienes incidencias asignadas por el momento. Cuando el '
+      'administrador te asigne una, aparecerá aquí.';
+
+  /// Mensaje cuando la lista queda vacía, o `null` si hay incidencias que
+  /// mostrar.
+  String? get emptyMessage {
+    if (_state != AssignedIncidentsState.loaded) return null;
+    if (_incidents.isEmpty) return noIncidentsMessage;
+    if (results.isNotEmpty) return null;
+    return 'No tienes incidencias en estado '
+        '"${_statusFilter!.label}".';
+  }
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 

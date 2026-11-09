@@ -81,6 +81,24 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
                       message: vm.errorMessage!,
                     ),
                   ),
+                  AssignedIncidentsState.loaded when vm.emptyMessage != null =>
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: vm.incidents.isEmpty
+                          ? HistoryMessage(
+                              icon: Icons.assignment_turned_in_outlined,
+                              message: vm.emptyMessage!,
+                            )
+                          : HistoryMessage(
+                              icon: Icons.filter_alt_off_outlined,
+                              message: vm.emptyMessage!,
+                              action: OutlinedButton(
+                                key: const Key('assigned.showAll'),
+                                onPressed: () => vm.setStatusFilter(null),
+                                child: const Text('Ver todas'),
+                              ),
+                            ),
+                    ),
                   AssignedIncidentsState.loaded => SliverList.separated(
                     itemCount: vm.results.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
