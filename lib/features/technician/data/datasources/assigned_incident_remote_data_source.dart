@@ -6,6 +6,7 @@ import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../notifications/data/datasources/notification_remote_data_source.dart';
+import '../models/finalize_plan.dart';
 import '../models/solution_plan.dart';
 import '../models/start_attention_plan.dart';
 
@@ -168,6 +169,29 @@ class AssignedIncidentRemoteDataSource {
           evidenceUrls: evidenceUrls,
         ),
       );
+    });
+  }
+
+  /// Finaliza la incidencia como resuelta (HU-3.7), en una transacción que
+  /// antes revisa las reglas de [FinalizePlan].
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
+  }) {
+    return _firestore.runTransaction((transaction) async {
+      final incidentRef = _incidents.doc(incidentId);
+      final incidentDoc = await transaction.get(incidentRef);
+      final technicianDoc = await transaction.get(
+        _firestore.collection(FirestoreCollections.users).doc(technicianId),
+      );
+      FinalizePlan.validate(
+        incident: incidentDoc.data(),
+        technician: technicianDoc.data(),
+        technicianId: technicianId,
+        now: DateTime.now(),
+      );
+
+      transaction.update(incidentRef, FinalizePlan.incidentUpdate);
     });
   }
 }

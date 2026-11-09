@@ -27,4 +27,11 @@ abstract interface class AssignedIncidentRepository {
     required String solution,
     required List<EvidenceFile> evidence,
   });
+
+  /// Finaliza la incidencia [incidentId] como resuelta (HU-3.7). Si no se
+  /// puede, lanza un `IncidentFailure`.
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
+  });
 }

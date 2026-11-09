@@ -45,6 +45,21 @@ class _TechnicianIncidentDetailScreenState
     super.dispose();
   }
 
+  /// Pide confirmación y finaliza la incidencia como resuelta (HU-3.7).
+  Future<void> _finalize() async {
+    final reportNumber = _viewModel.incident!.reportNumber;
+    final confirmed = await confirmFinalize(context, reportNumber);
+    if (!confirmed || !mounted) return;
+
+    final error = await _viewModel.finalize();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Finalizaste la incidencia $reportNumber.'),
+      ),
+    );
+  }
+
   /// Pide confirmación y pasa la incidencia a En proceso.
   Future<void> _startAttention() async {
     final reportNumber = _viewModel.incident!.reportNumber;
@@ -92,10 +107,13 @@ class _TechnicianIncidentDetailScreenState
             );
           }
           if (_viewModel.canFinalize) {
-            return const _ActionBar(
-              buttonKey: Key('detail.finalize'),
+            return _ActionBar(
+              buttonKey: const Key('detail.finalize'),
               icon: Icons.flag_rounded,
               label: 'Finalizar incidencia',
+              busy: _viewModel.isFinalizing,
+              busyLabel: 'Finalizando…',
+              onPressed: _finalize,
             );
           }
           return const SizedBox.shrink();

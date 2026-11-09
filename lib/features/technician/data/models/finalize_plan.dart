@@ -50,4 +50,9 @@ abstract final class FinalizePlan {
         throw const FinalizeNotAvailableException();
     }
   }
+
+  /// La incidencia pasa de En proceso a Resuelta.
+  static Map<String, dynamic> get incidentUpdate => {
+    'estado': IncidentStatus.resolved.value,
+  };
 }

@@ -10,6 +10,7 @@ import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/entities/finalize_conditions.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
+import '../../domain/usecases/finalize_incident.dart';
 import '../../domain/usecases/start_attention.dart';
 import '../../domain/usecases/watch_assigned_incident.dart';
 
@@ -90,6 +91,33 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
             technicianId: _session.currentUser?.uid,
           ) ==
           null;
+
+  bool _finalizing = false;
+
+  /// Se está guardando la finalización.
+  bool get isFinalizing => _finalizing;
+
+  /// Finaliza la incidencia como resuelta (HU-3.7). Devuelve el mensaje de
+  /// error, o `null` si se guardó.
+  Future<String?> finalize() async {
+    if (!canFinalize || _finalizing) return null;
+    _finalizing = true;
+    notifyListeners();
+    try {
+      await FinalizeIncident(_repository)(
+        technician: _session.currentUser,
+        incidentId: _incidentId,
+      );
+      return null;
+    } on IncidentFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return IncidentFailure.actionFailed.message;
+    } finally {
+      _finalizing = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
 
   /// Pasa la incidencia a En proceso. Devuelve el mensaje de error, o
   /// `null` si se guardó; la pantalla se actualiza sola con el nuevo
