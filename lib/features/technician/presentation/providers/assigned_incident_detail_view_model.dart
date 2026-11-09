@@ -8,6 +8,7 @@ import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
+import '../../domain/entities/finalize_conditions.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
 import '../../domain/usecases/start_attention.dart';
 import '../../domain/usecases/watch_assigned_incident.dart';
@@ -81,11 +82,14 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
       !hasSolution;
 
   /// Con la solución registrada, la incidencia En proceso se puede
-  /// finalizar (HU-3.7).
+  /// finalizar (HU-3.7). Ver [FinalizeConditions].
   bool get canFinalize =>
       _state == AssignedIncidentDetailState.loaded &&
-      incident?.status == IncidentStatus.inProgress &&
-      hasSolution;
+      FinalizeConditions.check(
+            incident!,
+            technicianId: _session.currentUser?.uid,
+          ) ==
+          null;
 
   /// Pasa la incidencia a En proceso. Devuelve el mensaje de error, o
   /// `null` si se guardó; la pantalla se actualiza sola con el nuevo
