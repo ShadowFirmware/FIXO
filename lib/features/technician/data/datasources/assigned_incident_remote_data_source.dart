@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
 import '../../../housing/data/models/housing_model.dart';
+import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
 
 /// Acceso a Firestore para las incidencias asignadas al técnico (HU-3.3).
@@ -48,22 +49,24 @@ class AssignedIncidentRemoteDataSource {
     }
   }
 
-  /// Nombre para mostrar de la vivienda [id], o `null` si no existe.
-  Future<String?> housingLabel(String id) async {
+  /// Vivienda [id], o `null` si no existe.
+  Future<Housing?> housing(String id) async {
     final doc = await _firestore
         .collection(FirestoreCollections.housings)
         .doc(id)
         .get();
     if (!doc.exists) return null;
     try {
-      return HousingModel.fromFirestore(doc).label;
+      return HousingModel.fromFirestore(doc);
     } on FormatException {
       return null;
     }
   }
 
-  /// Nombre y teléfono del usuario [uid], o `null` si no existe.
-  Future<({String? name, String? phone})?> contact(String uid) async {
+  /// Nombre, teléfono y correo del usuario [uid], o `null` si no existe.
+  Future<({String? name, String? phone, String? email})?> contact(
+    String uid,
+  ) async {
     final doc = await _firestore
         .collection(FirestoreCollections.users)
         .doc(uid)
@@ -73,6 +76,7 @@ class AssignedIncidentRemoteDataSource {
     return (
       name: data['nombre'] as String?,
       phone: data['telefono'] as String?,
+      email: data['correo'] as String?,
     );
   }
 }

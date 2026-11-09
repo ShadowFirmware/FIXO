@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../incidents/domain/entities/incident.dart';
@@ -301,6 +302,54 @@ class AssignedEvidenceSection extends StatelessWidget {
             ),
           ),
         EvidenceGallery(urls: urls),
+      ],
+    );
+  }
+}
+
+/// Fila de detalle con un botón para copiar el valor, por ejemplo el
+/// teléfono del residente para llamarle.
+class CopyableDetailRow extends StatelessWidget {
+  const CopyableDetailRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.copyValue,
+    required this.copiedMessage,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  /// Texto que se copia, o `null` si no hay nada que copiar.
+  final String? copyValue;
+
+  /// Aviso que se muestra al copiar, por ejemplo "Teléfono copiado".
+  final String copiedMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = copyValue;
+
+    return Row(
+      children: [
+        Expanded(
+          child: DetailRow(icon: icon, label: label, value: value),
+        ),
+        if (copy != null)
+          IconButton(
+            tooltip: 'Copiar',
+            icon: const Icon(Icons.copy_rounded, size: 20),
+            color: AppColors.primary,
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: copy));
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(copiedMessage)));
+            },
+          ),
       ],
     );
   }

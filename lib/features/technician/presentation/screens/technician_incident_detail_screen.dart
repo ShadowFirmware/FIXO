@@ -155,22 +155,50 @@ class _DetailBody extends StatelessWidget {
           urls: incident.evidenceBefore,
         ),
         DetailSection(
-          title: 'Ubicación y residente',
+          title: 'Ubicación',
           children: [
             DetailRow(
-              icon: Icons.apartment_rounded,
-              label: 'Departamento',
+              icon: Icons.place_outlined,
+              label: 'Lugar',
               value: vm.housing,
             ),
+            DetailRow(
+              icon: Icons.home_work_outlined,
+              label: 'Tipo de vivienda',
+              value: vm.housingType,
+            ),
+            if (vm.building case final building?)
+              DetailRow(
+                icon: Icons.apartment_rounded,
+                label: 'Edificio o torre',
+                value: building,
+              ),
+            DetailRow(
+              icon: Icons.tag_rounded,
+              label: 'Número',
+              value: vm.housingNumber,
+            ),
+          ],
+        ),
+        DetailSection(
+          title: 'Residente',
+          children: [
             DetailRow(
               icon: Icons.person_outline_rounded,
               label: 'Reportó',
               value: vm.residentName,
             ),
-            DetailRow(
+            CopyableDetailRow(
               icon: Icons.phone_outlined,
               label: 'Teléfono',
               value: vm.residentPhone,
+              copyValue: vm.phoneToCopy,
+              copiedMessage: 'Teléfono copiado',
+            ),
+            DetailRow(
+              icon: Icons.email_outlined,
+              label: 'Correo electrónico',
+              value: vm.residentEmail,
             ),
           ],
         ),

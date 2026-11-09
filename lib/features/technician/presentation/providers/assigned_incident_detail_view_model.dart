@@ -85,6 +85,23 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   String get housing => _item?.housingLabel ?? _noData;
   String get residentName => _item?.residentName ?? _noData;
   String get residentPhone => _item?.residentPhone ?? _noData;
+  String get residentEmail => _item?.residentEmail ?? _noData;
+
+  /// Teléfono para copiarlo, o `null` si el residente no lo registró.
+  String? get phoneToCopy => _item?.residentPhone;
+
+  String get housingType => _item?.housing?.type.displayName ?? _noData;
+  String get housingNumber {
+    final number = _item?.housing?.number.trim() ?? '';
+    return number.isEmpty ? _noData : number;
+  }
+
+  /// Edificio, torre o sección, o `null` si la vivienda no tiene (por
+  /// ejemplo, una casa).
+  String? get building {
+    final building = _item?.housing?.building?.trim() ?? '';
+    return building.isEmpty ? null : building;
+  }
 
   String get description {
     final text = incident?.description.trim() ?? '';
