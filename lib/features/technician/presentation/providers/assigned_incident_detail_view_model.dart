@@ -9,6 +9,7 @@ import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
+import '../../domain/usecases/start_attention.dart';
 import '../../domain/usecases/watch_assigned_incident.dart';
 
 enum AssignedIncidentDetailState { loading, loaded, notFound, error }
@@ -27,9 +28,7 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   }) : _incidentId = incidentId,
        _clock = clock ?? DateTime.now,
        _session = session ?? AuthSession.instance,
-       _watch = WatchAssignedIncident(
-         repository ?? AssignedIncidentRepositoryImpl(),
-       ) {
+       _repository = repository ?? AssignedIncidentRepositoryImpl() {
     // Al abrirla desde la lista se muestra de inmediato lo que ya se tiene,
     // mientras llegan los datos actualizados.
     if (initial != null && initial.id == incidentId) _onIncident(initial);
@@ -41,13 +40,14 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   final String _incidentId;
   final DateTime Function() _clock;
   final AuthSession _session;
-  final WatchAssignedIncident _watch;
+  final AssignedIncidentRepository _repository;
   StreamSubscription<AssignedIncident?>? _subscription;
+  bool _disposed = false;
 
   // Solo se reciben los datos si la incidencia es del técnico en sesión.
   void _listen() {
     _subscription?.cancel();
-    _subscription = _watch(
+    _subscription = WatchAssignedIncident(_repository)(
       technician: _session.currentUser,
       id: _incidentId,
     ).listen(_onIncident, onError: _onError);
@@ -61,6 +61,40 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
     _accessDenied = false;
     notifyListeners();
     _listen();
+  }
+
+  bool _starting = false;
+
+  /// Se está guardando el inicio de la atención.
+  bool get isStarting => _starting;
+
+  /// La opción Comenzar atención solo está disponible mientras la
+  /// incidencia está Asignada.
+  bool get canStartAttention =>
+      _state == AssignedIncidentDetailState.loaded &&
+      incident?.status == IncidentStatus.assigned;
+
+  /// Pasa la incidencia a En proceso. Devuelve el mensaje de error, o
+  /// `null` si se guardó; la pantalla se actualiza sola con el nuevo
+  /// estado.
+  Future<String?> startAttention() async {
+    if (!canStartAttention || _starting) return null;
+    _starting = true;
+    notifyListeners();
+    try {
+      await StartAttention(_repository)(
+        technician: _session.currentUser,
+        incidentId: _incidentId,
+      );
+      return null;
+    } on IncidentFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return IncidentFailure.actionFailed.message;
+    } finally {
+      _starting = false;
+      if (!_disposed) notifyListeners();
+    }
   }
 
   /// Solo tiene sentido reintentar si el error no fue por permisos.
@@ -204,6 +238,7 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _subscription?.cancel();
     _ticker?.cancel();
     super.dispose();

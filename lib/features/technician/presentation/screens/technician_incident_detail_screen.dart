@@ -45,12 +45,68 @@ class _TechnicianIncidentDetailScreenState
     super.dispose();
   }
 
+  /// Pide confirmación y pasa la incidencia a En proceso.
+  Future<void> _startAttention() async {
+    final reportNumber = _viewModel.incident!.reportNumber;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Comenzar la atención?'),
+        content: Text(
+          'La incidencia $reportNumber pasará a "En proceso" y se avisará '
+          'al residente.',
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    key: const Key('detail.startConfirm'),
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Comenzar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final error = await _viewModel.startAttention();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Comenzaste la atención de $reportNumber.'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
       appBar: const FixoAppBar(title: 'Detalle de la incidencia'),
+      bottomNavigationBar: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) => _viewModel.canStartAttention
+            ? _StartAttentionBar(
+                starting: _viewModel.isStarting,
+                onPressed: _startAttention,
+              )
+            : const SizedBox.shrink(),
+      ),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) => switch (_viewModel.state) {
@@ -203,6 +259,50 @@ class _DetailBody extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Barra inferior con la opción Comenzar atención.
+class _StartAttentionBar extends StatelessWidget {
+  const _StartAttentionBar({required this.starting, required this.onPressed});
+
+  /// Se está guardando: el botón se deshabilita y muestra el progreso.
+  final bool starting;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(
+          top: BorderSide(color: AppColors.border.withValues(alpha: 0.6)),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: ElevatedButton.icon(
+                key: const Key('detail.startAttention'),
+                onPressed: starting ? null : onPressed,
+                icon: starting
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.play_arrow_rounded),
+                label: Text(starting ? 'Comenzando…' : 'Comenzar atención'),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

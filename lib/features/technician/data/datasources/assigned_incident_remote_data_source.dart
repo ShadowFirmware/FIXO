@@ -4,6 +4,8 @@ import '../../../../core/constants/firestore_collections.dart';
 import '../../../housing/data/models/housing_model.dart';
 import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
+import '../../../incidents/domain/entities/incident.dart';
+import '../models/start_attention_plan.dart';
 
 /// Acceso a Firestore para las incidencias asignadas al técnico (HU-3.3).
 class AssignedIncidentRemoteDataSource {
@@ -78,5 +80,44 @@ class AssignedIncidentRemoteDataSource {
       phone: data['telefono'] as String?,
       email: data['correo'] as String?,
     );
+  }
+
+  /// Pasa la incidencia de Asignada a En proceso y avisa al residente, en
+  /// una sola transacción. Lanza las excepciones de [StartAttentionPlan] si
+  /// la incidencia no se puede comenzar.
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) {
+    return _firestore.runTransaction((transaction) async {
+      final incidentRef = _incidents.doc(incidentId);
+      final incidentDoc = await transaction.get(incidentRef);
+      final technicianDoc = await transaction.get(
+        _firestore.collection(FirestoreCollections.users).doc(technicianId),
+      );
+      final incident = incidentDoc.data();
+      StartAttentionPlan.validate(
+        incident: incident,
+        technicianId: technicianId,
+      );
+
+      transaction.update(incidentRef, StartAttentionPlan.incidentUpdate);
+
+      final residentId = incident!['creadaPor'] as String? ?? '';
+      if (residentId.isEmpty) return;
+      transaction.set(
+        _firestore.collection(FirestoreCollections.notifications).doc(),
+        StartAttentionPlan.residentNotice(
+          residentId: residentId,
+          incidentId: incidentId,
+          reportNumber: Incident.formatReportNumber(
+            (incident['folio'] as num?)?.toInt() ?? 0,
+          ),
+          title: incident['nombre'] as String? ?? '',
+          technicianName:
+              technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
+        ),
+      );
+    });
   }
 }

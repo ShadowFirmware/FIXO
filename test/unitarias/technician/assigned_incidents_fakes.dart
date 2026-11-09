@@ -78,6 +78,25 @@ class FakeAssignedIncidentRepository implements AssignedIncidentRepository {
     requestedIds.add(id);
     return detailController.stream;
   }
+
+  /// Error que lanza [startAttention], por ejemplo sin conexión.
+  Object? startError;
+
+  /// Si no es `null`, [startAttention] espera a que se complete.
+  Completer<void>? startGate;
+
+  /// Incidencias cuya atención se comenzó, con el técnico.
+  final started = <({String incidentId, String technicianId})>[];
+
+  @override
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    await startGate?.future;
+    if (startError != null) throw startError!;
+    started.add((incidentId: incidentId, technicianId: technicianId));
+  }
 }
 
 /// Simula Firestore para probar el repositorio real.
@@ -111,5 +130,20 @@ class FakeAssignedIncidentRemoteDataSource
   ) async {
     lookups.update(uid, (n) => n + 1, ifAbsent: () => 1);
     return contacts[uid];
+  }
+
+  /// Error que lanza [startAttention], por ejemplo una excepción de
+  /// [StartAttentionPlan] o de Firestore.
+  Object? startError;
+
+  final started = <({String incidentId, String technicianId})>[];
+
+  @override
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    if (startError != null) throw startError!;
+    started.add((incidentId: incidentId, technicianId: technicianId));
   }
 }

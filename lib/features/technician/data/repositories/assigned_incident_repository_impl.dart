@@ -6,6 +6,7 @@ import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
 import '../datasources/assigned_incident_remote_data_source.dart';
+import '../models/start_attention_plan.dart';
 
 class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
   AssignedIncidentRepositoryImpl({AssignedIncidentRemoteDataSource? remote})
@@ -55,6 +56,31 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
             _ => IncidentFailure.loadFailed,
           };
         });
+  }
+
+  @override
+  Future<void> startAttention({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    try {
+      await _remote.startAttention(
+        incidentId: incidentId,
+        technicianId: technicianId,
+      );
+    } on NotAssignedToTechnicianException {
+      throw IncidentFailure.notAssignedToYou;
+    } on AttentionAlreadyStartedException {
+      throw IncidentFailure.attentionAlreadyStarted;
+    } on AttentionNotAvailableException {
+      throw IncidentFailure.attentionNotAvailable;
+    } on FirebaseException catch (e) {
+      throw switch (e.code) {
+        'unavailable' || 'deadline-exceeded' => IncidentFailure.offline,
+        'permission-denied' => IncidentFailure.notAssignedToYou,
+        _ => IncidentFailure.actionFailed,
+      };
+    }
   }
 
   Future<AssignedIncident> _withContact(Incident incident) async {
