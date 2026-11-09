@@ -148,6 +148,12 @@ class _DetailBody extends StatelessWidget {
               label: 'Hora estimada de llegada',
               value: vm.estimatedArrival,
             ),
+            if (vm.startedAt case final startedAt?)
+              DetailRow(
+                icon: Icons.play_circle_outline_rounded,
+                label: 'Inicio de la atención',
+                value: startedAt,
+              ),
             DetailRow(
               icon: Icons.notes_rounded,
               label: 'Descripción',

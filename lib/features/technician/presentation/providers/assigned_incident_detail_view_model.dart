@@ -146,6 +146,12 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   String get createdAt => _date(incident?.createdAt);
   String get estimatedArrival => _date(incident?.estimatedTime);
 
+  /// Cuándo comenzó la atención (HU-3.5), o `null` si no ha comenzado.
+  String? get startedAt {
+    final date = incident?.startedAt;
+    return date == null ? null : DateFormats.dateTime(date);
+  }
+
   /// Cuánto falta para la hora estimada de llegada, o cuánto pasó. Solo
   /// mientras la incidencia está Asignada: después ya no hace falta.
   String? get arrivalCountdown {

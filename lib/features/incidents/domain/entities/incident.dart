@@ -61,6 +61,7 @@ class Incident {
     this.evidenceBefore = const [],
     this.evidenceAfter = const [],
     this.createdAt,
+    this.startedAt,
     this.resolvedAt,
   });
 
@@ -99,6 +100,10 @@ class Incident {
   final List<String> evidenceAfter;
 
   final DateTime? createdAt;
+
+  /// Cuándo el técnico comenzó la atención (HU-3.5).
+  final DateTime? startedAt;
+
   final DateTime? resolvedAt;
 
   /// Número de reporte para mostrar, por ejemplo "INC-0007".

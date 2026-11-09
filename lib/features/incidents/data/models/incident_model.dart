@@ -21,6 +21,7 @@ class IncidentModel extends Incident {
     super.evidenceBefore,
     super.evidenceAfter,
     super.createdAt,
+    super.startedAt,
     super.resolvedAt,
   });
 
@@ -62,6 +63,7 @@ class IncidentModel extends Incident {
       evidenceBefore: _urls(data['evidenciasAntes']),
       evidenceAfter: _urls(data['evidenciasDespues']),
       createdAt: _date(data['fechaCreacion']),
+      startedAt: _date(data['fechaInicioAtencion']),
       resolvedAt: _date(data['fechaResolucion']),
     );
   }
@@ -86,6 +88,7 @@ class IncidentModel extends Incident {
       'fechaCreacion': createdAt == null
           ? FieldValue.serverTimestamp()
           : Timestamp.fromDate(createdAt!),
+      'fechaInicioAtencion': _timestamp(startedAt),
       'fechaResolucion': _timestamp(resolvedAt),
     };
   }
