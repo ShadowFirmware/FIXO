@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/form_error_banner.dart';
 import '../../../resident/presentation/providers/edit_profile_view_model.dart';
 
 /// HU-4.2 Modificar perfil del administrador.
@@ -115,7 +116,11 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
-    if (_viewModel.isSaving || !_formKey.currentState!.validate()) return;
+    if (_viewModel.isSaving) return;
+    if (!_formKey.currentState!.validate()) {
+      showIncompleteFormMessage(context);
+      return;
+    }
 
     final saved = await _viewModel.save();
     if (!mounted) return;

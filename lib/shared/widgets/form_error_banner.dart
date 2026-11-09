@@ -36,3 +36,30 @@ class FormErrorBanner extends StatelessWidget {
     );
   }
 }
+
+/// Mensaje cuando se intenta enviar un formulario con datos que faltan o no
+/// son válidos.
+const incompleteFormMessage = 'Revisa los campos marcados en rojo.';
+
+/// Avisa que el formulario tiene datos que faltan o no son válidos. Cada
+/// campo ya muestra su error; esto evita que pase desapercibido cuando el
+/// campo quedó fuera de la vista.
+void showIncompleteFormMessage(
+  BuildContext context, [
+  String message = incompleteFormMessage,
+]) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.error,
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline_rounded, color: AppColors.white),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message)),
+          ],
+        ),
+      ),
+    );
+}

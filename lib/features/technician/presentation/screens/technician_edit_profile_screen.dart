@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../../shared/widgets/form_error_banner.dart';
 import '../../../resident/presentation/providers/edit_profile_view_model.dart';
 import '../../../resident/presentation/widgets/profile_form_widgets.dart';
 
@@ -56,7 +57,11 @@ class _TechnicianEditProfileScreenState
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     // Si hay datos inválidos se marcan en el formulario y no se guarda nada.
-    if (_viewModel.isSaving || !_formKey.currentState!.validate()) return;
+    if (_viewModel.isSaving) return;
+    if (!_formKey.currentState!.validate()) {
+      showIncompleteFormMessage(context);
+      return;
+    }
 
     final saved = await _viewModel.save();
     if (!mounted) return;
