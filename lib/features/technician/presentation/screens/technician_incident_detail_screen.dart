@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../resident/presentation/screens/incident_detail_screen.dart';
+import '../../domain/entities/assigned_incident.dart';
 import '../providers/assigned_incident_detail_view_model.dart';
 import '../widgets/assigned_detail_widgets.dart';
 
@@ -12,10 +13,14 @@ class TechnicianIncidentDetailScreen extends StatefulWidget {
   const TechnicianIncidentDetailScreen({
     super.key,
     required this.incidentId,
+    this.initial,
     this.viewModel,
   });
 
   final String incidentId;
+
+  /// Datos que ya se tenían en la lista, para mostrarlos de inmediato.
+  final AssignedIncident? initial;
 
   /// Solo para pruebas; normalmente la pantalla crea el suyo.
   final AssignedIncidentDetailViewModel? viewModel;
@@ -29,7 +34,10 @@ class _TechnicianIncidentDetailScreenState
     extends State<TechnicianIncidentDetailScreen> {
   late final _viewModel =
       widget.viewModel ??
-      AssignedIncidentDetailViewModel(incidentId: widget.incidentId);
+      AssignedIncidentDetailViewModel(
+        incidentId: widget.incidentId,
+        initial: widget.initial,
+      );
 
   @override
   void dispose() {
@@ -58,6 +66,14 @@ class _TechnicianIncidentDetailScreenState
                 ? Icons.lock_outline_rounded
                 : Icons.error_outline_rounded,
             message: _viewModel.errorMessage!,
+            action: _viewModel.canRetry
+                ? FilledButton.icon(
+                    key: const Key('detail.retry'),
+                    onPressed: _viewModel.retry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Reintentar'),
+                  )
+                : null,
           ),
           AssignedIncidentDetailState.loaded => _DetailBody(
             viewModel: _viewModel,
