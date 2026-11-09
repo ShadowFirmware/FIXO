@@ -64,6 +64,10 @@ abstract final class FinalizePlan {
     'chatCerrado': true,
   };
 
+  /// El técnico vuelve a estar Disponible para recibir nuevas asignaciones:
+  /// se le marcó como No disponible al asignarle la incidencia (HU-4.9).
+  static const technicianUpdate = <String, dynamic>{'disponible': true};
+
   /// Aviso de que la incidencia se resolvió, para el residente (que puede
   /// consultar la solución y las evidencias) y para cada administrador.
   static Map<String, dynamic> notice({

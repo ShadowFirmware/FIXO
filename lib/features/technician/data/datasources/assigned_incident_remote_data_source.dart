@@ -173,8 +173,9 @@ class AssignedIncidentRemoteDataSource {
   }
 
   /// Finaliza la incidencia como resuelta (HU-3.7) en una sola transacción:
-  /// revisa las reglas de [FinalizePlan], cambia el estado, cierra el chat y
-  /// avisa al residente y a los administradores [adminIds].
+  /// revisa las reglas de [FinalizePlan], cambia el estado, cierra el chat,
+  /// deja al técnico Disponible y avisa al residente y a los administradores
+  /// [adminIds].
   Future<void> finalize({
     required String incidentId,
     required String technicianId,
@@ -183,9 +184,10 @@ class AssignedIncidentRemoteDataSource {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
       final incidentDoc = await transaction.get(incidentRef);
-      final technicianDoc = await transaction.get(
-        _firestore.collection(FirestoreCollections.users).doc(technicianId),
-      );
+      final technicianRef = _firestore
+          .collection(FirestoreCollections.users)
+          .doc(technicianId);
+      final technicianDoc = await transaction.get(technicianRef);
       final incident = incidentDoc.data();
       FinalizePlan.validate(
         incident: incident,
@@ -194,7 +196,9 @@ class AssignedIncidentRemoteDataSource {
         now: DateTime.now(),
       );
 
-      transaction.update(incidentRef, FinalizePlan.incidentUpdate);
+      transaction
+        ..update(incidentRef, FinalizePlan.incidentUpdate)
+        ..update(technicianRef, FinalizePlan.technicianUpdate);
 
       final residentId = incident!['creadaPor'] as String? ?? '';
       final notifications = _firestore.collection(
