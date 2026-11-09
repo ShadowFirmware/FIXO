@@ -6,6 +6,8 @@ import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../../shared/widgets/chip_icon.dart';
+import '../../../../shared/widgets/form_error_banner.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
@@ -13,7 +15,10 @@ import '../providers/register_incident_view_model.dart';
 
 /// HU-2.3 Registrar incidencia.
 class RegisterIncidentScreen extends StatefulWidget {
-  const RegisterIncidentScreen({super.key});
+  const RegisterIncidentScreen({super.key, this.viewModel});
+
+  /// Solo para pruebas; normalmente la pantalla crea el suyo.
+  final RegisterIncidentViewModel? viewModel;
 
   @override
   State<RegisterIncidentScreen> createState() => _RegisterIncidentScreenState();
@@ -23,7 +28,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _viewModel = RegisterIncidentViewModel();
+  late final _viewModel = widget.viewModel ?? RegisterIncidentViewModel();
 
   @override
   void initState() {
@@ -40,7 +45,7 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _viewModel.dispose();
+    if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
   }
 
@@ -58,7 +63,10 @@ class _RegisterIncidentScreenState extends State<RegisterIncidentScreen> {
     // Se validan todos para marcar cada error, no solo el primero.
     final fieldsValid = _formKey.currentState!.validate();
     final restValid = _viewModel.validate() == null;
-    if (!fieldsValid || !restValid) return;
+    if (!fieldsValid || !restValid) {
+      showIncompleteFormMessage(context);
+      return;
+    }
 
     final incident = await _viewModel.register();
     if (!mounted) return;
@@ -270,7 +278,7 @@ class _TypeSelector extends StatelessWidget {
         for (final type in IncidentType.values)
           ChoiceChip(
             key: Key('registerIncident.type.${type.value}'),
-            avatar: Icon(type.icon, size: 18),
+            avatar: ChipIcon(type.icon, selected: selected == type),
             label: Text(type.label),
             selected: selected == type,
             onSelected: (_) => onSelected(type),

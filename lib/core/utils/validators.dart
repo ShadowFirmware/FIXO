@@ -72,4 +72,26 @@ abstract final class Validators {
     }
     return null;
   }
+
+  /// Contraseña de una cuenta nueva que registra el administrador (HU-4.3
+  /// y HU-4.4): mínimo 8 caracteres.
+  static String? newPassword(String? value) {
+    final password = value ?? '';
+    if (password.isEmpty) return 'Ingresa una contraseña';
+    if (password.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres';
+    }
+    return null;
+  }
+
+  /// Especialidad del técnico, por ejemplo "Electricidad".
+  static String? specialty(String? value) {
+    final specialty = value?.trim() ?? '';
+    if (specialty.isEmpty) return 'Ingresa la especialidad';
+    if (specialty.length < 3) return 'La especialidad es demasiado corta';
+    if (specialty.length > 40) {
+      return 'La especialidad no debe pasar de 40 caracteres';
+    }
+    return null;
+  }
 }

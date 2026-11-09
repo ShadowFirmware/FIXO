@@ -5,7 +5,7 @@
 | Módulo | 4. Administrador |
 | Historia de usuario | HU 4.2 Modificar perfil (#HU-4.2) |
 | Rama | `FEATURE/HU-4.2-Nueva-funcionalidad` |
-| Fecha | 30/10/2026 |
+| Fecha | 30/10/2026 — actualizado el 09/11/2026 |
 
 ## 1. Objetivo
 
@@ -38,10 +38,10 @@ Verificar que el administrador pueda modificar su información personal y de con
 | CA-1 | Acceder a la opción de modificar perfil desde la consulta del propio perfil | PM-01 |
 | CA-2 | Modificar únicamente nombre, correo y teléfono | PU-54, PU-56, PM-02 |
 | CA-3 | Si se edita el correo, validar que no esté registrado por otro usuario | PM-08 |
-| CA-4 | Validar formatos de correo y teléfono antes de guardar | PU-55, PU-59, PU-60, PM-03, PM-04 |
+| CA-4 | Validar formatos de correo y teléfono antes de guardar | PU-583, PU-55, PU-59, PU-60, PM-03, PM-04 |
 | CA-5 | Con información válida, guardar las modificaciones en la base de datos | PU-56, PM-05 |
-| CA-6 | Después de guardar, mostrar mensaje de éxito y reflejar la información actualizada | PU-56, PM-05, PM-06 |
-| CA-7 | Con datos inválidos o duplicados, informar con mensaje de error y no guardar | PU-55, PU-57, PU-58, PM-03, PM-04, PM-07, PM-08 |
+| CA-6 | Después de guardar, mostrar mensaje de éxito y reflejar la información actualizada | PU-584, PU-56, PM-05, PM-06 |
+| CA-7 | Con datos inválidos o duplicados, informar con mensaje de error y no guardar | PU-583, PU-55, PU-57, PU-58, PM-03, PM-04, PM-07, PM-08 |
 | CA-8 | Solo el administrador puede acceder a la edición | PM-09 |
 
 ## 4. Tipos de prueba
@@ -113,6 +113,16 @@ flutter test test/unitarias
 | PU-61 | Correo ya registrado por otro usuario | Lanza `ProfileFailure` con mensaje "El correo electrónico ya está registrado por otro usuario." y no actualiza el documento |
 | PU-62 | Correo igual al actual del mismo usuario | Permite guardar (no se considera duplicado) |
 
+### 7.5 Pantalla del administrador — `test/unitarias/admin/admin_edit_profile_screen_test.dart`
+
+Pruebas propias de la pantalla del administrador, agregadas el 09/11/2026 (las anteriores son del formulario que comparte con el residente).
+
+| ID | Caso | Resultado esperado |
+|---|---|---|
+| PU-582 | Abrir el formulario sin cambios | Nombre, correo y teléfono del administrador; "Guardar cambios" deshabilitado |
+| PU-583 | Guardar con nombre y teléfono inválidos | Mensaje en cada campo, aviso "Revisa los campos marcados en rojo." y no se guarda |
+| PU-584 | Guardar un teléfono válido | Pide confirmar, guarda, actualiza la sesión, avisa y regresa al perfil |
+
 ## 8. Casos de prueba manuales
 
 | ID | Caso | Pasos | Resultado esperado |
@@ -135,33 +145,36 @@ flutter test test/unitarias
 ## 9. Criterios de aprobación
 
 - Todas las pruebas unitarias pasan (`flutter test`).
-- Los casos manuales PM-01 a PM-08 se cumplen.
+- Los casos manuales PM-01 a PM-14 se cumplen.
 - No hay defectos abiertos de severidad alta.
 
 ## 10. Resultados
 
-### Automatizadas — 30/10/2026
+### Automatizadas — 09/11/2026
 
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
-| HU 4.2 (reutiliza PU-52 a PU-60) | 9 | Aprobadas |
-| Proyecto completo (`flutter test`) | 121 | Aprobadas |
+| Formulario compartido (reutiliza PU-52 a PU-60) | 9 | Aprobadas |
+| Pantalla del administrador (PU-582 a PU-584) | 3 | Aprobadas |
+| Proyecto completo (`flutter test`) | 307 | Aprobadas |
 
 ### Manuales
 
+Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
+
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | |
+| PM-01 | Pendiente | | | Automatizada en PU-582 |
 | PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | |
+| PM-03 | Pendiente | | | Automatizada en PU-583 |
+| PM-04 | Pendiente | | | Automatizada en PU-583 |
 | PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | |
+| PM-06 | Pendiente | | | Automatizada en PU-584 (sin Firebase) |
 | PM-07 | Pendiente | | | |
 | PM-08 | Pendiente | | | |
 | PM-09 | Pendiente | | | |
 | PM-10 | Pendiente | | | |
-| PM-11 | Pendiente | | | |
+| PM-11 | Pendiente | | | Automatizada en PU-582 |
 | PM-12 | Pendiente | | | |
 | PM-13 | Pendiente | | | |
 | PM-14 | Pendiente | | | |

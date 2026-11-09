@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/adaptive_form.dart';
 import '../../../../core/utils/date_formats.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
@@ -154,9 +155,8 @@ class _InfoLine extends StatelessWidget {
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -173,61 +173,45 @@ Future<void> showPendingIncidentDetail(
   PendingIncidentActions? actions,
 }) {
   final incident = pending.incident;
-  return showDialog<void>(
+  return showAdaptiveForm<void>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text('${incident.reportNumber} · ${incident.title}'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _DetailRow('Tipo', incident.type.label),
-              _DetailRow('Estado', incident.status.label),
-              _DetailRow('Departamento', pending.housingLabel),
-              _DetailRow('Reportada por', pending.reporterName),
-              _DetailRow('Fecha de creación', formatCreatedAt(pending)),
-              _DetailRow(
-                'Detalles',
-                incident.description.trim().isEmpty
-                    ? 'Sin registrar'
-                    : incident.description,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Evidencias',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              EvidenceGallery(urls: incident.evidenceBefore),
-            ],
-          ),
+    title: '${incident.reportNumber} · ${incident.title}',
+    builder: (context) => AdaptiveFormLayout(
+      fields: [
+        _DetailRow('Tipo', incident.type.label),
+        _DetailRow('Estado', incident.status.label),
+        _DetailRow('Departamento', pending.housingLabel),
+        _DetailRow('Reportada por', pending.reporterName),
+        _DetailRow('Fecha de creación', formatCreatedAt(pending)),
+        _DetailRow(
+          'Detalles',
+          incident.description.trim().isEmpty
+              ? 'Sin registrar'
+              : incident.description,
         ),
-      ),
-      actions: [
-        if (actions == null)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
+        const SizedBox(height: 8),
+        Text(
+          'Evidencias',
+          style: Theme.of(context).textTheme.labelLarge
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        EvidenceGallery(urls: incident.evidenceBefore),
+      ],
+      footer: actions == null
+          ? OutlinedButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cerrar'),
+            )
+          : _DetailActions(
+              onReject: () {
+                Navigator.pop(context);
+                actions.reject(pending);
+              },
+              onAssign: () {
+                Navigator.pop(context);
+                actions.assign(pending);
+              },
             ),
-          )
-        else
-          _DetailActions(
-            onReject: () {
-              Navigator.pop(context);
-              actions.reject(pending);
-            },
-            onAssign: () {
-              Navigator.pop(context);
-              actions.assign(pending);
-            },
-          ),
-      ],
     ),
   );
 }
@@ -251,9 +235,7 @@ class _DetailActions extends StatelessWidget {
               onPressed: onReject,
               icon: const Icon(Icons.close_rounded),
               label: const Text('Rechazar'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-              ),
+              style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
             ),
           ),
           const SizedBox(width: 12),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../../shared/widgets/chip_icon.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../providers/incident_history_view_model.dart';
@@ -225,7 +226,7 @@ class _FilterSheet extends StatelessWidget {
               for (final type in IncidentType.values)
                 ChoiceChip(
                   key: Key('history.type.${type.value}'),
-                  avatar: Icon(type.icon, size: 18),
+                  avatar: ChipIcon(type.icon, selected: filter.type == type),
                   label: Text(type.label),
                   selected: filter.type == type,
                   onSelected: (_) => vm.setType(type),

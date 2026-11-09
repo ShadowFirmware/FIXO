@@ -150,10 +150,8 @@ void main() {
 
     await tester.tap(find.text('Rechazar').first);
     await tester.pumpAndSettle();
-    final dialogButton = find.descendant(
-      of: find.byType(AlertDialog),
-      matching: find.widgetWithText(ElevatedButton, 'Rechazar'),
-    );
+    // El último es el del formulario o la confirmación que está al frente.
+    final dialogButton = find.widgetWithText(ElevatedButton, 'Rechazar').last;
 
     await tester.tap(dialogButton);
     await tester.pumpAndSettle();

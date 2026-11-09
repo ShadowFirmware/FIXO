@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 abstract final class AppTheme {
+  /// Texto e ícono de los filtros: negro sin seleccionar y blanco sobre el
+  /// fondo azul cuando están seleccionados.
+  static final _chipContentColor = WidgetStateColor.resolveWith(
+    (states) => states.contains(WidgetState.selected)
+        ? AppColors.white
+        : AppColors.textPrimary,
+  );
+
   static const double _radius = 12;
 
   static ThemeData get light {
@@ -114,7 +122,12 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceAlt,
         selectedColor: AppColors.primary,
-        labelStyle: const TextStyle(color: AppColors.textPrimary),
+        // Sin seleccionar, el texto y el ícono van en negro sobre el fondo
+        // claro; seleccionados, en blanco sobre el fondo azul. El chip solo
+        // respeta el estado si el color es un WidgetStateColor.
+        labelStyle: TextStyle(color: _chipContentColor),
+        checkmarkColor: AppColors.white,
+        iconTheme: IconThemeData(color: _chipContentColor, size: 18),
         shape: RoundedRectangleBorder(borderRadius: borderRadius),
       ),
       badgeTheme: const BadgeThemeData(

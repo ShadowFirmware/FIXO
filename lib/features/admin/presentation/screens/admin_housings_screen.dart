@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
-import '../../../auth/presentation/providers/auth_session.dart';
+import '../../../../shared/widgets/adaptive_form.dart';
 import '../../../housing/domain/entities/housing.dart';
 
 import '../providers/housing_admin_view_model.dart';
+import '../widgets/admin_page.dart';
+import '../widgets/housing_form.dart';
 
 /// Pantalla de gestión de lugares de residencia del administrador (HU-4.7).
 class AdminHousingsScreen extends StatefulWidget {
@@ -37,152 +38,23 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Formulario para registrar una residencia, o para editar [housing].
   Future<void> _showHousingForm({Housing? housing}) async {
     final isEditing = housing != null;
-    final formKey = GlobalKey<FormState>();
-    final buildingController =
-        TextEditingController(text: housing?.building ?? '');
-    final numberController = TextEditingController(text: housing?.number ?? '');
-    HousingType? selectedType = housing?.type;
-    String? dialogError;
-
-    bool hasChanges() =>
-        selectedType != housing?.type ||
-        buildingController.text.trim() != (housing?.building ?? '').trim() ||
-        numberController.text.trim() != (housing?.number ?? '').trim();
-
-    final saved = await showDialog<bool>(
+    final saved = await showAdaptiveForm<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(isEditing ? 'Editar residencia' : 'Registrar residencia'),
-          content: SizedBox(
-            width: 480,
-            child: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<HousingType>(
-                      initialValue: selectedType,
-                      decoration: const InputDecoration(
-                        labelText: 'Tipo de residencia',
-                      ),
-                      items: HousingType.values
-                          .map(
-                            (type) => DropdownMenuItem(
-                              value: type,
-                              child: Text(type.displayName),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => setDialogState(() => selectedType = v),
-                      validator: (v) =>
-                          v == null ? 'Selecciona el tipo de residencia' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: buildingController,
-                      decoration: const InputDecoration(
-                        labelText: 'Edificio, torre o sección (opcional)',
-                        hintText: 'Ej. Torre A',
-                      ),
-                      onChanged: (_) => setDialogState(() {}),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: numberController,
-                      decoration: const InputDecoration(
-                        labelText: 'Número o identificador',
-                        hintText: 'Ej. 4B',
-                      ),
-                      onChanged: (_) => setDialogState(() {}),
-                      validator: (v) =>
-                          HousingAdminViewModel.validateNumber(v ?? ''),
-                    ),
-                    if (dialogError != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        dialogError!,
-                        style: const TextStyle(color: AppColors.error),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () async {
-                        if (isEditing && hasChanges()) {
-                          final discard = await _confirm(
-                            title: 'Descartar cambios',
-                            message:
-                                '¿Deseas descartar los cambios realizados?',
-                            confirmLabel: 'Descartar',
-                          );
-                          if (!discard) return;
-                        }
-                        if (context.mounted) Navigator.pop(context, false);
-                      },
-                      child: const Text('Cancelar'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ListenableBuilder(
-                      listenable: _viewModel,
-                      builder: (context, _) => ElevatedButton(
-                        onPressed: _viewModel.isLoading
-                            ? null
-                            : () async {
-                                if (!formKey.currentState!.validate()) return;
-                                if (isEditing && !hasChanges()) {
-                                  Navigator.pop(context, false);
-                                  return;
-                                }
-                                final ok = isEditing
-                                    ? await _viewModel.update(
-                                        housing,
-                                        type: selectedType,
-                                        number: numberController.text,
-                                        building: buildingController.text,
-                                      )
-                                    : await _viewModel.register(
-                                        type: selectedType,
-                                        number: numberController.text,
-                                        building: buildingController.text,
-                                      );
-                                if (!context.mounted) return;
-                                if (ok) {
-                                  Navigator.pop(context, true);
-                                } else {
-                                  setDialogState(
-                                    () => dialogError = _viewModel.errorMessage,
-                                  );
-                                }
-                              },
-                        child: Text(isEditing ? 'Guardar' : 'Registrar'),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+      title: isEditing ? 'Editar residencia' : 'Registrar residencia',
+      builder: (_) => HousingForm(
+        viewModel: _viewModel,
+        housing: housing,
+        confirmDiscard: () => _confirm(
+          title: 'Descartar cambios',
+          message: '¿Deseas descartar los cambios realizados?',
+          confirmLabel: 'Descartar',
         ),
       ),
     );
@@ -195,27 +67,46 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
     }
   }
 
-  Future<void> _viewHousing(Housing housing) async {
-    await showDialog<void>(
+  Future<void> _viewHousing(Housing housing) {
+    final rows = [
+      (Icons.home_work_outlined, 'Tipo', housing.type.displayName),
+      (
+        Icons.apartment_rounded,
+        'Edificio o sección',
+        housing.building?.trim().isNotEmpty ?? false
+            ? housing.building!
+            : 'No aplica',
+      ),
+      (Icons.tag_rounded, 'Número', housing.number),
+      (
+        Icons.toggle_on_outlined,
+        'Estado',
+        housing.active ? 'Activa' : 'Inactiva',
+      ),
+      (Icons.person_outline_rounded, 'Ocupación', _occupancy(housing)),
+    ];
+    return showAdaptiveForm<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(housing.label),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tipo: ${housing.type.displayName}'),
-            Text('Edificio / sección: ${housing.building ?? "No aplica"}'),
-            Text('Número: ${housing.number}'),
-            Text('Estado: ${housing.active ? "Activa" : "Inactiva"}'),
-            Text('Ocupación: ${_occupancy(housing)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
+      title: housing.label,
+      builder: (context) => AdaptiveFormLayout(
+        fields: [
+          for (final (icon, label, value) in rows)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(icon, color: AppColors.primary),
+              title: Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: AppColors.textSecondary),
+              ),
+              subtitle: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -292,85 +183,16 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(child: Text('Administrador')),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, RouteNames.adminHome);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.assignment_outlined),
-              title: const Text('Reportes pendientes'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminPendingIncidents);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('Residentes'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminResidents);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.build_outlined),
-              title: const Text('Técnicos'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminTechnicians);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.apartment_outlined),
-              title: const Text('Residencias'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Ver perfil'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminProfile);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
-              title: const Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.pop(context);
-                signOutAndGoToLogin(context);
-              },
-            ),
-          ],
+    return AdminPage(
+      currentRoute: RouteNames.adminHousings,
+      title: 'Residencias',
+      actions: [
+        AdminPageAction(
+          icon: Icons.add_home_outlined,
+          label: 'Agregar residencia',
+          onPressed: _showHousingForm,
         ),
-      ),
-      appBar: FixoAppBar(
-        title: 'Residencias',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        actions: [
-          FixoAppBarAction(
-            icon: Icons.add_home_outlined,
-            tooltip: 'Agregar residencia',
-            onPressed: _showHousingForm,
-          ),
-        ],
-      ),
+      ],
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -421,52 +243,88 @@ class _AdminHousingsScreenState extends State<AdminHousingsScreen> {
               },
             );
           }
+          // En la web, la tabla ocupa todo el ancho dentro de una tarjeta y se
+          // desplaza si las columnas no caben.
           return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Tipo')),
-                DataColumn(label: Text('Edificio / Sección')),
-                DataColumn(label: Text('Número')),
-                DataColumn(label: Text('Estado')),
-                DataColumn(label: Text('Ocupación')),
-                DataColumn(label: Text('Opciones')),
-              ],
-              rows: _viewModel.housings.map((h) {
-                return DataRow(cells: [
-                  DataCell(Text(h.type.displayName)),
-                  DataCell(Text(h.building ?? '—')),
-                  DataCell(Text(h.number)),
-                  DataCell(Text(h.active ? 'Activa' : 'Inactiva')),
-                  DataCell(Text(_occupancy(h))),
-                  DataCell(Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.visibility_outlined),
-                        tooltip: 'Ver',
-                        onPressed: () => _viewHousing(h),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'Editar',
-                        onPressed: () => _showHousingForm(housing: h),
-                      ),
-                      if (h.active)
-                        IconButton(
-                          icon: const Icon(Icons.block_outlined),
-                          tooltip: 'Inactivar',
-                          onPressed: () => _toggleActive(h),
-                        )
-                      else
-                        IconButton(
-                          icon: const Icon(Icons.check_circle_outline),
-                          tooltip: 'Activar',
-                          onPressed: () => _toggleActive(h),
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
                         ),
-                    ],
-                  )),
-                ]);
-              }).toList(),
+                        child: DataTable(
+                          headingRowColor: WidgetStateProperty.all(
+                            AppColors.surfaceAlt,
+                          ),
+                          columns: const [
+                            DataColumn(label: Text('Tipo')),
+                            DataColumn(label: Text('Edificio / Sección')),
+                            DataColumn(label: Text('Número')),
+                            DataColumn(label: Text('Estado')),
+                            DataColumn(label: Text('Ocupación')),
+                            DataColumn(label: Text('Opciones')),
+                          ],
+                          rows: _viewModel.housings.map((h) {
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(h.type.displayName)),
+                                DataCell(Text(h.building ?? '—')),
+                                DataCell(Text(h.number)),
+                                DataCell(
+                                  Text(h.active ? 'Activa' : 'Inactiva'),
+                                ),
+                                DataCell(Text(_occupancy(h))),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.visibility_outlined,
+                                        ),
+                                        tooltip: 'Ver',
+                                        onPressed: () => _viewHousing(h),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit_outlined),
+                                        tooltip: 'Editar',
+                                        onPressed: () =>
+                                            _showHousingForm(housing: h),
+                                      ),
+                                      if (h.active)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.block_outlined,
+                                          ),
+                                          tooltip: 'Inactivar',
+                                          onPressed: () => _toggleActive(h),
+                                        )
+                                      else
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.check_circle_outline,
+                                          ),
+                                          tooltip: 'Activar',
+                                          onPressed: () => _toggleActive(h),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           );
         },

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../resident/presentation/widgets/profile_header.dart';
 import '../../../resident/presentation/widgets/profile_info_section.dart';
 import '../providers/admin_profile_view_model.dart';
+import '../widgets/admin_page.dart';
 
 /// HU-4.1 Consultar perfil del administrador.
 class AdminProfileScreen extends StatefulWidget {
@@ -33,63 +33,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
+    return AdminPage(
+      currentRoute: RouteNames.adminProfile,
+      title: 'Mi perfil',
       extendBodyBehindAppBar: true,
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(child: Text('Administrador')),
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, RouteNames.adminHome);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('Residentes'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminResidents);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.build_outlined),
-              title: const Text('Técnicos'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, RouteNames.adminTechnicians);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline_rounded),
-              title: const Text('Ver perfil'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
-              title: const Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.pop(context);
-                signOutAndGoToLogin(context);
-              },
-            ),
-          ],
-        ),
-      ),
-      appBar: FixoAppBar(
-        title: 'Mi perfil',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {

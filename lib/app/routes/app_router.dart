@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../features/admin/presentation/providers/admin_users_view_model.dart';
 import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_housings_screen.dart';
 import '../../features/admin/presentation/screens/admin_incident_history_screen.dart';
 import '../../features/admin/presentation/screens/admin_pending_incidents_screen.dart';
 import '../../features/admin/presentation/screens/admin_profile_screen.dart';
-import '../../features/admin/presentation/screens/admin_residents_screen.dart';
 import '../../features/admin/presentation/screens/admin_statistics_screen.dart';
-import '../../features/admin/presentation/screens/admin_technicians_screen.dart';
+import '../../features/admin/presentation/screens/admin_users_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/auth/presentation/providers/auth_session.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -16,6 +16,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/communication/presentation/screens/incident_chat_screen.dart';
 
+import '../../features/resident/presentation/screens/edit_profile_screen.dart';
 import '../../features/resident/presentation/screens/incident_detail_screen.dart';
 import '../../features/resident/presentation/screens/register_incident_screen.dart';
 import '../../features/resident/presentation/screens/resident_shell_screen.dart';
@@ -39,7 +40,8 @@ abstract final class AppRouter {
     RouteNames.residentShell: {UserRole.resident},
     RouteNames.registerIncident: {UserRole.resident},
     RouteNames.incidentDetail: {UserRole.resident},
-    // RouteNames.editProfile: deshabilitado, solo admin puede editar via adminEditProfile.
+    // HU-2.2: el residente modifica su nombre y su teléfono.
+    RouteNames.editProfile: {UserRole.resident},
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.technicianEditProfile: {UserRole.technician},
     RouteNames.technicianIncidentDetail: {UserRole.technician},
@@ -47,6 +49,7 @@ abstract final class AppRouter {
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
     RouteNames.adminEditProfile: {UserRole.admin},
+    RouteNames.adminUsers: {UserRole.admin},
     RouteNames.adminResidents: {UserRole.admin},
     RouteNames.adminTechnicians: {UserRole.admin},
     RouteNames.adminHousings: {UserRole.admin},
@@ -79,14 +82,7 @@ abstract final class AppRouter {
           settings,
         );
       case RouteNames.editProfile:
-        return _page(
-          Scaffold(
-            body: Center(
-              child: Text('No disponible para este rol'),
-            ),
-          ),
-          settings,
-        );
+        return _page(const EditProfileScreen(), settings);
       case RouteNames.technicianHome:
         return _page(const TechnicianShellScreen(), settings);
       case RouteNames.technicianEditProfile:
@@ -117,10 +113,19 @@ abstract final class AppRouter {
         return _page(const AdminProfileScreen(), settings);
       case RouteNames.adminEditProfile:
         return _page(const AdminEditProfileScreen(), settings);
+      case RouteNames.adminUsers:
+        return _page(const AdminUsersScreen(), settings);
+      // Residentes y técnicos ahora están juntos en Usuarios.
       case RouteNames.adminResidents:
-        return _page(const AdminResidentsScreen(), settings);
+        return _page(
+          const AdminUsersScreen(initialRole: ManagedRole.resident),
+          settings,
+        );
       case RouteNames.adminTechnicians:
-        return _page(const AdminTechniciansScreen(), settings);
+        return _page(
+          const AdminUsersScreen(initialRole: ManagedRole.technician),
+          settings,
+        );
       case RouteNames.adminHousings:
         return _page(const AdminHousingsScreen(), settings);
       case RouteNames.adminPendingIncidents:

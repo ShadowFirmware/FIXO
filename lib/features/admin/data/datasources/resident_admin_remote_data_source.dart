@@ -6,6 +6,7 @@ import '../../../../core/constants/firestore_collections.dart';
 import '../../../../firebase_options.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../housing/data/models/housing_model.dart';
+import '../models/email_change_plan.dart';
 
 /// Acceso a Firebase Authentication y Firestore para la gestión de residentes
 /// por parte del administrador.
@@ -137,13 +138,17 @@ class ResidentAdminRemoteDataSource {
     required String phone,
     String? housingId,
   }) async {
+    final ref = _firestore.collection(FirestoreCollections.users).doc(uid);
+    final current = (await ref.get()).data()?['correo'] as String?;
+    // El correo de acceso no se puede cambiar desde aquí: queda pendiente
+    // hasta que el usuario confirme el enlace (ver [EmailChangePlan]).
     final data = <String, dynamic>{
       'nombre': name,
-      'correo': email.trim().toLowerCase(),
       'telefono': phone.trim(),
+      ...EmailChangePlan.update(currentEmail: current, newEmail: email),
     };
     if (housingId != null) data['viviendaId'] = housingId;
-    await _firestore.collection(FirestoreCollections.users).doc(uid).update(data);
+    await ref.update(data);
   }
 
   Future<void> deleteResidentProfile(String uid) async {

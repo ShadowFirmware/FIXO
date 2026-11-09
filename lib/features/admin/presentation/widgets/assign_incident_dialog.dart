@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/errors/incident_failure.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/adaptive_form.dart';
+import '../../../../shared/widgets/form_error_banner.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/pending_incident.dart';
@@ -28,8 +30,9 @@ Future<AssignmentSelection?> showAssignIncidentDialog(
   required PendingIncident pending,
   required Future<List<AppUser>> Function() loadTechnicians,
 }) {
-  return showDialog<AssignmentSelection>(
+  return showAdaptiveForm<AssignmentSelection>(
     context: context,
+    title: 'Asignar ${pending.incident.reportNumber}',
     builder: (_) => AssignIncidentDialog(
       pending: pending,
       loadTechnicians: loadTechnicians,
@@ -94,87 +97,74 @@ class _AssignIncidentDialogState extends State<AssignIncidentDialog> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return AlertDialog(
-      title: Text('Asignar ${widget.pending.incident.reportNumber}'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PendingIncidentSummary(pending: widget.pending),
-              const SizedBox(height: 20),
-              Text('Técnico', style: _sectionStyle(textTheme)),
-              const SizedBox(height: 8),
-              FutureBuilder<List<AppUser>>(
-                future: _technicians,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return const SizedBox(
-                      height: 120,
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            snapshot.error is IncidentFailure
-                                ? snapshot.error.toString()
-                                : IncidentFailure.actionFailed.message,
-                            style: const TextStyle(color: AppColors.error),
-                          ),
-                        ),
-                        TextButton.icon(
-                          key: const Key('assign.retry'),
-                          onPressed: _retry,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Reintentar'),
-                        ),
-                      ],
-                    );
-                  }
-                  final list = snapshot.data ?? const [];
-                  if (list.isEmpty) {
-                    return const Text(
-                      'No hay técnicos disponibles en este momento.',
-                    );
-                  }
-                  return _TechnicianList(
-                    technicians: list,
-                    selectedId: _technicianId,
-                    onSelected: (id) => setState(() {
-                      _technicianId = id;
-                      _error = null;
-                    }),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              Text('Hora estimada de llegada', style: _sectionStyle(textTheme)),
-              const SizedBox(height: 8),
-              EstimatedTimeField(
-                value: _estimatedTime,
-                errorText: _timeError,
-                onChanged: _setTime,
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: AppColors.error)),
-              ],
-            ],
-          ),
+    return AdaptiveFormLayout(
+      fields: [
+        PendingIncidentSummary(pending: widget.pending),
+        const SizedBox(height: 20),
+        Text('Técnico', style: _sectionStyle(textTheme)),
+        const SizedBox(height: 8),
+        FutureBuilder<List<AppUser>>(
+          future: _technicians,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: 120,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasError) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      snapshot.error is IncidentFailure
+                          ? snapshot.error.toString()
+                          : IncidentFailure.actionFailed.message,
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                  ),
+                  TextButton.icon(
+                    key: const Key('assign.retry'),
+                    onPressed: _retry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              );
+            }
+            final list = snapshot.data ?? const [];
+            if (list.isEmpty) {
+              return const Text('No hay técnicos disponibles en este momento.');
+            }
+            return _TechnicianList(
+              technicians: list,
+              selectedId: _technicianId,
+              onSelected: (id) => setState(() {
+                _technicianId = id;
+                _error = null;
+              }),
+            );
+          },
         ),
-      ),
-      actions: [
-        DialogButtons(
-          onCancel: () => Navigator.pop(context),
-          confirmLabel: 'Asignar',
-          onConfirm: _confirm,
+        const SizedBox(height: 20),
+        Text('Hora estimada de llegada', style: _sectionStyle(textTheme)),
+        const SizedBox(height: 8),
+        EstimatedTimeField(
+          value: _estimatedTime,
+          errorText: _timeError,
+          onChanged: _setTime,
         ),
+        if (_error != null) ...[
+          const SizedBox(height: 12),
+          FormErrorBanner(message: _error!),
+        ],
       ],
+      footer: DialogButtons(
+        key: const Key('assign.buttons'),
+        onCancel: () => Navigator.pop(context),
+        confirmLabel: 'Asignar',
+        onConfirm: _confirm,
+      ),
     );
   }
 

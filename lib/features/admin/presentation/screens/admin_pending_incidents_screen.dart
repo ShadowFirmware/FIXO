@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../providers/pending_incidents_view_model.dart';
-import '../widgets/admin_drawer.dart';
+import '../widgets/admin_page.dart';
 import '../widgets/pending_incident_widgets.dart';
 
 /// Reportes: incidencias pendientes de asignación (HU-4.8).
@@ -41,22 +40,10 @@ class _AdminPendingIncidentsScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: const AdminDrawer(
-        currentRoute: RouteNames.adminPendingIncidents,
-      ),
-      appBar: FixoAppBar(
-        title: 'Reportes pendientes',
-        subtitle: 'Pendientes de asignación',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
+    return AdminPage(
+      currentRoute: RouteNames.adminPendingIncidents,
+      title: 'Reportes pendientes',
+      subtitle: 'Pendientes de asignación',
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) => Column(

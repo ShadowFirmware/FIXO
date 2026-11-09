@@ -61,10 +61,8 @@ void main() {
     );
   }
 
-  Finder rejectButton() => find.descendant(
-    of: find.byType(AlertDialog),
-    matching: find.widgetWithText(ElevatedButton, 'Rechazar'),
-  );
+  // El último es el del formulario o la confirmación que está al frente.
+  Finder rejectButton() => find.widgetWithText(ElevatedButton, 'Rechazar').last;
 
   Future<void> writeReason(WidgetTester tester, String text) async {
     await tester.enterText(find.byKey(const Key('reject.comment')), text);

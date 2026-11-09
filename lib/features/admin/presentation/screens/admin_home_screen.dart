@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
 import '../providers/pending_incidents_view_model.dart';
-import '../widgets/admin_drawer.dart';
+import '../widgets/admin_page.dart';
 import '../widgets/pending_incident_widgets.dart';
 
 /// Pantalla de inicio del administrador. Muestra las 3 incidencias
@@ -42,20 +41,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     final name = AuthSession.instance.currentUser?.name;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: const AdminDrawer(currentRoute: RouteNames.adminHome),
-      appBar: FixoAppBar(
-        title: 'Administrador',
-        subtitle: name,
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
+    return AdminPage(
+      currentRoute: RouteNames.adminHome,
+      title: 'Administrador',
+      subtitle: name,
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {

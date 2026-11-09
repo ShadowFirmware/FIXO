@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/admin_incident_history_view_model.dart';
-import '../widgets/admin_drawer.dart';
+import '../widgets/admin_page.dart';
 import '../widgets/admin_history_filters.dart';
 import '../widgets/history_incident_detail.dart';
 import '../widgets/history_incident_widgets.dart';
@@ -41,28 +39,18 @@ class _AdminIncidentHistoryScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      drawer: const AdminDrawer(currentRoute: RouteNames.adminIncidentHistory),
-      appBar: FixoAppBar(
-        title: 'Historial',
-        subtitle: 'Todas las incidencias',
-        leading: Builder(
-          builder: (context) => FixoAppBarAction(
-            icon: Icons.menu_rounded,
-            tooltip: 'Menú',
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+    return AdminPage(
+      currentRoute: RouteNames.adminIncidentHistory,
+      title: 'Historial',
+      subtitle: 'Todas las incidencias',
+      actions: [
+        AdminPageAction(
+          key: const Key('history.exportPdf'),
+          icon: Icons.picture_as_pdf_outlined,
+          label: 'Exportar a PDF',
+          onPressed: _exportPdf,
         ),
-        actions: [
-          FixoAppBarAction(
-            key: const Key('history.exportPdf'),
-            icon: Icons.picture_as_pdf_outlined,
-            tooltip: 'Exportar a PDF',
-            onPressed: _exportPdf,
-          ),
-        ],
-      ),
+      ],
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) => Column(
