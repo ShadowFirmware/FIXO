@@ -55,9 +55,15 @@ class _TechnicianIncidentDetailScreenState
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(error ?? 'Finalizaste la incidencia $reportNumber.'),
+        content: Text(
+          error ??
+              'Finalizaste la incidencia $reportNumber. Ya está en tu '
+                  'historial.',
+        ),
       ),
     );
+    // Ya no está entre las asignadas: se vuelve a la lista.
+    if (error == null) Navigator.maybePop(context);
   }
 
   /// Pide confirmación y pasa la incidencia a En proceso.
