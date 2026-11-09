@@ -21,7 +21,10 @@ class AttentionAlreadyStartedException implements Exception {
 /// La incidencia ya no está Asignada (se resolvió, se rechazó o volvió a
 /// quedar pendiente).
 class AttentionNotAvailableException implements Exception {
-  const AttentionNotAvailableException();
+  const AttentionNotAvailableException(this.status);
+
+  /// Estado en que se encuentra, o `null` si no es válido.
+  final IncidentStatus? status;
 }
 
 /// Reglas para comenzar la atención de una incidencia (HU-3.4 y HU-3.5),
@@ -49,7 +52,9 @@ abstract final class StartAttentionPlan {
       throw const AttentionAlreadyStartedException();
     }
     if (status != IncidentStatus.assigned.value) {
-      throw const AttentionNotAvailableException();
+      throw AttentionNotAvailableException(
+        IncidentStatus.fromValue(status as String?),
+      );
     }
   }
 

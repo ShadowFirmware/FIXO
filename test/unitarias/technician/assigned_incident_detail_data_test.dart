@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fixo/core/errors/incident_failure.dart';
+import 'package:fixo/features/incidents/domain/entities/incident.dart';
 import 'package:fixo/features/technician/data/models/start_attention_plan.dart';
 import 'package:fixo/features/technician/data/repositories/assigned_incident_repository_impl.dart';
 import 'package:fixo/features/technician/domain/usecases/start_attention.dart';
@@ -89,7 +90,7 @@ void main() {
           IncidentFailure.attentionAlreadyStarted,
         ),
         (
-          const AttentionNotAvailableException(),
+          const AttentionNotAvailableException(IncidentStatus.pending),
           IncidentFailure.attentionNotAvailable,
         ),
         (

@@ -74,8 +74,12 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
       throw IncidentFailure.technicianCannotAttend;
     } on AttentionAlreadyStartedException {
       throw IncidentFailure.attentionAlreadyStarted;
-    } on AttentionNotAvailableException {
-      throw IncidentFailure.attentionNotAvailable;
+    } on AttentionNotAvailableException catch (e) {
+      throw switch (e.status) {
+        IncidentStatus.resolved => IncidentFailure.attentionResolved,
+        IncidentStatus.rejected => IncidentFailure.attentionRejected,
+        _ => IncidentFailure.attentionNotAvailable,
+      };
     } on FirebaseException catch (e) {
       throw switch (e.code) {
         'unavailable' || 'deadline-exceeded' => IncidentFailure.offline,

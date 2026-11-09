@@ -94,7 +94,14 @@ class IncidentFailure implements Exception {
     'Contacta al administrador.',
   );
   static const attentionAlreadyStarted = IncidentFailure(
-    'La atención de esta incidencia ya había comenzado.',
+    'La incidencia ya está En proceso; su atención no puede volver a '
+    'iniciarse.',
+  );
+  static const attentionResolved = IncidentFailure(
+    'La incidencia ya fue resuelta, así que no se puede comenzar su atención.',
+  );
+  static const attentionRejected = IncidentFailure(
+    'La incidencia fue rechazada, así que no se puede comenzar su atención.',
   );
   static const attentionNotAvailable = IncidentFailure(
     'La incidencia ya no está asignada, así que no se puede comenzar su '
