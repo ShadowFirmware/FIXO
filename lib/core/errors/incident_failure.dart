@@ -79,6 +79,11 @@ class IncidentFailure implements Exception {
     'No se pudo completar la acción. Inténtalo de nuevo.',
   );
 
+  // Técnico (HU-3.3)
+  static const assignedLoadFailed = IncidentFailure(
+    'No se pudieron cargar tus incidencias asignadas. Inténtalo de nuevo.',
+  );
+
   @override
   String toString() => message;
 }
