@@ -102,7 +102,7 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
   }
 
   /// Sube las evidencias y guarda la solución. Si se guardó, vuelve al
-  /// detalle, que ya muestra la incidencia como Resuelta.
+  /// detalle, donde ya se puede finalizar la incidencia (HU-3.7).
   Future<void> _save() async {
     final reportNumber = _viewModel.item.incident.reportNumber;
     final error = await _viewModel.save();
@@ -112,7 +112,11 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(error ?? 'Registraste la solución de $reportNumber.'),
+          content: Text(
+            error ??
+                'Registraste la solución de $reportNumber. Ya puedes '
+                    'finalizar la incidencia.',
+          ),
         ),
       );
     if (error == null) Navigator.pop(context, true);
@@ -181,8 +185,8 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Al guardarla, la incidencia quedará como Resuelta y ya no podrás '
-          'modificarla.',
+          'Después de guardarla podrás finalizar la incidencia. La solución '
+          'ya no se podrá modificar.',
           style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 20),

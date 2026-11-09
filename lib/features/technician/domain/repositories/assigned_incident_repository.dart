@@ -19,12 +19,19 @@ abstract interface class AssignedIncidentRepository {
   });
 
   /// Sube las evidencias del trabajo y registra la solución de la
-  /// incidencia [incidentId], que pasa a Resuelta (HU-3.6). Si no se puede,
-  /// lanza un `IncidentFailure`.
+  /// incidencia [incidentId] (HU-3.6). La incidencia sigue En proceso hasta
+  /// que se finaliza (HU-3.7). Si no se puede, lanza un `IncidentFailure`.
   Future<void> registerSolution({
     required String incidentId,
     required String technicianId,
     required String solution,
     required List<EvidenceFile> evidence,
+  });
+
+  /// Finaliza la incidencia [incidentId] como resuelta (HU-3.7). Si no se
+  /// puede, lanza un `IncidentFailure`.
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
   });
 }

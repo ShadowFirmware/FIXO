@@ -10,7 +10,7 @@
 
 ## 1. Objetivo
 
-Verificar que el técnico pueda registrar la solución de una incidencia propia que esté En proceso. Debe poder escribir la descripción, adjuntar fotografías o videos del trabajo y revisar todo antes de guardarlo. El sistema valida que los datos y las evidencias obligatorias estén completos, guarda la solución y las evidencias en la incidencia, y deja esa información disponible para el técnico, el residente y el administrador.
+Verificar que el técnico pueda registrar la solución de una incidencia propia que esté En proceso. Debe poder escribir la descripción, adjuntar fotografías o videos del trabajo y revisar todo antes de guardarlo. El sistema valida que los datos y las evidencias obligatorias estén completos, guarda la solución y las evidencias en la incidencia, que sigue En proceso hasta que el técnico la finaliza (HU 3.7), y deja esa información disponible para el técnico, el residente y el administrador.
 
 ## 2. Alcance
 
@@ -24,7 +24,7 @@ Verificar que el técnico pueda registrar la solución de una incidencia propia 
 | T 3.6.4 | Vista previa de la descripción y las evidencias, que se abren en pantalla completa; opción de corregir |
 | T 3.6.5 | Descripción y al menos una evidencia obligatorias |
 | T 3.6.6 | Solo se registra la solución de una incidencia propia En proceso; mensajes si sigue Asignada, ya está Resuelta o fue rechazada |
-| T 3.6.7 | Subida de las evidencias a Cloudinary (`…/despues`). En una transacción, la incidencia pasa a Resuelta con la solución, el técnico vuelve a estar Disponible y se avisa al residente y a los administradores |
+| T 3.6.7 | Subida de las evidencias a Cloudinary (`…/despues`) y registro de la solución en una transacción. La incidencia sigue En proceso: se marca como Resuelta al finalizarla (HU 3.7) |
 | T 3.6.8 | Consulta de la solución: historial del técnico con sus incidencias resueltas y la solución con sus evidencias en el detalle |
 
 **No incluye**
@@ -78,8 +78,8 @@ flutter test test/unitarias/technician/register_solution_data_test.dart test/uni
 | ID | Tarea | Caso | Resultado esperado |
 |---|---|---|---|
 | PU-546 | T 3.6.2, T 3.6.5 | Descripción vacía, corta, demasiado larga y válida | Un mensaje para cada caso; la válida pasa |
-| PU-547 | T 3.6.6, T 3.6.7 | Incidencia de otro técnico, técnico deshabilitado, incidencia Resuelta, Asignada, Pendiente o Rechazada | Solo se permite la propia En proceso. Se guardan `resuelta`, la solución, las evidencias y la fecha del servidor; el técnico queda Disponible; el aviso resume la solución en 200 caracteres |
-| PU-548 | T 3.6.7 | Guardar con dos evidencias; fallan las subidas; Firestore rechaza la solución | Primero se suben las evidencias a `despues` y luego se guarda con sus URLs y se avisa al administrador; si la subida falla no se guarda nada; cada error tiene su mensaje |
+| PU-547 | T 3.6.6, T 3.6.7 | Incidencia de otro técnico, técnico deshabilitado, incidencia Resuelta, Asignada, Pendiente o Rechazada, o con la solución ya registrada | Solo se permite la propia En proceso y una sola vez. Se guardan la solución, las evidencias y `fechaSolucion`, sin cambiar el estado |
+| PU-548 | T 3.6.7 | Guardar con dos evidencias; fallan las subidas; Firestore rechaza la solución | Primero se suben las evidencias a `despues` y luego se guarda con sus URLs; si la subida falla no se guarda nada; cada error tiene su mensaje |
 | PU-549 | T 3.6.5 | Un residente intenta guardar; descripción corta; sin evidencias; datos completos | Se niega o se pide completar los datos sin subir nada; con los datos completos se guarda la descripción sin espacios sobrantes |
 | PU-550 | T 3.6.8 | Incidencias resueltas, en proceso y de otro técnico | El historial solo muestra las resueltas por el técnico, de la más reciente a la más antigua |
 
@@ -105,7 +105,7 @@ flutter test test/unitarias/technician/register_solution_data_test.dart test/uni
 | PM-04 | Vista previa | Tocar "Revisar solución" y abrir cada evidencia | Se ven la descripción y las evidencias; cada una se abre en pantalla completa; "Corregir" regresa al formulario |
 | PM-05 | Obligatorios | Tocar "Revisar solución" sin descripción ni evidencias | Se indican los dos datos faltantes |
 | PM-06 | Estado | Abrir el detalle de una incidencia Asignada | No aparece "Registrar solución" |
-| PM-07 | Guardar | Guardar la solución y revisar Firestore y Cloudinary | La incidencia está `resuelta` con `solucion`, `evidenciasDespues` y `fechaResolucion`; el técnico tiene `disponible: true`; las evidencias están en `fixo/incidencias/{id}/despues`; hay avisos para el residente y los administradores |
+| PM-07 | Guardar | Guardar la solución y revisar Firestore y Cloudinary | La incidencia sigue `en_proceso` con `solucion`, `evidenciasDespues` y `fechaSolucion`; las evidencias están en `fixo/incidencias/{id}/despues`; el detalle ofrece "Finalizar incidencia" (HU 3.7) |
 | PM-08 | Consulta | Revisar el historial del técnico, el detalle del residente y el historial del administrador | Los tres muestran la solución y las evidencias del trabajo |
 
 ## 9. Criterios de aprobación

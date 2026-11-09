@@ -222,7 +222,13 @@ void main() {
       expect(repository.solutions.single.incidentId, 'inc-1');
       expect(repository.solutions.single.solution, solution);
       expect(repository.solutions.single.evidence, [incidents.photo]);
-      expect(find.text('Registraste la solución de INC-0001.'), findsOneWidget);
+      expect(
+        find.text(
+          'Registraste la solución de INC-0001. Ya puedes finalizar la '
+          'incidencia.',
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(RegisterSolutionScreen), findsNothing);
     });
 

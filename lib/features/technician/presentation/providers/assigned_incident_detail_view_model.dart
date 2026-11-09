@@ -8,7 +8,9 @@ import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
+import '../../domain/entities/finalize_conditions.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
+import '../../domain/usecases/finalize_incident.dart';
 import '../../domain/usecases/start_attention.dart';
 import '../../domain/usecases/watch_assigned_incident.dart';
 
@@ -77,7 +79,45 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   /// La solución se registra cuando la incidencia está En proceso (HU-3.6).
   bool get canRegisterSolution =>
       _state == AssignedIncidentDetailState.loaded &&
-      incident?.status == IncidentStatus.inProgress;
+      incident?.status == IncidentStatus.inProgress &&
+      !hasSolution;
+
+  /// Con la solución registrada, la incidencia En proceso se puede
+  /// finalizar (HU-3.7). Ver [FinalizeConditions].
+  bool get canFinalize =>
+      _state == AssignedIncidentDetailState.loaded &&
+      FinalizeConditions.check(
+            incident!,
+            technicianId: _session.currentUser?.uid,
+          ) ==
+          null;
+
+  bool _finalizing = false;
+
+  /// Se está guardando la finalización.
+  bool get isFinalizing => _finalizing;
+
+  /// Finaliza la incidencia como resuelta (HU-3.7). Devuelve el mensaje de
+  /// error, o `null` si se guardó.
+  Future<String?> finalize() async {
+    if (!canFinalize || _finalizing) return null;
+    _finalizing = true;
+    notifyListeners();
+    try {
+      await FinalizeIncident(_repository)(
+        technician: _session.currentUser,
+        incidentId: _incidentId,
+      );
+      return null;
+    } on IncidentFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return IncidentFailure.actionFailed.message;
+    } finally {
+      _finalizing = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
 
   /// Pasa la incidencia a En proceso. Devuelve el mensaje de error, o
   /// `null` si se guardó; la pantalla se actualiza sola con el nuevo
@@ -186,6 +226,16 @@ class AssignedIncidentDetailViewModel extends ChangeNotifier {
   /// La incidencia ya se resolvió: dejó la lista de asignadas y está en el
   /// historial.
   bool get isResolved => incident?.status == IncidentStatus.resolved;
+
+  /// El técnico ya registró la solución (HU-3.6), aunque la incidencia siga
+  /// En proceso.
+  bool get hasSolution => incident?.solution?.trim().isNotEmpty ?? false;
+
+  /// Cuándo se registró la solución, o `null` si no se sabe.
+  String? get solutionRegisteredAt {
+    final date = incident?.solutionRegisteredAt;
+    return date == null ? null : DateFormats.dateTime(date);
+  }
 
   String get solution {
     final text = incident?.solution?.trim() ?? '';

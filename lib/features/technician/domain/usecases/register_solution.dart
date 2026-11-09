@@ -11,9 +11,10 @@ class SolutionIncompleteException implements Exception {
   final String message;
 }
 
-/// Registrar la solución y las evidencias de una incidencia (HU-3.6): pasa
-/// de En proceso a Resuelta. Solo puede hacerlo el técnico asignado, con su
-/// cuenta activa.
+/// Registrar la solución y las evidencias de una incidencia En proceso
+/// (HU-3.6). La incidencia sigue En proceso hasta que el técnico la
+/// finaliza (HU-3.7). Solo puede hacerlo el técnico asignado, con su cuenta
+/// activa.
 class RegisterSolution {
   const RegisterSolution(this._repository);
 

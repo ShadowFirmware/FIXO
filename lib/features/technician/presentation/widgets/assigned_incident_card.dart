@@ -33,14 +33,22 @@ class AssignedIncidentCard extends StatelessWidget {
 
   static final _radius = BorderRadius.circular(20);
 
-  /// Ícono y texto bajo el reporte: cuándo se resolvió, desde cuándo se
-  /// atiende si ya está En proceso, o la llegada estimada si sigue Asignada.
+  /// Ícono y texto bajo el reporte: cuándo se resolvió, si solo falta
+  /// finalizarla (HU-3.7), desde cuándo se atiende si ya está En proceso, o
+  /// la llegada estimada si sigue Asignada.
   static (IconData, String)? noteOf(Incident incident) {
     final resolvedAt = incident.resolvedAt;
     if (incident.status == IncidentStatus.resolved && resolvedAt != null) {
       return (
         Icons.task_alt_rounded,
         'Resuelta el ${DateFormats.dateTime(resolvedAt)}',
+      );
+    }
+    if (incident.status == IncidentStatus.inProgress &&
+        (incident.solution?.trim().isNotEmpty ?? false)) {
+      return (
+        Icons.flag_outlined,
+        'Solución registrada: falta finalizar la incidencia',
       );
     }
     final startedAt = incident.startedAt;

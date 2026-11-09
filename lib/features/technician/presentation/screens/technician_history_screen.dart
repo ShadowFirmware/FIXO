@@ -7,8 +7,8 @@ import '../../../resident/presentation/screens/incident_history_screen.dart';
 import '../providers/resolved_incidents_view_model.dart';
 import '../widgets/assigned_incident_card.dart';
 
-/// Historial del técnico: las incidencias que resolvió, para consultar la
-/// solución registrada (HU-3.6).
+/// Historial de incidencias atendidas por el técnico (HU-3.7): las que
+/// finalizó como resueltas, para consultar la solución registrada (HU-3.6).
 class TechnicianHistoryScreen extends StatefulWidget {
   const TechnicianHistoryScreen({super.key, this.viewModel});
 
@@ -52,7 +52,7 @@ class _TechnicianHistoryScreenState extends State<TechnicianHistoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Incidencias resueltas',
+                        'Incidencias atendidas',
                         style: textTheme.titleMedium?.copyWith(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
@@ -60,8 +60,8 @@ class _TechnicianHistoryScreenState extends State<TechnicianHistoryScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Consulta la solución y las evidencias que '
-                        'registraste.',
+                        'Incidencias que finalizaste como resueltas, con '
+                        'su solución y evidencias.',
                         style: textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),

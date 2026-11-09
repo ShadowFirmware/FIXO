@@ -132,6 +132,25 @@ class FakeAssignedIncidentRepository implements AssignedIncidentRepository {
       evidence: evidence,
     ));
   }
+
+  /// Error que lanza [finalize].
+  Object? finalizeError;
+
+  /// Si no es `null`, [finalize] espera a que se complete.
+  Completer<void>? finalizeGate;
+
+  /// Incidencias finalizadas, con el técnico.
+  final finalized = <({String incidentId, String technicianId})>[];
+
+  @override
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    await finalizeGate?.future;
+    if (finalizeError != null) throw finalizeError!;
+    finalized.add((incidentId: incidentId, technicianId: technicianId));
+  }
 }
 
 /// Simula Firestore para probar el repositorio real.
@@ -207,7 +226,6 @@ class FakeAssignedIncidentRemoteDataSource
     required String technicianId,
     required String solution,
     required List<String> evidenceUrls,
-    List<String> adminIds = const [],
   }) async {
     if (solutionError != null) throw solutionError!;
     solutions.add((
@@ -215,6 +233,22 @@ class FakeAssignedIncidentRemoteDataSource
       solution: solution,
       evidenceUrls: evidenceUrls,
     ));
+  }
+
+  /// Error que lanza [finalize], por ejemplo una excepción de
+  /// [FinalizePlan] o de Firestore.
+  Object? finalizeError;
+
+  final finalized = <({String incidentId, String technicianId})>[];
+
+  @override
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
+    List<String> adminIds = const [],
+  }) async {
+    if (finalizeError != null) throw finalizeError!;
+    finalized.add((incidentId: incidentId, technicianId: technicianId));
     notifiedAdmins.add(adminIds);
   }
 }

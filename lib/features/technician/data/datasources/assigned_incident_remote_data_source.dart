@@ -6,6 +6,7 @@ import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../notifications/data/datasources/notification_remote_data_source.dart';
+import '../models/finalize_plan.dart';
 import '../models/solution_plan.dart';
 import '../models/start_attention_plan.dart';
 
@@ -139,27 +140,56 @@ class AssignedIncidentRemoteDataSource {
     });
   }
 
-  /// Registra la solución (HU-3.6) en una sola transacción: la incidencia
-  /// pasa a Resuelta con la solución y las URLs de las evidencias, el
-  /// técnico vuelve a estar Disponible y se avisa al residente y a los
-  /// administradores [adminIds]. Lanza las excepciones de [SolutionPlan] si
-  /// no se puede registrar.
+  /// Registra la solución (HU-3.6) con las URLs de las evidencias, en una
+  /// transacción que antes revisa las reglas de [SolutionPlan]. La
+  /// incidencia sigue En proceso hasta que el técnico la finaliza (HU-3.7).
   Future<void> registerSolution({
     required String incidentId,
     required String technicianId,
     required String solution,
     required List<String> evidenceUrls,
+  }) {
+    return _firestore.runTransaction((transaction) async {
+      final incidentRef = _incidents.doc(incidentId);
+      final incidentDoc = await transaction.get(incidentRef);
+      final technicianDoc = await transaction.get(
+        _firestore.collection(FirestoreCollections.users).doc(technicianId),
+      );
+      SolutionPlan.validate(
+        incident: incidentDoc.data(),
+        technician: technicianDoc.data(),
+        technicianId: technicianId,
+        now: DateTime.now(),
+      );
+
+      transaction.update(
+        incidentRef,
+        SolutionPlan.incidentUpdate(
+          solution: solution,
+          evidenceUrls: evidenceUrls,
+        ),
+      );
+    });
+  }
+
+  /// Finaliza la incidencia como resuelta (HU-3.7) en una sola transacción:
+  /// revisa las reglas de [FinalizePlan], cambia el estado, cierra el chat,
+  /// deja al técnico Disponible y avisa al residente y a los administradores
+  /// [adminIds].
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
     List<String> adminIds = const [],
   }) {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
+      final incidentDoc = await transaction.get(incidentRef);
       final technicianRef = _firestore
           .collection(FirestoreCollections.users)
           .doc(technicianId);
-      final incidentDoc = await transaction.get(incidentRef);
       final technicianDoc = await transaction.get(technicianRef);
       final incident = incidentDoc.data();
-      SolutionPlan.validate(
+      FinalizePlan.validate(
         incident: incident,
         technician: technicianDoc.data(),
         technicianId: technicianId,
@@ -167,14 +197,8 @@ class AssignedIncidentRemoteDataSource {
       );
 
       transaction
-        ..update(
-          incidentRef,
-          SolutionPlan.incidentUpdate(
-            solution: solution,
-            evidenceUrls: evidenceUrls,
-          ),
-        )
-        ..update(technicianRef, SolutionPlan.technicianUpdate);
+        ..update(incidentRef, FinalizePlan.incidentUpdate)
+        ..update(technicianRef, FinalizePlan.technicianUpdate);
 
       final residentId = incident!['creadaPor'] as String? ?? '';
       final notifications = _firestore.collection(
@@ -186,7 +210,7 @@ class AssignedIncidentRemoteDataSource {
       }) {
         transaction.set(
           notifications.doc(),
-          SolutionPlan.notice(
+          FinalizePlan.notice(
             userId: userId,
             incidentId: incidentId,
             reportNumber: Incident.formatReportNumber(
@@ -195,7 +219,7 @@ class AssignedIncidentRemoteDataSource {
             title: incident['nombre'] as String? ?? '',
             technicianName:
                 technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
-            solution: solution,
+            solution: incident['solucion'] as String? ?? '',
           ),
         );
       }

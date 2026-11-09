@@ -396,3 +396,43 @@ Future<bool> confirmStartAttention(
   );
   return confirmed == true;
 }
+
+/// Pide confirmación para finalizar la incidencia [reportNumber] como
+/// resuelta (HU-3.7). Devuelve `true` si el técnico confirmó.
+Future<bool> confirmFinalize(BuildContext context, String reportNumber) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('¿Finalizar la incidencia?'),
+      content: Text(
+        'La incidencia $reportNumber quedará como Resuelta y se avisará al '
+        'residente. Quedarás disponible para nuevas asignaciones y ya no '
+        'podrás modificar la solución.',
+      ),
+      actions: [
+        SizedBox(
+          width: double.infinity,
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancelar'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  key: const Key('detail.finalizeConfirm'),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Finalizar'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
+}

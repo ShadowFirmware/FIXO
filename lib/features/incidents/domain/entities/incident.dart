@@ -62,7 +62,9 @@ class Incident {
     this.evidenceAfter = const [],
     this.createdAt,
     this.startedAt,
+    this.solutionRegisteredAt,
     this.resolvedAt,
+    this.chatClosed = false,
   });
 
   final String id;
@@ -104,7 +106,15 @@ class Incident {
   /// Cuándo el técnico comenzó la atención (HU-3.5).
   final DateTime? startedAt;
 
+  /// Cuándo el técnico registró la solución (HU-3.6). La incidencia sigue
+  /// En proceso hasta que la finaliza (HU-3.7).
+  final DateTime? solutionRegisteredAt;
+
   final DateTime? resolvedAt;
+
+  /// El chat de la incidencia se cerró al finalizarla (HU-3.7): ya no se
+  /// pueden enviar mensajes.
+  final bool chatClosed;
 
   /// Número de reporte para mostrar, por ejemplo "INC-0007".
   String get reportNumber => formatReportNumber(folio);

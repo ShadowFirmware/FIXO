@@ -73,32 +73,30 @@ void main() {
       );
     }
 
+    // Solo una vez: con la solución registrada ya no se puede registrar otra.
+    expect(
+      () => SolutionPlan.validate(
+        incident: {
+          'estado': 'en_proceso',
+          'tecnicoId': technicianId,
+          'solucion': solution,
+        },
+        technician: {'rol': 'tecnico', 'estadoCuenta': 'activa'},
+        technicianId: technicianId,
+        now: DateTime(2026, 11, 9),
+      ),
+      throwsA(isA<SolutionAlreadyRegisteredException>()),
+    );
+
+    // La incidencia sigue En proceso hasta que se finaliza (HU-3.7).
     final update = SolutionPlan.incidentUpdate(
       solution: '  $solution ',
       evidenceUrls: const ['https://cdn/1.jpg'],
     );
-    expect(update['estado'], IncidentStatus.resolved.value);
+    expect(update.containsKey('estado'), isFalse);
     expect(update['solucion'], solution);
     expect(update['evidenciasDespues'], ['https://cdn/1.jpg']);
-    expect(update['fechaResolucion'], isA<FieldValue>());
-    // El técnico vuelve a estar disponible para otra asignación.
-    expect(SolutionPlan.technicianUpdate, {'disponible': true});
-
-    final notice = SolutionPlan.notice(
-      userId: 'res-ana',
-      incidentId: 'inc-1',
-      reportNumber: 'INC-0001',
-      title: 'Fuga 1',
-      technicianName: 'Juan Pérez',
-      solution: 'x' * 300,
-    );
-    expect(notice['usuarioId'], 'res-ana');
-    expect(notice['tipo'], SolutionPlan.resolvedType);
-    expect(notice['titulo'], 'Incidencia INC-0001 resuelta');
-    expect(
-      notice['mensaje'],
-      'Juan Pérez resolvió "Fuga 1". Solución: ${'x' * 200}…',
-    );
+    expect(update['fechaSolucion'], isA<FieldValue>());
   });
 
   group('repositorio', () {
@@ -122,7 +120,6 @@ void main() {
         'https://storage/inc-1/despues/1.jpg',
         'https://storage/inc-1/despues/2.mp4',
       ]);
-      expect(remote.notifiedAdmins.single, ['uid-admin']);
 
       // Si las evidencias no se suben, la incidencia no se resuelve.
       for (final (error, failure) in [

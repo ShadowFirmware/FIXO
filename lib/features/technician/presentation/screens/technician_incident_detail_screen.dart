@@ -45,6 +45,27 @@ class _TechnicianIncidentDetailScreenState
     super.dispose();
   }
 
+  /// Pide confirmación y finaliza la incidencia como resuelta (HU-3.7).
+  Future<void> _finalize() async {
+    final reportNumber = _viewModel.incident!.reportNumber;
+    final confirmed = await confirmFinalize(context, reportNumber);
+    if (!confirmed || !mounted) return;
+
+    final error = await _viewModel.finalize();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error ??
+              'Finalizaste la incidencia $reportNumber. Ya está en tu '
+                  'historial.',
+        ),
+      ),
+    );
+    // Ya no está entre las asignadas: se vuelve a la lista.
+    if (error == null) Navigator.maybePop(context);
+  }
+
   /// Pide confirmación y pasa la incidencia a En proceso.
   Future<void> _startAttention() async {
     final reportNumber = _viewModel.incident!.reportNumber;
@@ -89,6 +110,16 @@ class _TechnicianIncidentDetailScreenState
                 RouteNames.technicianRegisterSolution,
                 arguments: _viewModel.item,
               ),
+            );
+          }
+          if (_viewModel.canFinalize) {
+            return _ActionBar(
+              buttonKey: const Key('detail.finalize'),
+              icon: Icons.flag_rounded,
+              label: 'Finalizar incidencia',
+              busy: _viewModel.isFinalizing,
+              busyLabel: 'Finalizando…',
+              onPressed: _finalize,
             );
           }
           return const SizedBox.shrink();
@@ -180,7 +211,9 @@ class _DetailBody extends StatelessWidget {
             ),
           ],
         ),
-        if (vm.isResolved) ...[
+        // La solución se muestra desde que se registra (HU-3.6), aunque la
+        // incidencia siga En proceso hasta que se finaliza (HU-3.7).
+        if (vm.hasSolution) ...[
           DetailSection(
             title: 'Solución',
             children: [
@@ -189,11 +222,18 @@ class _DetailBody extends StatelessWidget {
                 label: 'Solución aplicada',
                 value: vm.solution,
               ),
-              DetailRow(
-                icon: Icons.event_available_outlined,
-                label: 'Fecha de resolución',
-                value: vm.resolvedAt,
-              ),
+              if (vm.isResolved)
+                DetailRow(
+                  icon: Icons.event_available_outlined,
+                  label: 'Fecha de resolución',
+                  value: vm.resolvedAt,
+                )
+              else if (vm.solutionRegisteredAt case final registeredAt?)
+                DetailRow(
+                  icon: Icons.edit_calendar_outlined,
+                  label: 'Registrada el',
+                  value: registeredAt,
+                ),
             ],
           ),
           AssignedEvidenceSection(
@@ -261,13 +301,14 @@ class _DetailBody extends StatelessWidget {
 }
 
 /// Barra inferior con la acción disponible según el estado: Comenzar
-/// atención (Asignada) o Registrar solución (En proceso).
+/// atención (Asignada), Registrar solución o Finalizar incidencia (En
+/// proceso, sin o con la solución registrada).
 class _ActionBar extends StatelessWidget {
   const _ActionBar({
     required this.buttonKey,
     required this.icon,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.busy = false,
     this.busyLabel,
   });
@@ -275,7 +316,9 @@ class _ActionBar extends StatelessWidget {
   final Key buttonKey;
   final IconData icon;
   final String label;
-  final VoidCallback onPressed;
+
+  /// `null` deshabilita el botón.
+  final VoidCallback? onPressed;
 
   /// Se está guardando: el botón se deshabilita y muestra el progreso.
   final bool busy;

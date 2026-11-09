@@ -8,6 +8,7 @@ import '../../../incidents/domain/entities/incident.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
 import '../datasources/assigned_incident_remote_data_source.dart';
+import '../models/finalize_plan.dart';
 import '../models/solution_plan.dart';
 import '../models/start_attention_plan.dart';
 
@@ -121,15 +122,11 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
     }
 
     try {
-      final adminIds = await _remote.activeAdminIds().catchError(
-        (Object _) => const <String>[],
-      );
       await _remote.registerSolution(
         incidentId: incidentId,
         technicianId: technicianId,
         solution: solution,
         evidenceUrls: urls,
-        adminIds: adminIds,
       );
     } on NotAssignedToTechnicianException {
       throw IncidentFailure.notAssignedToYou;
@@ -141,6 +138,41 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
       throw IncidentFailure.attentionNotStarted;
     } on SolutionNotAvailableException {
       throw IncidentFailure.solutionNotAvailable;
+    } on FirebaseException catch (e) {
+      throw switch (e.code) {
+        'unavailable' || 'deadline-exceeded' => IncidentFailure.offline,
+        'permission-denied' => IncidentFailure.notAssignedToYou,
+        _ => IncidentFailure.actionFailed,
+      };
+    }
+  }
+
+  @override
+  Future<void> finalize({
+    required String incidentId,
+    required String technicianId,
+  }) async {
+    try {
+      // Si no se pueden consultar los administradores, se finaliza de todos
+      // modos y solo se avisa al residente.
+      final adminIds = await _remote.activeAdminIds().catchError(
+        (Object _) => const <String>[],
+      );
+      await _remote.finalize(
+        incidentId: incidentId,
+        technicianId: technicianId,
+        adminIds: adminIds,
+      );
+    } on NotAssignedToTechnicianException {
+      throw IncidentFailure.notAssignedToYou;
+    } on TechnicianCannotAttendException {
+      throw IncidentFailure.technicianCannotAttend;
+    } on SolutionRequiredException {
+      throw IncidentFailure.solutionRequired;
+    } on IncidentAlreadyFinalizedException {
+      throw IncidentFailure.incidentAlreadyFinalized;
+    } on FinalizeNotAvailableException {
+      throw IncidentFailure.finalizeNotAvailable;
     } on FirebaseException catch (e) {
       throw switch (e.code) {
         'unavailable' || 'deadline-exceeded' => IncidentFailure.offline,

@@ -22,7 +22,9 @@ class IncidentModel extends Incident {
     super.evidenceAfter,
     super.createdAt,
     super.startedAt,
+    super.solutionRegisteredAt,
     super.resolvedAt,
+    super.chatClosed,
   });
 
   factory IncidentModel.fromFirestore(
@@ -64,7 +66,9 @@ class IncidentModel extends Incident {
       evidenceAfter: _urls(data['evidenciasDespues']),
       createdAt: _date(data['fechaCreacion']),
       startedAt: _date(data['fechaInicioAtencion']),
+      solutionRegisteredAt: _date(data['fechaSolucion']),
       resolvedAt: _date(data['fechaResolucion']),
+      chatClosed: data['chatCerrado'] == true,
     );
   }
 
@@ -89,7 +93,9 @@ class IncidentModel extends Incident {
           ? FieldValue.serverTimestamp()
           : Timestamp.fromDate(createdAt!),
       'fechaInicioAtencion': _timestamp(startedAt),
+      'fechaSolucion': _timestamp(solutionRegisteredAt),
       'fechaResolucion': _timestamp(resolvedAt),
+      'chatCerrado': chatClosed,
     };
   }
 
