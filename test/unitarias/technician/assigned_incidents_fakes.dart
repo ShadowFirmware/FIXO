@@ -138,12 +138,24 @@ class FakeAssignedIncidentRemoteDataSource
 
   final started = <({String incidentId, String technicianId})>[];
 
+  /// Administradores activos; si es `null`, la consulta falla.
+  List<String>? adminIds = const ['uid-admin'];
+
+  /// Administradores a los que se avisó en cada inicio de atención.
+  final notifiedAdmins = <List<String>>[];
+
+  @override
+  Future<List<String>> activeAdminIds() async =>
+      adminIds ?? (throw Exception('Sin conexión'));
+
   @override
   Future<void> startAttention({
     required String incidentId,
     required String technicianId,
+    List<String> adminIds = const [],
   }) async {
     if (startError != null) throw startError!;
     started.add((incidentId: incidentId, technicianId: technicianId));
+    notifiedAdmins.add(adminIds);
   }
 }

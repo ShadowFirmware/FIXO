@@ -109,6 +109,13 @@ class IncidentDetailViewModel extends ChangeNotifier {
     return DateFormats.dateTime(date);
   }
 
+  /// Cuándo el técnico comenzó la atención (HU-3.5), solo si ya comenzó.
+  String? get startedAt {
+    final date = _incident?.startedAt;
+    if (!showTechnician || date == null) return null;
+    return DateFormats.dateTime(date);
+  }
+
   bool get isResolved => _incident?.status == IncidentStatus.resolved;
   bool get isRejected => _incident?.status == IncidentStatus.rejected;
 

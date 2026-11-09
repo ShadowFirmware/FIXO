@@ -144,6 +144,12 @@ class _IncidentDetailBody extends StatelessWidget {
                         label: 'Hora estimada de llegada',
                         value: arrival,
                       ),
+                    if (viewModel.startedAt case final startedAt?)
+                      DetailRow(
+                        icon: Icons.play_circle_outline_rounded,
+                        label: 'Inicio de la atención',
+                        value: startedAt,
+                      ),
                   ],
                 ),
               ],

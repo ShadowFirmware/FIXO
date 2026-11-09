@@ -63,7 +63,8 @@ Future<void> showHistoryIncidentDetail(
 }
 
 /// Datos del detalle como pares (etiqueta, valor). Solo aparecen la hora
-/// estimada, la solución y el rechazo cuando la incidencia los tiene.
+/// estimada, el inicio de la atención, la solución y el rechazo cuando la
+/// incidencia los tiene.
 List<(String, String)> historyDetailRows(HistoryIncident record) {
   final incident = record.incident;
   String orMissing(String? text) =>
@@ -77,6 +78,8 @@ List<(String, String)> historyDetailRows(HistoryIncident record) {
     ('Fecha de creación', formatHistoryDate(incident.createdAt)),
     if (incident.estimatedTime != null)
       ('Hora estimada de llegada', formatHistoryDate(incident.estimatedTime)),
+    if (incident.startedAt != null)
+      ('Inicio de la atención', formatHistoryDate(incident.startedAt)),
     ('Fecha de resolución', formatHistoryDate(incident.resolvedAt)),
     ('Detalles', orMissing(incident.description)),
     if (incident.status == IncidentStatus.resolved || incident.solution != null)

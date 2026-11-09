@@ -52,8 +52,8 @@ void main() {
       expect(update['estado'], 'en_proceso');
       expect(update['fechaInicioAtencion'], isA<FieldValue>());
 
-      final notice = StartAttentionPlan.residentNotice(
-        residentId: 'res-ana',
+      final notice = StartAttentionPlan.notice(
+        userId: 'res-ana',
         incidentId: 'inc-1',
         reportNumber: 'INC-0001',
         title: 'Fuga 1',

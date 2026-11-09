@@ -64,9 +64,15 @@ class AssignedIncidentRepositoryImpl implements AssignedIncidentRepository {
     required String technicianId,
   }) async {
     try {
+      // Si no se pueden consultar los administradores, la atención
+      // comienza de todos modos y solo se avisa al residente.
+      final adminIds = await _remote.activeAdminIds().catchError(
+        (Object _) => const <String>[],
+      );
       await _remote.startAttention(
         incidentId: incidentId,
         technicianId: technicianId,
+        adminIds: adminIds,
       );
     } on NotAssignedToTechnicianException {
       throw IncidentFailure.notAssignedToYou;

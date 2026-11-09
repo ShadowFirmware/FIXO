@@ -80,15 +80,16 @@ abstract final class StartAttentionPlan {
     'fechaInicioAtencion': FieldValue.serverTimestamp(),
   };
 
-  /// Aviso al residente de que el técnico comenzó a atender su reporte.
-  static Map<String, dynamic> residentNotice({
-    required String residentId,
+  /// Aviso de que el técnico comenzó a atender el reporte, para el
+  /// residente y para cada administrador (HU-3.5).
+  static Map<String, dynamic> notice({
+    required String userId,
     required String incidentId,
     required String reportNumber,
     required String title,
     required String technicianName,
   }) => {
-    'usuarioId': residentId,
+    'usuarioId': userId,
     'tipo': inProgressType,
     'titulo': 'Incidencia $reportNumber en proceso',
     'mensaje': '$technicianName comenzó a atender "$title".',
