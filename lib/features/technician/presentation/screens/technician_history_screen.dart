@@ -88,13 +88,24 @@ class _TechnicianHistoryScreenState extends State<TechnicianHistoryScreen> {
           ),
         ),
       ),
-      ResolvedIncidentsState.loaded when vm.incidents.isEmpty =>
-        const SliverFillRemaining(
+      ResolvedIncidentsState.loaded when vm.emptyMessage != null =>
+        SliverFillRemaining(
           hasScrollBody: false,
-          child: HistoryMessage(
-            icon: Icons.task_alt_rounded,
-            message: ResolvedIncidentsViewModel.noIncidentsMessage,
-          ),
+          child: vm.incidents.isEmpty
+              ? HistoryMessage(
+                  icon: Icons.task_alt_rounded,
+                  message: vm.emptyMessage!,
+                )
+              : HistoryMessage(
+                  icon: Icons.search_off_rounded,
+                  message: vm.emptyMessage!,
+                  action: OutlinedButton.icon(
+                    key: const Key('history.clearFilters'),
+                    onPressed: vm.clearFilters,
+                    icon: const Icon(Icons.filter_alt_off_outlined),
+                    label: const Text('Limpiar filtros'),
+                  ),
+                ),
         ),
       ResolvedIncidentsState.loaded => SliverList.separated(
         itemCount: vm.results.length,

@@ -100,13 +100,22 @@ class ResolvedIncidentsViewModel extends ChangeNotifier {
   static const noIncidentsMessage =
       'Aún no has atendido incidencias. Cuando finalices una, aparecerá '
       'aquí.';
+  static const noResultsMessage =
+      'No hay incidencias atendidas que coincidan con los filtros '
+      'seleccionados.';
+
+  /// Mensaje cuando no hay nada que mostrar, o `null` si hay resultados.
+  String? get emptyMessage {
+    if (_state != ResolvedIncidentsState.loaded) return null;
+    if (_incidents.isEmpty) return noIncidentsMessage;
+    return results.isEmpty ? noResultsMessage : null;
+  }
 
   // Solo se reciben las incidencias del técnico en sesión.
   void _listen() {
     _subscription?.cancel();
-    _subscription = _watch(
-      technician: _session.currentUser,
-    ).listen(_onIncidents, onError: _onError);
+    _subscription = _watch(technician: _session.currentUser)
+        .listen(_onIncidents, onError: _onError);
   }
 
   /// Vuelve a consultar el historial después de un error.
