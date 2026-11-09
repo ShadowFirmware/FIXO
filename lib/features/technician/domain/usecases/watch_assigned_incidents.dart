@@ -1,9 +1,11 @@
 import '../../../../core/errors/incident_failure.dart';
 import '../../../auth/domain/entities/app_user.dart';
+import '../../../incidents/domain/entities/incident.dart';
 import '../entities/assigned_incident.dart';
 import '../repositories/assigned_incident_repository.dart';
 
-/// Incidencias asignadas al técnico autenticado (HU-3.3).
+/// Incidencias asignadas al técnico autenticado (HU-3.3), en estado
+/// Asignada o En proceso.
 ///
 /// Solo un técnico puede consultarlas, y solo las suyas: una incidencia de
 /// otro técnico nunca se muestra, aunque la consulta la devolviera.
@@ -11,6 +13,13 @@ class WatchAssignedIncidents {
   const WatchAssignedIncidents(this._repository);
 
   final AssignedIncidentRepository _repository;
+
+  /// Estados que el técnico tiene por atender. Las resueltas dejan la
+  /// lista y pasan al historial.
+  static const activeStatuses = [
+    IncidentStatus.assigned,
+    IncidentStatus.inProgress,
+  ];
 
   Stream<List<AssignedIncident>> call({required AppUser? technician}) {
     if (technician?.role != UserRole.technician) {
@@ -21,7 +30,9 @@ class WatchAssignedIncidents {
     return _repository.watchByTechnician(uid).map((incidents) {
       final own = [
         for (final item in incidents)
-          if (item.incident.technicianId == uid) item,
+          if (item.incident.technicianId == uid &&
+              activeStatuses.contains(item.status))
+            item,
       ];
       return own..sort(compareByArrival);
     });

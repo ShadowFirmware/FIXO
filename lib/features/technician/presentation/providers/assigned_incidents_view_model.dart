@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/incident_failure.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
+import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
@@ -36,6 +37,30 @@ class AssignedIncidentsViewModel extends ChangeNotifier {
 
   /// Incidencias que el técnico tiene por atender.
   List<AssignedIncident> get incidents => _incidents;
+
+  IncidentStatus? _statusFilter;
+
+  /// Estado seleccionado, o `null` para mostrar todas.
+  IncidentStatus? get statusFilter => _statusFilter;
+
+  void setStatusFilter(IncidentStatus? status) {
+    if (status == _statusFilter) return;
+    _statusFilter = status;
+    notifyListeners();
+  }
+
+  /// Incidencias del estado seleccionado.
+  List<AssignedIncident> get results => _statusFilter == null
+      ? _incidents
+      : [
+          for (final item in _incidents)
+            if (item.status == _statusFilter) item,
+        ];
+
+  /// Cuántas incidencias hay en [status], o en total si es `null`.
+  int countOf(IncidentStatus? status) => status == null
+      ? _incidents.length
+      : _incidents.where((item) => item.status == status).length;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;

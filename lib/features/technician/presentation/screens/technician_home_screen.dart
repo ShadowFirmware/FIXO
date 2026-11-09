@@ -6,6 +6,7 @@ import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../resident/presentation/screens/incident_history_screen.dart';
 import '../providers/assigned_incidents_view_model.dart';
 import '../widgets/assigned_incident_card.dart';
+import '../widgets/assigned_status_filter.dart';
 
 /// Pantalla de inicio del técnico: HU-3.3 Consultar incidencias asignadas.
 class TechnicianHomeScreen extends StatefulWidget {
@@ -56,6 +57,15 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
                   ),
                 ),
               ),
+              // El filtro solo tiene sentido si hay incidencias.
+              if (vm.state == AssignedIncidentsState.loaded &&
+                  vm.incidents.isNotEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: AssignedStatusFilter(viewModel: vm),
+                  ),
+                ),
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(20, 16, 20, padding.bottom + 24),
                 sliver: switch (vm.state) {
@@ -71,10 +81,10 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
                     ),
                   ),
                   AssignedIncidentsState.loaded => SliverList.separated(
-                    itemCount: vm.incidents.length,
+                    itemCount: vm.results.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      final item = vm.incidents[index];
+                      final item = vm.results[index];
                       return AssignedIncidentCard(
                         key: ValueKey(item.id),
                         item: item,
