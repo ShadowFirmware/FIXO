@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/adaptive_form.dart';
 import '../../domain/entities/pending_incident.dart';
 import '../../domain/entities/rejection_rules.dart';
 import '../providers/pending_incidents_view_model.dart';
@@ -13,8 +14,9 @@ Future<String?> showRejectIncidentDialog(
   BuildContext context, {
   required PendingIncident pending,
 }) {
-  return showDialog<String>(
+  return showAdaptiveForm<String>(
     context: context,
+    title: 'Rechazar ${pending.incident.reportNumber}',
     builder: (_) => RejectIncidentDialog(pending: pending),
   );
 }
@@ -49,55 +51,42 @@ class _RejectIncidentDialogState extends State<RejectIncidentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Rechazar ${widget.pending.incident.reportNumber}'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PendingIncidentSummary(pending: widget.pending),
-              const SizedBox(height: 20),
-              TextField(
-                key: const Key('reject.comment'),
-                controller: _comment,
-                autofocus: true,
-                minLines: 3,
-                maxLines: 5,
-                maxLength: RejectionRules.maxLength,
-                // Tras el primer error se vuelve a validar mientras escribe.
-                onChanged: (_) {
-                  if (_error == null) return;
-                  setState(
-                    () => _error = PendingIncidentsViewModel.validateRejection(
-                      _comment.text,
-                    ),
-                  );
-                },
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: 'Motivo del rechazo',
-                  hintText: 'Explica al residente por qué no procede',
-                  helperText:
-                      'El residente recibirá este motivo en su notificación.',
-                  helperMaxLines: 2,
-                  errorText: _error,
-                ),
+    return AdaptiveFormLayout(
+      fields: [
+        PendingIncidentSummary(pending: widget.pending),
+        const SizedBox(height: 20),
+        TextField(
+          key: const Key('reject.comment'),
+          controller: _comment,
+          autofocus: true,
+          minLines: 3,
+          maxLines: 5,
+          maxLength: RejectionRules.maxLength,
+          // Tras el primer error se vuelve a validar mientras escribe.
+          onChanged: (_) {
+            if (_error == null) return;
+            setState(
+              () => _error = PendingIncidentsViewModel.validateRejection(
+                _comment.text,
               ),
-            ],
+            );
+          },
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            labelText: 'Motivo del rechazo',
+            hintText: 'Explica al residente por qué no procede',
+            helperText: 'El residente recibirá este motivo en su notificación.',
+            helperMaxLines: 2,
+            errorText: _error,
           ),
         ),
-      ),
-      actions: [
-        DialogButtons(
-          onCancel: () => Navigator.pop(context),
-          confirmLabel: 'Rechazar',
-          destructive: true,
-          onConfirm: _confirm,
-        ),
       ],
+      footer: DialogButtons(
+        onCancel: () => Navigator.pop(context),
+        confirmLabel: 'Rechazar',
+        destructive: true,
+        onConfirm: _confirm,
+      ),
     );
   }
 }

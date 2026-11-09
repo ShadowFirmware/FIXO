@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/adaptive_form.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
@@ -13,51 +14,38 @@ Future<void> showHistoryIncidentDetail(
   HistoryIncident record,
 ) {
   final incident = record.incident;
-  return showDialog<void>(
+  return showAdaptiveForm<void>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text('${incident.reportNumber} · ${incident.title}'),
-      content: SizedBox(
-        width: 560,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IncidentStatusChip(status: incident.status),
-              ),
-              const SizedBox(height: 12),
-              for (final (label, value) in historyDetailRows(record))
-                _DetailRow(label, value),
-              const Divider(height: 24),
-              _EvidenceSection(
-                key: const Key('historyDetail.before'),
-                title: 'Evidencias del residente (antes)',
-                urls: incident.evidenceBefore,
-                emptyText: 'El residente no adjuntó evidencias.',
-              ),
-              _EvidenceSection(
-                key: const Key('historyDetail.after'),
-                title: 'Evidencias del técnico (después)',
-                urls: incident.evidenceAfter,
-                emptyText: afterEvidenceEmptyText(incident.status),
-              ),
-            ],
-          ),
+    title: '${incident.reportNumber} · ${incident.title}',
+    maxWidth: 560,
+    builder: (context) => AdaptiveFormLayout(
+      fields: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IncidentStatusChip(status: incident.status),
         ),
-      ),
-      actions: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            key: const Key('historyDetail.close'),
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
+        const SizedBox(height: 12),
+        for (final (label, value) in historyDetailRows(record))
+          _DetailRow(label, value),
+        const Divider(height: 24),
+        _EvidenceSection(
+          key: const Key('historyDetail.before'),
+          title: 'Evidencias del residente (antes)',
+          urls: incident.evidenceBefore,
+          emptyText: 'El residente no adjuntó evidencias.',
+        ),
+        _EvidenceSection(
+          key: const Key('historyDetail.after'),
+          title: 'Evidencias del técnico (después)',
+          urls: incident.evidenceAfter,
+          emptyText: afterEvidenceEmptyText(incident.status),
         ),
       ],
+      footer: OutlinedButton(
+        key: const Key('historyDetail.close'),
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cerrar'),
+      ),
     ),
   );
 }

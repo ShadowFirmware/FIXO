@@ -123,3 +123,52 @@ class _DialogHeader extends StatelessWidget {
     );
   }
 }
+
+/// Contenido de un formulario abierto con [showAdaptiveForm]: los campos se
+/// desplazan y los botones quedan fijos abajo.
+class AdaptiveFormLayout extends StatelessWidget {
+  const AdaptiveFormLayout({super.key, required this.fields, this.footer});
+
+  /// Campos y textos del formulario.
+  final List<Widget> fields;
+
+  /// Botones, por ejemplo Cancelar y Guardar.
+  final Widget? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    // En el teléfono ocupa toda la pantalla y los botones quedan abajo; en
+    // la ventana solo mide lo que necesita.
+    final fill = !isWideLayout(context);
+    return Column(
+      mainAxisSize: fill ? MainAxisSize.max : MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Flexible(
+          fit: fill ? FlexFit.tight : FlexFit.loose,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: fields,
+            ),
+          ),
+        ),
+        if (footer case final footer?)
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              border: Border(
+                top: BorderSide(color: AppColors.border.withValues(alpha: 0.6)),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+              child: footer,
+            ),
+          ),
+      ],
+    );
+  }
+}
