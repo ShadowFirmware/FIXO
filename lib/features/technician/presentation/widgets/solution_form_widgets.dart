@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../providers/solution_form_view_model.dart';
+import 'local_evidence_viewer.dart';
 
 /// Tarjeta blanca con título, como las secciones del registro de
 /// incidencias del residente.
@@ -266,8 +267,9 @@ class _SourceTile extends StatelessWidget {
   }
 }
 
-/// Miniatura cuadrada de una foto o video del dispositivo, con botón para
-/// quitarla si se indica [onRemove].
+/// Miniatura cuadrada de una foto o video del dispositivo; al tocarla se
+/// abre en pantalla completa. Tiene un botón para quitarla si se indica
+/// [onRemove].
 class LocalEvidenceThumbnail extends StatelessWidget {
   const LocalEvidenceThumbnail({
     super.key,
@@ -307,6 +309,14 @@ class LocalEvidenceThumbnail extends StatelessWidget {
                       child: Icon(Icons.broken_image_outlined),
                     ),
                   ),
+          ),
+          // Al tocarla se abre en pantalla completa.
+          Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => LocalEvidenceViewer.open(context, file),
+            ),
           ),
           if (onRemove != null)
             Positioned(

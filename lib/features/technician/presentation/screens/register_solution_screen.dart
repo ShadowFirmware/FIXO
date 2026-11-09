@@ -59,7 +59,18 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
                 children: [
                   SolutionIncidentBanner(item: _viewModel.item),
                   const SizedBox(height: 20),
-                  _form(),
+                  if (_viewModel.isReviewing)
+                    _review()
+                  else ...[
+                    _form(),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      key: const Key('solution.review'),
+                      onPressed: _viewModel.review,
+                      icon: const Icon(Icons.fact_check_outlined),
+                      label: const Text('Revisar solución'),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -111,6 +122,66 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Vista previa de la información antes de guardarla.
+  Widget _review() {
+    final vm = _viewModel;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      key: const Key('solution.reviewView'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Revisa la información antes de guardarla',
+          style: textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Al guardarla, la incidencia quedará como Resuelta y ya no podrás '
+          'modificarla.',
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 20),
+        SolutionFormSection(
+          title: 'Solución aplicada',
+          children: [
+            Text(
+              vm.description.trim(),
+              style: textTheme.bodyLarge?.copyWith(
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        SolutionFormSection(
+          title: 'Evidencias del trabajo (${vm.evidence.length})',
+          footnote: 'Toca una evidencia para verla completa.',
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final file in vm.evidence)
+                  LocalEvidenceThumbnail(file: file, size: 120),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        OutlinedButton.icon(
+          key: const Key('solution.edit'),
+          onPressed: vm.edit,
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Corregir'),
+        ),
+      ],
     );
   }
 }

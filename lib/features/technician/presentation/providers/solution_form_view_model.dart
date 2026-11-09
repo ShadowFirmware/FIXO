@@ -85,6 +85,25 @@ class SolutionFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _reviewing = false;
+
+  /// El técnico está revisando la solución y las evidencias antes de
+  /// guardarlas.
+  bool get isReviewing => _reviewing;
+
+  /// Pasa a revisar la información antes de guardarla.
+  void review() {
+    _reviewing = true;
+    notifyListeners();
+  }
+
+  /// Vuelve al formulario para corregir la información.
+  void edit() {
+    if (!_reviewing) return;
+    _reviewing = false;
+    notifyListeners();
+  }
+
   static bool _fitsSizeLimit(EvidenceFile file) =>
       file.sizeBytes <= (file.isVideo ? maxVideoBytes : maxPhotoBytes);
 
