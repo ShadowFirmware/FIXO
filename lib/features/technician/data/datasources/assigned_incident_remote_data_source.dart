@@ -172,11 +172,13 @@ class AssignedIncidentRemoteDataSource {
     });
   }
 
-  /// Finaliza la incidencia como resuelta (HU-3.7), en una transacción que
-  /// antes revisa las reglas de [FinalizePlan].
+  /// Finaliza la incidencia como resuelta (HU-3.7) en una sola transacción:
+  /// revisa las reglas de [FinalizePlan], cambia el estado, cierra el chat y
+  /// avisa al residente y a los administradores [adminIds].
   Future<void> finalize({
     required String incidentId,
     required String technicianId,
+    List<String> adminIds = const [],
   }) {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
@@ -184,14 +186,39 @@ class AssignedIncidentRemoteDataSource {
       final technicianDoc = await transaction.get(
         _firestore.collection(FirestoreCollections.users).doc(technicianId),
       );
+      final incident = incidentDoc.data();
       FinalizePlan.validate(
-        incident: incidentDoc.data(),
+        incident: incident,
         technician: technicianDoc.data(),
         technicianId: technicianId,
         now: DateTime.now(),
       );
 
       transaction.update(incidentRef, FinalizePlan.incidentUpdate);
+
+      final residentId = incident!['creadaPor'] as String? ?? '';
+      final notifications = _firestore.collection(
+        FirestoreCollections.notifications,
+      );
+      for (final userId in {
+        if (residentId.isNotEmpty) residentId,
+        ...adminIds,
+      }) {
+        transaction.set(
+          notifications.doc(),
+          FinalizePlan.notice(
+            userId: userId,
+            incidentId: incidentId,
+            reportNumber: Incident.formatReportNumber(
+              (incident['folio'] as num?)?.toInt() ?? 0,
+            ),
+            title: incident['nombre'] as String? ?? '',
+            technicianName:
+                technicianDoc.data()?['nombre'] as String? ?? 'El técnico',
+            solution: incident['solucion'] as String? ?? '',
+          ),
+        );
+      }
     });
   }
 }

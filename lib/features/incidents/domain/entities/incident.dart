@@ -64,6 +64,7 @@ class Incident {
     this.startedAt,
     this.solutionRegisteredAt,
     this.resolvedAt,
+    this.chatClosed = false,
   });
 
   final String id;
@@ -110,6 +111,10 @@ class Incident {
   final DateTime? solutionRegisteredAt;
 
   final DateTime? resolvedAt;
+
+  /// El chat de la incidencia se cerró al finalizarla (HU-3.7): ya no se
+  /// pueden enviar mensajes.
+  final bool chatClosed;
 
   /// Número de reporte para mostrar, por ejemplo "INC-0007".
   String get reportNumber => formatReportNumber(folio);

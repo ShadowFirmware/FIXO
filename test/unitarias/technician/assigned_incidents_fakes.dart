@@ -245,8 +245,10 @@ class FakeAssignedIncidentRemoteDataSource
   Future<void> finalize({
     required String incidentId,
     required String technicianId,
+    List<String> adminIds = const [],
   }) async {
     if (finalizeError != null) throw finalizeError!;
     finalized.add((incidentId: incidentId, technicianId: technicianId));
+    notifiedAdmins.add(adminIds);
   }
 }

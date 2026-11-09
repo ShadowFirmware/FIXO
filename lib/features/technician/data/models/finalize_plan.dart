@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../incidents/domain/entities/incident.dart';
 import 'solution_plan.dart';
 import 'start_attention_plan.dart';
@@ -51,8 +53,42 @@ abstract final class FinalizePlan {
     }
   }
 
-  /// La incidencia pasa de En proceso a Resuelta.
+  static const resolvedType = 'incidencia_resuelta';
+
+  /// La incidencia pasa de En proceso a Resuelta y su chat se cierra: ya
+  /// no se pueden enviar mensajes (HU-5.1).
   static Map<String, dynamic> get incidentUpdate => {
     'estado': IncidentStatus.resolved.value,
+    'chatCerrado': true,
   };
+
+  /// Aviso de que la incidencia se resolvió, para el residente (que puede
+  /// consultar la solución y las evidencias) y para cada administrador.
+  static Map<String, dynamic> notice({
+    required String userId,
+    required String incidentId,
+    required String reportNumber,
+    required String title,
+    required String technicianName,
+    required String solution,
+  }) => {
+    'usuarioId': userId,
+    'tipo': resolvedType,
+    'titulo': 'Incidencia $reportNumber resuelta',
+    'mensaje':
+        '$technicianName resolvió "$title". Solución: ${_shorten(solution)} '
+        'Consulta la solución y las evidencias en el detalle.',
+    'refId': incidentId,
+    'leida': false,
+    'fecha': FieldValue.serverTimestamp(),
+  };
+
+  static const _maxSolution = 200;
+
+  static String _shorten(String text) {
+    final solution = text.trim();
+    return solution.length <= _maxSolution
+        ? solution
+        : '${solution.substring(0, _maxSolution).trimRight()}…';
+  }
 }
