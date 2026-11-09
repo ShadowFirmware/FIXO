@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/incident_failure.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
+import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/assigned_incident_repository_impl.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../../domain/repositories/assigned_incident_repository.dart';
@@ -38,6 +39,60 @@ class ResolvedIncidentsViewModel extends ChangeNotifier {
   /// Incidencias que el técnico atendió, de la resuelta más recientemente a
   /// la más antigua.
   List<AssignedIncident> get incidents => _incidents;
+
+  IncidentType? _type;
+
+  /// Tipo seleccionado, o `null` para todos.
+  IncidentType? get type => _type;
+
+  DateTime? _from;
+  DateTime? _to;
+
+  /// Rango de fechas de resolución; ambos días se incluyen completos.
+  DateTime? get from => _from;
+  DateTime? get to => _to;
+  bool get hasDateRange => _from != null || _to != null;
+
+  bool get hasFilters => _type != null || hasDateRange;
+
+  void setType(IncidentType? type) {
+    if (type == _type) return;
+    _type = type;
+    notifyListeners();
+  }
+
+  void setDateRange({DateTime? from, DateTime? to}) {
+    _from = from == null ? null : DateTime(from.year, from.month, from.day);
+    _to = to == null ? null : DateTime(to.year, to.month, to.day);
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    if (!hasFilters) return;
+    _type = null;
+    _from = null;
+    _to = null;
+    notifyListeners();
+  }
+
+  /// Incidencias que cumplen los filtros de tipo y fecha de resolución.
+  List<AssignedIncident> get results =>
+      hasFilters ? _incidents.where(_matches).toList() : _incidents;
+
+  bool _matches(AssignedIncident item) {
+    final incident = item.incident;
+    if (_type != null && incident.type != _type) return false;
+    if (!hasDateRange) return true;
+
+    final resolvedAt = incident.resolvedAt;
+    if (resolvedAt == null) return false;
+    if (_from case final from? when resolvedAt.isBefore(from)) return false;
+    if (_to case final to?
+        when !resolvedAt.isBefore(DateTime(to.year, to.month, to.day + 1))) {
+      return false;
+    }
+    return true;
+  }
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;

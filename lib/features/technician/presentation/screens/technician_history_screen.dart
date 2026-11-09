@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../resident/presentation/screens/incident_history_screen.dart';
 import '../providers/resolved_incidents_view_model.dart';
+import '../widgets/attended_history_filters.dart';
 import '../widgets/attended_incident_card.dart';
 
 /// HU-3.8 Consultar historial de incidencias atendidas: las que el técnico
@@ -48,6 +49,15 @@ class _TechnicianHistoryScreenState extends State<TechnicianHistoryScreen> {
                 padding: EdgeInsets.fromLTRB(20, padding.top + 16, 20, 0),
                 sliver: SliverToBoxAdapter(child: _Header(viewModel: vm)),
               ),
+              // Los filtros solo tienen sentido si hay incidencias.
+              if (vm.state == ResolvedIncidentsState.loaded &&
+                  vm.incidents.isNotEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: AttendedHistoryFilters(viewModel: vm),
+                  ),
+                ),
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(20, 16, 20, padding.bottom + 24),
                 sliver: _results(vm),
@@ -87,10 +97,10 @@ class _TechnicianHistoryScreenState extends State<TechnicianHistoryScreen> {
           ),
         ),
       ResolvedIncidentsState.loaded => SliverList.separated(
-        itemCount: vm.incidents.length,
+        itemCount: vm.results.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          final item = vm.incidents[index];
+          final item = vm.results[index];
           return AttendedIncidentCard(
             key: ValueKey(item.id),
             item: item,
