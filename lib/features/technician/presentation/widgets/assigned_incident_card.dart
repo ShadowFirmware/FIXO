@@ -7,14 +7,28 @@ import '../../../incidents/presentation/widgets/incident_type_style.dart';
 import '../../domain/entities/assigned_incident.dart';
 
 /// Elemento de la lista de incidencias asignadas: número, estado, nombre,
-/// tipo, lugar, residente y hora estimada de llegada.
+/// tipo, lugar, residente, hora estimada de llegada y, si está Asignada,
+/// la opción Comenzar atención.
 class AssignedIncidentCard extends StatelessWidget {
-  const AssignedIncidentCard({super.key, required this.item, this.onTap});
+  const AssignedIncidentCard({
+    super.key,
+    required this.item,
+    this.onTap,
+    this.onStartAttention,
+    this.starting = false,
+  });
 
   final AssignedIncident item;
 
   /// Abre el detalle de la incidencia.
   final VoidCallback? onTap;
+
+  /// Comienza la atención (HU-3.5), o `null` si la opción no está
+  /// disponible.
+  final VoidCallback? onStartAttention;
+
+  /// Se está guardando el inicio de la atención.
+  final bool starting;
 
   static final _radius = BorderRadius.circular(20);
 
@@ -135,6 +149,20 @@ class AssignedIncidentCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+              ],
+              if (onStartAttention != null || starting) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: Key('assigned.start.${item.id}'),
+                  onPressed: starting ? null : onStartAttention,
+                  icon: starting
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.play_arrow_rounded),
+                  label: Text(starting ? 'Comenzando…' : 'Comenzar atención'),
                 ),
               ],
             ],

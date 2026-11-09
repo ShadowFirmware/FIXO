@@ -354,3 +354,45 @@ class CopyableDetailRow extends StatelessWidget {
     );
   }
 }
+
+/// Pide confirmación para comenzar la atención de la incidencia
+/// [reportNumber]. Devuelve `true` si el técnico confirmó.
+Future<bool> confirmStartAttention(
+  BuildContext context,
+  String reportNumber,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('¿Comenzar la atención?'),
+      content: Text(
+        'La incidencia $reportNumber pasará a "En proceso" y se avisará '
+        'al residente.',
+      ),
+      actions: [
+        SizedBox(
+          width: double.infinity,
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancelar'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  key: const Key('detail.startConfirm'),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Comenzar'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
+}
