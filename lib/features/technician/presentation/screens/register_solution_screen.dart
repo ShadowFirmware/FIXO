@@ -66,7 +66,7 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       key: const Key('solution.review'),
-                      onPressed: _viewModel.review,
+                      onPressed: _goToReview,
                       icon: const Icon(Icons.fact_check_outlined),
                       label: const Text('Revisar solución'),
                     ),
@@ -78,6 +78,20 @@ class _RegisterSolutionScreenState extends State<RegisterSolutionScreen> {
         ),
       ),
     );
+  }
+
+  /// Valida los datos y, si están completos, muestra la vista previa.
+  void _goToReview() {
+    _formKey.currentState!.validate();
+    if (!_viewModel.review()) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Completa la descripción y agrega las evidencias.'),
+          ),
+        );
+    }
   }
 
   Widget _form() {

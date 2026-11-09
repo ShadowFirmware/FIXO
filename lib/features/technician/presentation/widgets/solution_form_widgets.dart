@@ -202,7 +202,7 @@ class SolutionEvidencePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final evidence = viewModel.evidence;
-    final message = viewModel.evidenceMessage;
+    final message = viewModel.evidenceMessage ?? viewModel.evidenceError;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

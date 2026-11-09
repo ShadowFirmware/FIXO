@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/utils/validators.dart';
 import '../../../incidents/data/datasources/evidence_picker.dart';
 import '../../../incidents/domain/entities/evidence_file.dart';
 import '../../domain/entities/assigned_incident.dart';
@@ -91,10 +92,28 @@ class SolutionFormViewModel extends ChangeNotifier {
   /// guardarlas.
   bool get isReviewing => _reviewing;
 
-  /// Pasa a revisar la información antes de guardarla.
-  void review() {
-    _reviewing = true;
+  static const missingEvidenceMessage =
+      'Agrega al menos una foto o video del trabajo realizado.';
+
+  /// Los errores se muestran después del primer intento de revisar.
+  bool _showErrors = false;
+
+  String? get descriptionError => Validators.solutionDescription(_description);
+
+  /// Error de las evidencias obligatorias, o `null` si hay al menos una.
+  String? get evidenceError =>
+      _showErrors && _evidence.isEmpty ? missingEvidenceMessage : null;
+
+  /// La descripción es válida y hay al menos una evidencia.
+  bool get isComplete => descriptionError == null && _evidence.isNotEmpty;
+
+  /// Pasa a revisar la información antes de guardarla, solo si está
+  /// completa. Devuelve `false` si falta algo.
+  bool review() {
+    _showErrors = true;
+    _reviewing = isComplete;
     notifyListeners();
+    return _reviewing;
   }
 
   /// Vuelve al formulario para corregir la información.
