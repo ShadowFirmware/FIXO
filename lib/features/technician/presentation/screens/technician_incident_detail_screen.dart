@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
-import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../resident/presentation/screens/incident_detail_screen.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../providers/assigned_incident_detail_view_model.dart';
@@ -181,7 +180,7 @@ class _DetailBody extends StatelessWidget {
             ),
           ],
         ),
-        if (vm.isResolved)
+        if (vm.isResolved) ...[
           DetailSection(
             title: 'Solución',
             children: [
@@ -195,9 +194,13 @@ class _DetailBody extends StatelessWidget {
                 label: 'Fecha de resolución',
                 value: vm.resolvedAt,
               ),
-              EvidenceGallery(urls: incident.evidenceAfter),
             ],
           ),
+          AssignedEvidenceSection(
+            title: 'Evidencias del trabajo',
+            urls: incident.evidenceAfter,
+          ),
+        ],
       ],
       secondary: [
         AssignedEvidenceSection(

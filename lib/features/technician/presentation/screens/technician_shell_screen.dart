@@ -5,6 +5,7 @@ import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
 import '../../../../shared/widgets/placeholder_view.dart';
 import '../providers/technician_shell_view_model.dart';
+import 'technician_history_screen.dart';
 import 'technician_home_screen.dart';
 import 'technician_profile_screen.dart';
 
@@ -64,7 +65,7 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
                 index: tab.index,
                 children: const [
                   TechnicianHomeScreen(),
-                  _PendingTab(title: 'Historial'),
+                  TechnicianHistoryScreen(),
                   _PendingTab(title: 'Avisos'),
                   TechnicianProfileScreen(),
                 ],
