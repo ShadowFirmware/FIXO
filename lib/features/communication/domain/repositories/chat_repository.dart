@@ -8,8 +8,9 @@ abstract interface class ChatRepository {
   Future<ChatContext?> context(String incidentId);
 
   /// Mensajes de la incidencia [incidentId], del más antiguo al más
-  /// reciente. Si falla, lanza un `ChatFailure`.
-  Future<List<ChatMessage>> messages(String incidentId);
+  /// reciente, cada vez que alguien envía uno. Si falla, el stream emite un
+  /// `ChatFailure`.
+  Stream<List<ChatMessage>> watchMessages(String incidentId);
 
   /// Envía [text] como mensaje de [authorId]. Si no se puede, lanza un
   /// `ChatFailure`.

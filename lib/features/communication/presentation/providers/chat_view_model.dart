@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/chat_failure.dart';
@@ -59,6 +61,7 @@ class ChatViewModel extends ChangeNotifier {
     _notify();
     try {
       final context = _context = await _repository.context(incidentId);
+      if (_disposed) return;
       // Antes de mostrar los mensajes se revisa que el usuario pueda verlos.
       final access = context == null
           ? const ChatAccess.denied(notFoundMessage)
@@ -70,8 +73,8 @@ class ChatViewModel extends ChangeNotifier {
         _notify();
         return;
       }
-      _messages = List.unmodifiable(await _repository.messages(incidentId));
-      _state = ChatState.ready;
+      _listen();
+      return;
     } on ChatFailure catch (failure) {
       _errorMessage = failure.message;
       _state = ChatState.error;
@@ -80,6 +83,31 @@ class ChatViewModel extends ChangeNotifier {
       _state = ChatState.error;
     }
     _notify();
+  }
+
+  StreamSubscription<List<ChatMessage>>? _subscription;
+
+  /// Escucha los mensajes: el chat queda listo con la primera lista y se
+  /// actualiza con cada mensaje nuevo, de quien sea.
+  void _listen() {
+    _subscription?.cancel();
+    _subscription = _repository
+        .watchMessages(incidentId)
+        .listen(
+          (messages) {
+            _messages = List.unmodifiable(messages);
+            _state = ChatState.ready;
+            _errorMessage = null;
+            _notify();
+          },
+          onError: (Object error) {
+            _errorMessage = error is ChatFailure
+                ? error.message
+                : ChatFailure.loadFailed.message;
+            _state = ChatState.error;
+            _notify();
+          },
+        );
   }
 
   bool _sending = false;
@@ -101,7 +129,7 @@ class ChatViewModel extends ChangeNotifier {
         authorId: author.uid,
         text: text.trim(),
       );
-      _messages = List.unmodifiable(await _repository.messages(incidentId));
+      // El mensaje aparece por el stream; no hace falta volver a consultar.
       return null;
     } on ChatFailure catch (failure) {
       return failure.message;
@@ -120,6 +148,7 @@ class ChatViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _subscription?.cancel();
     super.dispose();
   }
 }

@@ -30,13 +30,13 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<List<ChatMessage>> messages(String incidentId) async {
-    try {
-      return await _remote.fetchMessages(incidentId);
-    } on FirebaseException catch (e) {
-      throw _failureFor(e, ChatFailure.loadFailed);
-    }
-  }
+  Stream<List<ChatMessage>> watchMessages(String incidentId) => _remote
+      .watchMessages(incidentId)
+      .handleError(
+        (Object e) =>
+            throw _failureFor(e as FirebaseException, ChatFailure.loadFailed),
+        test: (e) => e is FirebaseException,
+      );
 
   @override
   Future<void> send({

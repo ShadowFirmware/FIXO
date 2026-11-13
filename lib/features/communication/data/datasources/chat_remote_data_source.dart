@@ -42,12 +42,15 @@ class ChatRemoteDataSource {
     return doc.data()?['residenteActivoId'] as String?;
   }
 
-  /// Mensajes de la incidencia, del más antiguo al más reciente. Ordenar
-  /// por un solo campo no necesita índice compuesto.
-  Future<List<ChatMessageModel>> fetchMessages(String incidentId) async {
-    final query = await _messages(incidentId).orderBy('fecha').get();
-    return _parse(incidentId, query);
-  }
+  /// Mensajes de la incidencia, del más antiguo al más reciente, cada vez
+  /// que cambian. Incluye los que se están enviando (sin fecha todavía), así
+  /// el mensaje aparece en cuanto se escribe. Ordenar por un solo campo no
+  /// necesita índice compuesto.
+  Stream<List<ChatMessageModel>> watchMessages(String incidentId) =>
+      _messages(incidentId)
+          .orderBy('fecha')
+          .snapshots(includeMetadataChanges: true)
+          .map((query) => _parse(incidentId, query));
 
   /// Guarda el mensaje de [authorId] en una transacción que antes revisa,
   /// con los datos actuales, que pueda usar el chat. Lanza

@@ -100,10 +100,13 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
         final messages = vm.messages;
         return ListView.builder(
           key: const Key('chat.messages'),
+          // Invertida para que el último mensaje quede abajo y a la vista,
+          // también cuando llega uno nuevo.
+          reverse: true,
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           itemCount: messages.length,
           itemBuilder: (context, index) {
-            final message = messages[index];
+            final message = messages[messages.length - 1 - index];
             final sentAt = message.sentAt;
             return ChatBubble(
               key: ValueKey(message.id),
