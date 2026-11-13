@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
+import '../../../incidents/data/models/incident_model.dart';
 import '../models/chat_message_model.dart';
 
 /// Acceso a Firestore para el chat de una incidencia (HU-5.1).
@@ -20,6 +21,24 @@ class ChatRemoteDataSource {
           .collection(FirestoreCollections.incidents)
           .doc(incidentId)
           .collection(FirestoreCollections.messages);
+
+  /// Incidencia [incidentId], o `null` si no existe.
+  Future<IncidentModel?> fetchIncident(String incidentId) async {
+    final doc = await _firestore
+        .collection(FirestoreCollections.incidents)
+        .doc(incidentId)
+        .get();
+    return doc.exists ? IncidentModel.fromFirestore(doc) : null;
+  }
+
+  /// Residente activo de la vivienda [housingId], o `null` si no tiene.
+  Future<String?> fetchHousingResident(String housingId) async {
+    final doc = await _firestore
+        .collection(FirestoreCollections.housings)
+        .doc(housingId)
+        .get();
+    return doc.data()?['residenteActivoId'] as String?;
+  }
 
   /// Mensajes de la incidencia, del más antiguo al más reciente. Ordenar
   /// por un solo campo no necesita índice compuesto.

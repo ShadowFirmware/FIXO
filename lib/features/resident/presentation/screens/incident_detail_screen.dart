@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../incidents/domain/entities/incident.dart';
@@ -33,7 +34,22 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
-      appBar: const FixoAppBar(title: 'Detalle de la incidencia'),
+      appBar: FixoAppBar(
+        title: 'Detalle de la incidencia',
+        actions: [
+          // HU-5.1: chat con el residente o el técnico de la incidencia.
+          FixoAppBarAction(
+            key: const Key('detail.chat'),
+            icon: Icons.forum_outlined,
+            tooltip: 'Chat',
+            onPressed: () => Navigator.pushNamed(
+              context,
+              RouteNames.incidentChat,
+              arguments: widget.incidentId,
+            ),
+          ),
+        ],
+      ),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) => switch (_viewModel.state) {

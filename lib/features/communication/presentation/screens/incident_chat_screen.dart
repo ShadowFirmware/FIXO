@@ -39,16 +39,24 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceAlt,
-      appBar: const FixoAppBar(title: 'Chat de la incidencia'),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) => Column(
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) => Scaffold(
+        backgroundColor: AppColors.surfaceAlt,
+        appBar: FixoAppBar(
+          title: 'Chat de la incidencia',
+          subtitle: switch (_viewModel.incident) {
+            final incident? => '${incident.reportNumber} · ${incident.title}',
+            null => null,
+          },
+        ),
+        body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(child: _body()),
-            ChatComposer(controller: _input, onSend: _send),
+            // Solo se escribe si se pudo abrir el chat.
+            if (_viewModel.state == ChatState.ready)
+              ChatComposer(controller: _input, onSend: _send),
           ],
         ),
       ),
@@ -62,7 +70,9 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
         return const Center(child: CircularProgressIndicator());
       case ChatState.error || ChatState.denied:
         return ChatMessageView(
-          icon: Icons.error_outline_rounded,
+          icon: vm.state == ChatState.denied
+              ? Icons.lock_outline_rounded
+              : Icons.error_outline_rounded,
           text: vm.errorMessage ?? '',
         );
       case ChatState.ready when vm.messages.isEmpty:
