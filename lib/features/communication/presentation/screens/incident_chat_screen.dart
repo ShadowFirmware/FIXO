@@ -65,13 +65,17 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(child: _body()),
-            // Solo se escribe si se pudo abrir el chat.
+            // Solo se escribe si se pudo abrir el chat y no es de solo
+            // lectura; si lo es, se explica por qué.
             if (_viewModel.state == ChatState.ready)
-              ChatComposer(
-                controller: _input,
-                onSend: _send,
-                sending: _viewModel.isSending,
-              ),
+              if (_viewModel.readOnlyReason case final reason?)
+                ChatNotice(message: reason)
+              else
+                ChatComposer(
+                  controller: _input,
+                  onSend: _send,
+                  sending: _viewModel.isSending,
+                ),
           ],
         ),
       ),
@@ -99,9 +103,11 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
               : null,
         );
       case ChatState.ready when vm.messages.isEmpty:
-        return const ChatMessageView(
+        return ChatMessageView(
           icon: Icons.forum_outlined,
-          text: ChatViewModel.noMessagesMessage,
+          text: vm.canWrite
+              ? ChatViewModel.noMessagesMessage
+              : ChatViewModel.noMessagesReadOnlyMessage,
         );
       case ChatState.ready:
         final messages = vm.messages;

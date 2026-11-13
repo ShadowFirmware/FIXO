@@ -48,6 +48,8 @@ class ChatViewModel extends ChangeNotifier {
 
   static const noMessagesMessage =
       'Aún no hay mensajes. Escribe para aclarar dudas sobre la incidencia.';
+  static const noMessagesReadOnlyMessage =
+      'No se enviaron mensajes en esta incidencia.';
 
   /// `true` si [message] lo envió el usuario en sesión.
   bool isMine(ChatMessage message) =>
@@ -122,10 +124,20 @@ class ChatViewModel extends ChangeNotifier {
         .listen(_onContext, onError: _onError);
   }
 
+  ChatAccess _access = const ChatAccess.denied(ChatAccess.notAllowed);
+
+  /// Puede enviar mensajes. Si no, el chat es de solo lectura y
+  /// [readOnlyReason] dice por qué.
+  bool get canWrite => _access.canWrite;
+
+  /// Por qué el chat es de solo lectura, o `null` si se puede escribir.
+  String? get readOnlyReason =>
+      _access.canRead && !_access.canWrite ? _access.reason : null;
+
   void _onContext(ChatContext? context) {
     _context = context;
     // Antes de mostrar los mensajes se revisa que el usuario pueda verlos.
-    final access = context == null
+    final access = _access = context == null
         ? const ChatAccess.denied(notFoundMessage)
         : ChatAccess.of(_session.currentUser, context);
     if (!access.canRead) {
@@ -179,6 +191,7 @@ class ChatViewModel extends ChangeNotifier {
   /// Envía [text]. Devuelve el mensaje de error, o `null` si se envió.
   Future<String?> send(String text) async {
     if (_sending || _state != ChatState.ready) return null;
+    if (!canWrite) return _access.reason ?? ChatAccess.notAllowed;
     final invalid = ChatMessage.validate(text);
     if (invalid != null) return invalid;
     final author = _session.currentUser;

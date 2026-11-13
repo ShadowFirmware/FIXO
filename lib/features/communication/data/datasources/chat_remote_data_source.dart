@@ -136,7 +136,10 @@ class ChatRemoteDataSource {
               housingDoc?.data()?['residenteActivoId'] as String?,
         ),
       );
-      if (!access.canRead) throw ChatDeniedException(access.reason!);
+      // También se rechaza si el chat ya es de solo lectura.
+      if (!access.canWrite) {
+        throw ChatDeniedException(access.reason ?? ChatAccess.notAllowed);
+      }
 
       transaction.set(
         _messages(incidentId).doc(),
