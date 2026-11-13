@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../domain/entities/chat_message.dart';
 
 /// Burbuja de un mensaje. Los propios van a la derecha en azul; los de la
 /// otra persona, a la izquierda en blanco con su nombre.
@@ -141,7 +142,7 @@ class ChatComposer extends StatelessWidget {
     required this.controller,
     required this.onSend,
     this.sending = false,
-    this.maxLength = 1000,
+    this.maxLength = ChatMessage.maxLength,
   });
 
   final TextEditingController controller;
