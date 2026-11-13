@@ -54,7 +54,8 @@ class ChatRemoteDataSource {
 
   /// Guarda el mensaje de [authorId] en una transacción que antes revisa,
   /// con los datos actuales, que pueda usar el chat. Lanza
-  /// [ChatDeniedException] si ya no puede.
+  /// [ChatDeniedException] si ya no puede. Los mensajes solo se agregan:
+  /// no hay forma de editarlos ni borrarlos, así se conserva el historial.
   Future<void> sendMessage({
     required String incidentId,
     required String authorId,

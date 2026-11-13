@@ -103,8 +103,10 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
           // también cuando llega uno nuevo.
           reverse: true,
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-          itemCount: messages.length,
+          // Uno más para el aviso del historial, que queda hasta arriba.
+          itemCount: messages.length + 1,
           itemBuilder: (context, index) {
+            if (index == messages.length) return const ChatHistoryNote();
             final position = messages.length - 1 - index;
             final message = messages[position];
             final mine = vm.isMine(message);

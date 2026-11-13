@@ -293,3 +293,40 @@ class ChatMessageView extends StatelessWidget {
     );
   }
 }
+
+/// Aviso al inicio de la conversación: los mensajes quedan guardados con la
+/// incidencia, también para quien continúe el seguimiento.
+class ChatHistoryNote extends StatelessWidget {
+  const ChatHistoryNote({super.key});
+
+  static const message =
+      'Los mensajes se guardan con la incidencia y no se pueden editar ni '
+      'borrar.';
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: const Key('chat.historyNote'),
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.history_rounded,
+            size: 16,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
