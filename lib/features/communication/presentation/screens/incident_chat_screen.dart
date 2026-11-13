@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/date_formats.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/chat_view_model.dart';
 import '../widgets/chat_widgets.dart';
@@ -106,14 +105,28 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           itemCount: messages.length,
           itemBuilder: (context, index) {
-            final message = messages[messages.length - 1 - index];
-            final sentAt = message.sentAt;
-            return ChatBubble(
-              key: ValueKey(message.id),
+            final position = messages.length - 1 - index;
+            final message = messages[position];
+            final mine = vm.isMine(message);
+            final bubble = ChatBubble(
               text: message.text,
-              mine: vm.isMine(message),
-              time: sentAt == null ? '' : DateFormats.time(sentAt),
+              mine: mine,
+              time: ChatViewModel.timeLabel(message),
+              author: mine ? null : ChatViewModel.authorLabel(message),
               pending: message.isPending,
+            );
+            final day = vm.dayLabelAt(position);
+            return KeyedSubtree(
+              key: ValueKey(message.id),
+              child: day == null
+                  ? bubble
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ChatDateSeparator(label: day),
+                        bubble,
+                      ],
+                    ),
             );
           },
         );

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/chat_failure.dart';
+import '../../../../core/utils/date_formats.dart';
+import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../data/repositories/chat_repository_impl.dart';
@@ -18,8 +20,10 @@ class ChatViewModel extends ChangeNotifier {
     required this.incidentId,
     AuthSession? session,
     ChatRepository? repository,
+    DateTime Function()? clock,
   }) : _session = session ?? AuthSession.instance,
-       _repository = repository ?? ChatRepositoryImpl() {
+       _repository = repository ?? ChatRepositoryImpl(),
+       _clock = clock ?? DateTime.now {
     load();
   }
 
@@ -28,6 +32,7 @@ class ChatViewModel extends ChangeNotifier {
 
   final AuthSession _session;
   final ChatRepository _repository;
+  final DateTime Function() _clock;
   bool _disposed = false;
 
   ChatState _state = ChatState.loading;
@@ -47,6 +52,52 @@ class ChatViewModel extends ChangeNotifier {
   /// `true` si [message] lo envió el usuario en sesión.
   bool isMine(ChatMessage message) =>
       message.authorId == _session.currentUser?.uid;
+
+  /// Quién envió [message], por ejemplo "Juan Pérez · Técnico". Usa el
+  /// nombre guardado en el mensaje, así se conserva aunque la persona ya no
+  /// participe en la incidencia.
+  static String authorLabel(ChatMessage message) {
+    final role = switch (message.authorRole) {
+      UserRole.technician => 'Técnico',
+      UserRole.resident => 'Residente',
+      UserRole.admin => 'Administrador',
+    };
+    final name = message.authorName;
+    return name.isEmpty ? role : '$name · $role';
+  }
+
+  /// Día del mensaje en [index]. Uno que se está enviando cuenta como de hoy.
+  DateTime _dayOf(int index) {
+    final date = (_messages[index].sentAt ?? _clock()).toLocal();
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  /// Etiqueta del día si el mensaje en [index] es el primero de ese día, o
+  /// `null` si es del mismo día que el anterior.
+  String? dayLabelAt(int index) {
+    final day = _dayOf(index);
+    if (index > 0 && _dayOf(index - 1) == day) return null;
+    return dayLabel(day, _clock());
+  }
+
+  /// "Hoy", "Ayer" o la fecha, por ejemplo "9 de octubre de 2026".
+  static String dayLabel(DateTime day, DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    final date = DateTime(day.year, day.month, day.day);
+    final difference = today.difference(date).inHours;
+    // En horas redondeadas, por los cambios de horario.
+    return switch ((difference / 24).round()) {
+      0 => 'Hoy',
+      1 => 'Ayer',
+      _ => DateFormats.longDate(date),
+    };
+  }
+
+  /// Hora del mensaje, o vacío si se está enviando.
+  static String timeLabel(ChatMessage message) => switch (message.sentAt) {
+    final sentAt? => DateFormats.time(sentAt.toLocal()),
+    null => '',
+  };
 
   ChatContext? _context;
 
