@@ -10,4 +10,12 @@ abstract interface class ChatRepository {
   /// Mensajes de la incidencia [incidentId], del más antiguo al más
   /// reciente. Si falla, lanza un `ChatFailure`.
   Future<List<ChatMessage>> messages(String incidentId);
+
+  /// Envía [text] como mensaje de [authorId]. Si no se puede, lanza un
+  /// `ChatFailure`.
+  Future<void> send({
+    required String incidentId,
+    required String authorId,
+    required String text,
+  });
 }

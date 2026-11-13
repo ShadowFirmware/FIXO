@@ -38,6 +38,25 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
+  @override
+  Future<void> send({
+    required String incidentId,
+    required String authorId,
+    required String text,
+  }) async {
+    try {
+      await _remote.sendMessage(
+        incidentId: incidentId,
+        authorId: authorId,
+        text: text,
+      );
+    } on ChatDeniedException catch (e) {
+      throw ChatFailure(e.reason);
+    } on FirebaseException catch (e) {
+      throw _failureFor(e, ChatFailure.sendFailed);
+    }
+  }
+
   static ChatFailure _failureFor(FirebaseException e, ChatFailure fallback) =>
       switch (e.code) {
         'unavailable' || 'deadline-exceeded' => ChatFailure.offline,

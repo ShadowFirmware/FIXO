@@ -35,7 +35,19 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
     super.dispose();
   }
 
-  void _send() {}
+  Future<void> _send() async {
+    final text = _input.text;
+    final error = await _viewModel.send(text);
+    if (!mounted) return;
+    if (error == null) {
+      _input.clear();
+      return;
+    }
+    // Si falla, el texto se conserva para volver a intentarlo.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(error)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +68,11 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
             Expanded(child: _body()),
             // Solo se escribe si se pudo abrir el chat.
             if (_viewModel.state == ChatState.ready)
-              ChatComposer(controller: _input, onSend: _send),
+              ChatComposer(
+                controller: _input,
+                onSend: _send,
+                sending: _viewModel.isSending,
+              ),
           ],
         ),
       ),

@@ -82,6 +82,37 @@ class ChatViewModel extends ChangeNotifier {
     _notify();
   }
 
+  bool _sending = false;
+  bool get isSending => _sending;
+
+  /// Envía [text]. Devuelve el mensaje de error, o `null` si se envió.
+  Future<String?> send(String text) async {
+    if (_sending || _state != ChatState.ready) return null;
+    final invalid = ChatMessage.validate(text);
+    if (invalid != null) return invalid;
+    final author = _session.currentUser;
+    if (author == null) return ChatAccess.notAllowed;
+
+    _sending = true;
+    _notify();
+    try {
+      await _repository.send(
+        incidentId: incidentId,
+        authorId: author.uid,
+        text: text.trim(),
+      );
+      _messages = List.unmodifiable(await _repository.messages(incidentId));
+      return null;
+    } on ChatFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return ChatFailure.sendFailed.message;
+    } finally {
+      _sending = false;
+      _notify();
+    }
+  }
+
   void _notify() {
     if (!_disposed) notifyListeners();
   }
