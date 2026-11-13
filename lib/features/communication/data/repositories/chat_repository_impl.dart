@@ -13,21 +13,13 @@ class ChatRepositoryImpl implements ChatRepository {
   final ChatRemoteDataSource _remote;
 
   @override
-  Future<ChatContext?> context(String incidentId) async {
-    try {
-      final incident = await _remote.fetchIncident(incidentId);
-      if (incident == null) return null;
-      final housingId = incident.housingId;
-      return ChatContext(
-        incident: incident,
-        housingResidentId: housingId.isEmpty
-            ? null
-            : await _remote.fetchHousingResident(housingId),
+  Stream<ChatContext?> watchContext(String incidentId) => _remote
+      .watchContext(incidentId)
+      .handleError(
+        (Object e) =>
+            throw _failureFor(e as FirebaseException, ChatFailure.loadFailed),
+        test: (e) => e is FirebaseException,
       );
-    } on FirebaseException catch (e) {
-      throw _failureFor(e, ChatFailure.loadFailed);
-    }
-  }
 
   @override
   Stream<List<ChatMessage>> watchMessages(String incidentId) => _remote

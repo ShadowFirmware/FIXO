@@ -258,10 +258,18 @@ class ChatNotice extends StatelessWidget {
 
 /// Mensaje centrado cuando el chat no tiene mensajes o no se puede abrir.
 class ChatMessageView extends StatelessWidget {
-  const ChatMessageView({super.key, required this.icon, required this.text});
+  const ChatMessageView({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.action,
+  });
 
   final IconData icon;
   final String text;
+
+  /// Botón debajo del texto, por ejemplo para reintentar.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +295,10 @@ class ChatMessageView extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge
                   ?.copyWith(color: AppColors.textSecondary),
             ),
+            if (action case final action?) ...[
+              const SizedBox(height: 16),
+              action,
+            ],
           ],
         ),
       ),

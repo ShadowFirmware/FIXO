@@ -89,6 +89,14 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
               ? Icons.lock_outline_rounded
               : Icons.error_outline_rounded,
           text: vm.errorMessage ?? '',
+          action: vm.state == ChatState.error
+              ? FilledButton.icon(
+                  key: const Key('chat.retry'),
+                  onPressed: vm.load,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Reintentar'),
+                )
+              : null,
         );
       case ChatState.ready when vm.messages.isEmpty:
         return const ChatMessageView(

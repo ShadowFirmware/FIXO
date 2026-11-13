@@ -106,34 +106,57 @@ class ChatViewModel extends ChangeNotifier {
 
   static const notFoundMessage = 'No se encontró la incidencia.';
 
-  Future<void> load() async {
+  StreamSubscription<ChatContext?>? _contextSubscription;
+
+  /// Escucha la incidencia y su vivienda. Con cada cambio se vuelve a
+  /// revisar el acceso, así el chat se abre o se cierra en cuanto cambia el
+  /// residente de la vivienda o el técnico asignado.
+  void load() {
+    _contextSubscription?.cancel();
+    _stopMessages();
     _state = ChatState.loading;
     _errorMessage = null;
     _notify();
-    try {
-      final context = _context = await _repository.context(incidentId);
-      if (_disposed) return;
-      // Antes de mostrar los mensajes se revisa que el usuario pueda verlos.
-      final access = context == null
-          ? const ChatAccess.denied(notFoundMessage)
-          : ChatAccess.of(_session.currentUser, context);
-      if (!access.canRead) {
-        _messages = const [];
-        _errorMessage = access.reason;
-        _state = ChatState.denied;
-        _notify();
-        return;
-      }
-      _listen();
+    _contextSubscription = _repository
+        .watchContext(incidentId)
+        .listen(_onContext, onError: _onError);
+  }
+
+  void _onContext(ChatContext? context) {
+    _context = context;
+    // Antes de mostrar los mensajes se revisa que el usuario pueda verlos.
+    final access = context == null
+        ? const ChatAccess.denied(notFoundMessage)
+        : ChatAccess.of(_session.currentUser, context);
+    if (!access.canRead) {
+      _stopMessages();
+      _messages = const [];
+      _errorMessage = access.reason;
+      _state = ChatState.denied;
+      _notify();
       return;
-    } on ChatFailure catch (failure) {
-      _errorMessage = failure.message;
-      _state = ChatState.error;
-    } catch (_) {
-      _errorMessage = ChatFailure.loadFailed.message;
-      _state = ChatState.error;
+    }
+    // Ya tenía acceso: los mensajes siguen llegando por el mismo stream.
+    if (_subscription == null) {
+      _state = ChatState.loading;
+      _errorMessage = null;
+      _listen();
     }
     _notify();
+  }
+
+  void _onError(Object error) {
+    _stopMessages();
+    _errorMessage = error is ChatFailure
+        ? error.message
+        : ChatFailure.loadFailed.message;
+    _state = ChatState.error;
+    _notify();
+  }
+
+  void _stopMessages() {
+    _subscription?.cancel();
+    _subscription = null;
   }
 
   StreamSubscription<List<ChatMessage>>? _subscription;
@@ -142,23 +165,12 @@ class ChatViewModel extends ChangeNotifier {
   /// actualiza con cada mensaje nuevo, de quien sea.
   void _listen() {
     _subscription?.cancel();
-    _subscription = _repository
-        .watchMessages(incidentId)
-        .listen(
-          (messages) {
-            _messages = List.unmodifiable(messages);
-            _state = ChatState.ready;
-            _errorMessage = null;
-            _notify();
-          },
-          onError: (Object error) {
-            _errorMessage = error is ChatFailure
-                ? error.message
-                : ChatFailure.loadFailed.message;
-            _state = ChatState.error;
-            _notify();
-          },
-        );
+    _subscription = _repository.watchMessages(incidentId).listen((messages) {
+      _messages = List.unmodifiable(messages);
+      _state = ChatState.ready;
+      _errorMessage = null;
+      _notify();
+    }, onError: _onError);
   }
 
   bool _sending = false;
@@ -199,6 +211,7 @@ class ChatViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _contextSubscription?.cancel();
     _subscription?.cancel();
     super.dispose();
   }

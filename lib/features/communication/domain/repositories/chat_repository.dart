@@ -2,10 +2,10 @@ import '../entities/chat_access.dart';
 import '../entities/chat_message.dart';
 
 abstract interface class ChatRepository {
-  /// Incidencia y residente activo de su vivienda, para decidir quién
-  /// puede usar el chat. `null` si la incidencia no existe. Si falla, lanza
-  /// un `ChatFailure`.
-  Future<ChatContext?> context(String incidentId);
+  /// Incidencia y residente activo de su vivienda cada vez que cambian, para
+  /// decidir quién puede usar el chat. `null` si la incidencia no existe. Si
+  /// falla, el stream emite un `ChatFailure`.
+  Stream<ChatContext?> watchContext(String incidentId);
 
   /// Mensajes de la incidencia [incidentId], del más antiguo al más
   /// reciente, cada vez que alguien envía uno. Si falla, el stream emite un

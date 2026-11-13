@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
@@ -24,22 +26,65 @@ class ChatRemoteDataSource {
           .doc(incidentId)
           .collection(FirestoreCollections.messages);
 
-  /// Incidencia [incidentId], o `null` si no existe.
-  Future<IncidentModel?> fetchIncident(String incidentId) async {
-    final doc = await _firestore
-        .collection(FirestoreCollections.incidents)
-        .doc(incidentId)
-        .get();
-    return doc.exists ? IncidentModel.fromFirestore(doc) : null;
-  }
+  /// Incidencia [incidentId] y residente activo de su vivienda cada vez que
+  /// cambia alguno, para actualizar quién puede usar el chat. Emite `null`
+  /// si la incidencia no existe.
+  Stream<ChatContext?> watchContext(String incidentId) {
+    late final StreamController<ChatContext?> controller;
+    StreamSubscription<Object?>? incidentSubscription;
+    StreamSubscription<Object?>? housingSubscription;
+    IncidentModel? incident;
+    String? housingId;
+    String? residentId;
+    var housingLoaded = false;
 
-  /// Residente activo de la vivienda [housingId], o `null` si no tiene.
-  Future<String?> fetchHousingResident(String housingId) async {
-    final doc = await _firestore
-        .collection(FirestoreCollections.housings)
-        .doc(housingId)
-        .get();
-    return doc.data()?['residenteActivoId'] as String?;
+    void emit() {
+      final current = incident;
+      if (current == null) return controller.add(null);
+      // Se espera a conocer al residente para no negar el acceso de más.
+      if (current.housingId.isNotEmpty && !housingLoaded) return;
+      controller.add(
+        ChatContext(incident: current, housingResidentId: residentId),
+      );
+    }
+
+    void watchHousing(String id) {
+      housingSubscription?.cancel();
+      housingSubscription = null;
+      housingId = id;
+      residentId = null;
+      housingLoaded = false;
+      if (id.isEmpty) return;
+      housingSubscription = _firestore
+          .collection(FirestoreCollections.housings)
+          .doc(id)
+          .snapshots()
+          .listen((doc) {
+            residentId = doc.data()?['residenteActivoId'] as String?;
+            housingLoaded = true;
+            emit();
+          }, onError: controller.addError);
+    }
+
+    controller = StreamController<ChatContext?>(
+      onListen: () {
+        incidentSubscription = _firestore
+            .collection(FirestoreCollections.incidents)
+            .doc(incidentId)
+            .snapshots()
+            .listen((doc) {
+              incident = doc.exists ? IncidentModel.fromFirestore(doc) : null;
+              final id = incident?.housingId ?? '';
+              if (id != housingId) watchHousing(id);
+              emit();
+            }, onError: controller.addError);
+      },
+      onCancel: () async {
+        await incidentSubscription?.cancel();
+        await housingSubscription?.cancel();
+      },
+    );
+    return controller.stream;
   }
 
   /// Mensajes de la incidencia, del más antiguo al más reciente, cada vez
