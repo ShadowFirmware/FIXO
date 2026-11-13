@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_formats.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/chat_view_model.dart';
 import '../widgets/chat_widgets.dart';
@@ -46,16 +47,47 @@ class _IncidentChatScreenState extends State<IncidentChatScreen> {
         builder: (context, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Expanded(
-              child: ChatMessageView(
-                icon: Icons.forum_outlined,
-                text: ChatViewModel.noMessagesMessage,
-              ),
-            ),
+            Expanded(child: _body()),
             ChatComposer(controller: _input, onSend: _send),
           ],
         ),
       ),
     );
+  }
+
+  Widget _body() {
+    final vm = _viewModel;
+    switch (vm.state) {
+      case ChatState.loading:
+        return const Center(child: CircularProgressIndicator());
+      case ChatState.error || ChatState.denied:
+        return ChatMessageView(
+          icon: Icons.error_outline_rounded,
+          text: vm.errorMessage ?? '',
+        );
+      case ChatState.ready when vm.messages.isEmpty:
+        return const ChatMessageView(
+          icon: Icons.forum_outlined,
+          text: ChatViewModel.noMessagesMessage,
+        );
+      case ChatState.ready:
+        final messages = vm.messages;
+        return ListView.builder(
+          key: const Key('chat.messages'),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final message = messages[index];
+            final sentAt = message.sentAt;
+            return ChatBubble(
+              key: ValueKey(message.id),
+              text: message.text,
+              mine: vm.isMine(message),
+              time: sentAt == null ? '' : DateFormats.time(sentAt),
+              pending: message.isPending,
+            );
+          },
+        );
+    }
   }
 }
