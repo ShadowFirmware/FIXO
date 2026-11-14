@@ -202,13 +202,20 @@ class IncidentAdminRemoteDataSource {
   }
 
   /// Rechaza la incidencia con el [comment] del administrador y avisa al
-  /// residente. No se asigna técnico.
+  /// residente que la registró y al residente activo de la vivienda. No se
+  /// asigna técnico.
   Future<void> reject({required String incidentId, required String comment}) {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
       final incidentDoc = await transaction.get(incidentRef);
       RejectionPlan.validate(incidentDoc.data());
       final incident = incidentDoc.data()!;
+
+      // Las lecturas van antes de cualquier escritura de la transacción.
+      final housingId = incident['viviendaId'] as String? ?? '';
+      final housingDoc = housingId.isEmpty
+          ? null
+          : await transaction.get(_housings.doc(housingId));
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
@@ -219,8 +226,13 @@ class IncidentAdminRemoteDataSource {
         RejectionPlan.incidentUpdate(comment: comment),
       );
 
-      final residentId = incident['creadaPor'] as String?;
-      if (residentId != null && residentId.isNotEmpty) {
+      // Al que la registró y al residente activo de la vivienda, con el
+      // motivo del rechazo.
+      final residentIds = NotificationRecipients.residents(
+        createdBy: incident['creadaPor'] as String?,
+        activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+      );
+      for (final residentId in residentIds) {
         transaction.set(
           _notifications.doc(),
           RejectionPlan.residentNotice(
