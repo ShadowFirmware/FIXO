@@ -7,6 +7,7 @@ import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../notifications/domain/entities/app_notification.dart';
+import '../../../notifications/domain/entities/notification_recipients.dart';
 import '../models/assignment_plan.dart';
 import '../models/rejection_plan.dart';
 
@@ -164,8 +165,12 @@ class IncidentAdminRemoteDataSource {
       );
       transaction.update(technicianRef, AssignmentPlan.technicianUpdate);
 
-      final residentId = incident['creadaPor'] as String?;
-      if (residentId != null && residentId.isNotEmpty) {
+      // Al que la registró y al residente activo de la vivienda.
+      final residentIds = NotificationRecipients.residents(
+        createdBy: incident['creadaPor'] as String?,
+        activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+      );
+      for (final residentId in residentIds) {
         transaction.set(
           _notifications.doc(),
           AssignmentPlan.residentNotice(
