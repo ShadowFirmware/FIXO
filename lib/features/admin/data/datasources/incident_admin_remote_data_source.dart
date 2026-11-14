@@ -6,6 +6,7 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 import '../models/assignment_plan.dart';
 import '../models/rejection_plan.dart';
 
@@ -47,8 +48,8 @@ class IncidentAdminRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _notifications =>
       _firestore.collection(FirestoreCollections.notifications);
 
-  static const assignedType = 'incidencia_asignada';
-  static const rejectedType = 'incidencia_rechazada';
+  static final assignedType = NotificationType.incidentAssigned.value;
+  static final rejectedType = NotificationType.incidentRejected.value;
 
   /// Escucha las incidencias en estado "Pendiente". Se ordenan en la app
   /// para no necesitar un índice compuesto en Firestore.

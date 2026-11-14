@@ -2,8 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
 import '../../../auth/domain/entities/app_user.dart';
+import '../../domain/entities/app_notification.dart';
+import '../models/notification_model.dart';
 
-/// Escritura de avisos en la colección `notificaciones`.
+/// Servicio de avisos (HU-6.1): guarda en la colección `notificaciones` los
+/// avisos que arman los demás módulos con [NotificationModel.newNotice].
+///
+/// Los avisos de una operación se guardan en la misma transacción o lote
+/// que el cambio que los provoca, así no queda un cambio sin aviso ni un
+/// aviso sin cambio.
 class NotificationRemoteDataSource {
   NotificationRemoteDataSource({FirebaseFirestore? firestore})
     : _firestoreOverride = firestore;
@@ -15,8 +22,11 @@ class NotificationRemoteDataSource {
   FirebaseFirestore get _firestore =>
       _firestoreOverride ?? FirebaseFirestore.instance;
 
+  CollectionReference<Map<String, dynamic>> get _notifications =>
+      _firestore.collection(FirestoreCollections.notifications);
+
   /// Tipo de aviso para una incidencia pendiente de asignación (HU-2.3).
-  static const newIncidentType = 'nueva_incidencia';
+  static final newIncidentType = NotificationType.newIncident.value;
 
   /// UIDs de los administradores con cuenta activa.
   Future<List<String>> activeAdminIds() async {
@@ -28,6 +38,30 @@ class NotificationRemoteDataSource {
     return [for (final doc in admins.docs) doc.id];
   }
 
+  /// Agrega [notices] dentro de [transaction].
+  void addNotices(
+    Transaction transaction,
+    Iterable<Map<String, dynamic>> notices,
+  ) {
+    for (final notice in notices) {
+      transaction.set(_notifications.doc(), notice);
+    }
+  }
+
+  /// Agrega [notices] a [batch].
+  void addToBatch(WriteBatch batch, Iterable<Map<String, dynamic>> notices) {
+    for (final notice in notices) {
+      batch.set(_notifications.doc(), notice);
+    }
+  }
+
+  /// Guarda [notices] por su cuenta, cuando no acompañan a otro cambio.
+  Future<void> send(Iterable<Map<String, dynamic>> notices) {
+    final batch = _firestore.batch();
+    addToBatch(batch, notices);
+    return batch.commit();
+  }
+
   /// Agrega dentro de [transaction] un aviso para cada administrador, para
   /// que se guarde junto con la incidencia o no se guarde ninguno.
   void addNewIncidentNotices(
@@ -37,19 +71,15 @@ class NotificationRemoteDataSource {
     required String reportNumber,
     required String title,
   }) {
-    final notifications = _firestore.collection(
-      FirestoreCollections.notifications,
-    );
-    for (final adminId in adminIds) {
-      transaction.set(notifications.doc(), {
-        'usuarioId': adminId,
-        'tipo': newIncidentType,
-        'titulo': 'Nueva incidencia $reportNumber',
-        'mensaje': '"$title" está pendiente de asignación.',
-        'refId': incidentId,
-        'leida': false,
-        'fecha': FieldValue.serverTimestamp(),
-      });
-    }
+    addNotices(transaction, [
+      for (final adminId in adminIds)
+        NotificationModel.newNotice(
+          userId: adminId,
+          type: NotificationType.newIncident,
+          title: 'Nueva incidencia $reportNumber',
+          message: '"$title" está pendiente de asignación.',
+          refId: incidentId,
+        ),
+    ]);
   }
 }

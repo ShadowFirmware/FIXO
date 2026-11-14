@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../notifications/data/models/notification_model.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 import 'solution_plan.dart';
 import 'start_attention_plan.dart';
 
@@ -53,7 +55,7 @@ abstract final class FinalizePlan {
     }
   }
 
-  static const resolvedType = 'incidencia_resuelta';
+  static final resolvedType = NotificationType.incidentResolved.value;
 
   /// La incidencia pasa de En proceso a Resuelta con la fecha de resolución,
   /// que pone el servidor, y su chat se cierra: ya no se pueden enviar
@@ -77,17 +79,15 @@ abstract final class FinalizePlan {
     required String title,
     required String technicianName,
     required String solution,
-  }) => {
-    'usuarioId': userId,
-    'tipo': resolvedType,
-    'titulo': 'Incidencia $reportNumber resuelta',
-    'mensaje':
+  }) => NotificationModel.newNotice(
+    userId: userId,
+    type: NotificationType.incidentResolved,
+    title: 'Incidencia $reportNumber resuelta',
+    message:
         '$technicianName resolvió "$title". Solución: ${_shorten(solution)} '
         'Consulta la solución y las evidencias en el detalle.',
-    'refId': incidentId,
-    'leida': false,
-    'fecha': FieldValue.serverTimestamp(),
-  };
+    refId: incidentId,
+  );
 
   static const _maxSolution = 200;
 
