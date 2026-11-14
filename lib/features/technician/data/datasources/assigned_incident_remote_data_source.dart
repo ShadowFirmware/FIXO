@@ -237,7 +237,7 @@ class AssignedIncidentRemoteDataSource {
   }
 
   /// El residente que registró [incident] y el residente activo de su
-  /// vivienda (HU-6.1).
+  /// vivienda, si pueden recibir avisos (HU-6.1).
   Future<List<String>> _residentsToNotify(
     Transaction transaction,
     Map<String, dynamic> incident,
@@ -248,9 +248,13 @@ class AssignedIncidentRemoteDataSource {
         : await transaction.get(
             _firestore.collection(FirestoreCollections.housings).doc(housingId),
           );
-    return NotificationRecipients.residents(
-      createdBy: incident['creadaPor'] as String?,
-      activeResidentId: housing?.data()?['residenteActivoId'] as String?,
-    );
+    return NotificationRemoteDataSource(firestore: _firestoreOverride)
+        .reachable(
+          transaction,
+          NotificationRecipients.residents(
+            createdBy: incident['creadaPor'] as String?,
+            activeResidentId: housing?.data()?['residenteActivoId'] as String?,
+          ),
+        );
   }
 }

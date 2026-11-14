@@ -6,6 +6,7 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../notifications/data/datasources/notification_remote_data_source.dart';
 import '../../../notifications/domain/entities/app_notification.dart';
 import '../../../notifications/domain/entities/notification_recipients.dart';
 import '../models/assignment_plan.dart';
@@ -48,6 +49,9 @@ class IncidentAdminRemoteDataSource {
 
   CollectionReference<Map<String, dynamic>> get _notifications =>
       _firestore.collection(FirestoreCollections.notifications);
+
+  NotificationRemoteDataSource get _notifier =>
+      NotificationRemoteDataSource(firestore: _firestoreOverride);
 
   static final assignedType = NotificationType.incidentAssigned.value;
   static final rejectedType = NotificationType.incidentRejected.value;
@@ -149,6 +153,15 @@ class IncidentAdminRemoteDataSource {
       final housingDoc = housingId.isEmpty
           ? null
           : await transaction.get(_housings.doc(housingId));
+      // Al que la registró y al residente activo de la vivienda, si pueden
+      // recibir avisos.
+      final residentIds = await _notifier.reachable(
+        transaction,
+        NotificationRecipients.residents(
+          createdBy: incident['creadaPor'] as String?,
+          activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+        ),
+      );
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
@@ -165,11 +178,6 @@ class IncidentAdminRemoteDataSource {
       );
       transaction.update(technicianRef, AssignmentPlan.technicianUpdate);
 
-      // Al que la registró y al residente activo de la vivienda.
-      final residentIds = NotificationRecipients.residents(
-        createdBy: incident['creadaPor'] as String?,
-        activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
-      );
       for (final residentId in residentIds) {
         transaction.set(
           _notifications.doc(),
@@ -216,6 +224,15 @@ class IncidentAdminRemoteDataSource {
       final housingDoc = housingId.isEmpty
           ? null
           : await transaction.get(_housings.doc(housingId));
+      // Al que la registró y al residente activo de la vivienda, si pueden
+      // recibir avisos.
+      final residentIds = await _notifier.reachable(
+        transaction,
+        NotificationRecipients.residents(
+          createdBy: incident['creadaPor'] as String?,
+          activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+        ),
+      );
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
@@ -226,12 +243,7 @@ class IncidentAdminRemoteDataSource {
         RejectionPlan.incidentUpdate(comment: comment),
       );
 
-      // Al que la registró y al residente activo de la vivienda, con el
-      // motivo del rechazo.
-      final residentIds = NotificationRecipients.residents(
-        createdBy: incident['creadaPor'] as String?,
-        activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
-      );
+      // Con el motivo del rechazo.
       for (final residentId in residentIds) {
         transaction.set(
           _notifications.doc(),

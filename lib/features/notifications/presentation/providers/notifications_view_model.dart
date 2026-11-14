@@ -75,7 +75,11 @@ class NotificationsViewModel extends ChangeNotifier {
     }
     _subscription = stream.listen(
       (notifications) {
-        _notifications = List.unmodifiable(notifications);
+        // La consulta ya filtra por destinatario; se revisa de nuevo para
+        // no mostrar nunca un aviso de otra persona (HU-6.1).
+        _notifications = List.unmodifiable(
+          notifications.where((n) => n.userId == user.uid),
+        );
         _state = NotificationsState.ready;
         _errorMessage = null;
         _notify();

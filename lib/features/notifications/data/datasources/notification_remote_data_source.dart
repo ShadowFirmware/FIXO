@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firestore_collections.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../domain/entities/app_notification.dart';
+import '../../domain/entities/notification_recipients.dart';
 import '../models/notification_model.dart';
 import '../models/notification_notices.dart';
 
@@ -79,6 +80,23 @@ class NotificationRemoteDataSource {
       batch.update(_notifications.doc(id), NotificationModel.markRead);
     }
     return batch.commit();
+  }
+
+  /// De [userIds], los que pueden recibir avisos según
+  /// [NotificationRecipients.canReceive]. Lee sus perfiles dentro de
+  /// [transaction], así que se debe llamar antes de cualquier escritura.
+  Future<List<String>> reachable(
+    Transaction transaction,
+    Iterable<String> userIds,
+  ) async {
+    final users = _firestore.collection(FirestoreCollections.users);
+    return [
+      for (final id in userIds.toSet())
+        if (NotificationRecipients.canReceive(
+          (await transaction.get(users.doc(id))).data(),
+        ))
+          id,
+    ];
   }
 
   /// Agrega [notices] dentro de [transaction].
