@@ -4,6 +4,7 @@ import '../../../../core/constants/firestore_collections.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../domain/entities/app_notification.dart';
 import '../models/notification_model.dart';
+import '../models/notification_notices.dart';
 
 /// Servicio de avisos (HU-6.1): guarda en la colección `notificaciones` los
 /// avisos que arman los demás módulos con [NotificationModel.newNotice].
@@ -112,15 +113,17 @@ class NotificationRemoteDataSource {
     required String incidentId,
     required String reportNumber,
     required String title,
+    String typeLabel = '',
   }) {
     addNotices(transaction, [
-      for (final adminId in adminIds)
-        NotificationModel.newNotice(
-          userId: adminId,
-          type: NotificationType.newIncident,
-          title: 'Nueva incidencia $reportNumber',
-          message: '"$title" está pendiente de asignación.',
-          refId: incidentId,
+      // Un aviso por administrador, aunque la lista traiga repetidos.
+      for (final adminId in adminIds.toSet())
+        NotificationNotices.newIncident(
+          adminId: adminId,
+          incidentId: incidentId,
+          reportNumber: reportNumber,
+          title: title,
+          typeLabel: typeLabel,
         ),
     ]);
   }

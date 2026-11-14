@@ -66,6 +66,7 @@ class IncidentRepositoryImpl implements IncidentRepository {
               incidentId: incident.id,
               reportNumber: incident.reportNumber,
               title: incident.title,
+              typeLabel: incident.type.label,
             ),
       );
     } on FirebaseException catch (e) {

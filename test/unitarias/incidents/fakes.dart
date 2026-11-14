@@ -116,6 +116,7 @@ class FakeNotifications implements NotificationRemoteDataSource {
     required String incidentId,
     required String reportNumber,
     required String title,
+    String typeLabel = '',
   }) {
     notices.add((adminIds: adminIds, incidentId: incidentId, title: title));
   }
