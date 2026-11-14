@@ -1,3 +1,4 @@
+import '../../../../core/utils/date_formats.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../domain/entities/app_notification.dart';
 import 'notification_model.dart';
@@ -79,6 +80,38 @@ abstract final class NotificationNotices {
       ].join(' '),
       refId: reportId,
     );
+  }
+
+  /// Al usuario: su cuenta se suspendió desde [from] hasta [until]
+  /// (T 6.1.11). El aviso dice cuánto dura y cuándo termina.
+  static Map<String, dynamic> accountSuspended({
+    required String userId,
+    required DateTime from,
+    required DateTime until,
+    String? reportId,
+  }) => NotificationModel.newNotice(
+    userId: userId,
+    type: NotificationType.accountSuspended,
+    title: 'Cuenta suspendida',
+    message:
+        'Tu cuenta se suspendió por ${durationLabel(until.difference(from))}, '
+        'hasta el ${DateFormats.dateTime(until)}. Mientras tanto no podrás '
+        'iniciar sesión.',
+    refId: reportId,
+  );
+
+  /// "3 días", "1 día", "5 horas" o "30 minutos". Se redondea hacia arriba
+  /// para no prometer menos tiempo del real.
+  static String durationLabel(Duration duration) {
+    String plural(int n, String one, String many) =>
+        n == 1 ? '1 $one' : '$n $many';
+    final minutes = (duration.inSeconds / 60).ceil();
+    if (minutes < 60) {
+      return plural(minutes < 1 ? 1 : minutes, 'minuto', 'minutos');
+    }
+    final hours = (minutes / 60).ceil();
+    if (hours < 24) return plural(hours, 'hora', 'horas');
+    return plural((hours / 24).ceil(), 'día', 'días');
   }
 
   /// "Residente", "Técnico" o "Administrador".
