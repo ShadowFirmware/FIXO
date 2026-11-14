@@ -6,6 +6,7 @@ import '../../../housing/domain/entities/housing.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../notifications/data/datasources/notification_remote_data_source.dart';
+import '../../../notifications/domain/entities/notification_recipients.dart';
 import '../models/finalize_plan.dart';
 import '../models/solution_plan.dart';
 import '../models/start_attention_plan.dart';
@@ -124,16 +125,15 @@ class AssignedIncidentRemoteDataSource {
         now: DateTime.now(),
       );
 
+      // Las lecturas van antes de cualquier escritura de la transacción.
+      final residentIds = await _residentsToNotify(transaction, incident!);
+
       transaction.update(incidentRef, StartAttentionPlan.incidentUpdate);
 
-      final residentId = incident!['creadaPor'] as String? ?? '';
       final notifications = _firestore.collection(
         FirestoreCollections.notifications,
       );
-      for (final userId in {
-        if (residentId.isNotEmpty) residentId,
-        ...adminIds,
-      }) {
+      for (final userId in {...residentIds, ...adminIds}) {
         transaction.set(
           notifications.doc(),
           StartAttentionPlan.notice(
@@ -207,18 +207,17 @@ class AssignedIncidentRemoteDataSource {
         now: DateTime.now(),
       );
 
+      // Las lecturas van antes de cualquier escritura de la transacción.
+      final residentIds = await _residentsToNotify(transaction, incident!);
+
       transaction
         ..update(incidentRef, FinalizePlan.incidentUpdate)
         ..update(technicianRef, FinalizePlan.technicianUpdate);
 
-      final residentId = incident!['creadaPor'] as String? ?? '';
       final notifications = _firestore.collection(
         FirestoreCollections.notifications,
       );
-      for (final userId in {
-        if (residentId.isNotEmpty) residentId,
-        ...adminIds,
-      }) {
+      for (final userId in {...residentIds, ...adminIds}) {
         transaction.set(
           notifications.doc(),
           FinalizePlan.notice(
@@ -235,5 +234,23 @@ class AssignedIncidentRemoteDataSource {
         );
       }
     });
+  }
+
+  /// El residente que registró [incident] y el residente activo de su
+  /// vivienda (HU-6.1).
+  Future<List<String>> _residentsToNotify(
+    Transaction transaction,
+    Map<String, dynamic> incident,
+  ) async {
+    final housingId = incident['viviendaId'] as String? ?? '';
+    final housing = housingId.isEmpty
+        ? null
+        : await transaction.get(
+            _firestore.collection(FirestoreCollections.housings).doc(housingId),
+          );
+    return NotificationRecipients.residents(
+      createdBy: incident['creadaPor'] as String?,
+      activeResidentId: housing?.data()?['residenteActivoId'] as String?,
+    );
   }
 }
