@@ -87,7 +87,22 @@ class _TechnicianIncidentDetailScreenState
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
-      appBar: const FixoAppBar(title: 'Detalle de la incidencia'),
+      appBar: FixoAppBar(
+        title: 'Detalle de la incidencia',
+        actions: [
+          // HU-5.1: chat con el residente o el técnico de la incidencia.
+          FixoAppBarAction(
+            key: const Key('detail.chat'),
+            icon: Icons.forum_outlined,
+            tooltip: 'Chat',
+            onPressed: () => Navigator.pushNamed(
+              context,
+              RouteNames.incidentChat,
+              arguments: widget.incidentId,
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
