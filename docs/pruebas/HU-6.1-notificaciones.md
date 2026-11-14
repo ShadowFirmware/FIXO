@@ -154,14 +154,14 @@ Las pruebas de las HU 3.5, 3.7, 4.9 y 4.10 siguen pasando: el contenido de sus a
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Cubierto en automático por PU-623 y PU-637 |
-| PM-02 | Pendiente | | | Cubierto en automático por PU-623 |
-| PM-03 | Pendiente | | | Cubierto en automático por PU-623 |
-| PM-04 | Pendiente | | | Cubierto en automático por PU-623 |
-| PM-05 | Pendiente | | | Cubierto en automático por PU-624 (la transacción con Firestore real no se puede simular) |
-| PM-06 | Pendiente | | | Cubierto en automático por PU-629 |
-| PM-07 | Pendiente | | | Cubierto en automático por PU-631, PU-635 y PU-638 |
-| PM-08 | Pendiente | | | Cubierto en automático por PU-630 |
-| PM-09 | Pendiente | | | Cubierto en automático por PU-639 a PU-642 |
-| PM-10 | Pendiente | | | Cubierto en automático por PU-643 y PU-644; requiere un teléfono para ver la notificación |
-| PM-11 | Pendiente | | | Cubierto en automático por PU-646 y PU-647 |
+| PM-01 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 14/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

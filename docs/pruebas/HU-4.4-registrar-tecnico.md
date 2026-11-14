@@ -113,16 +113,14 @@ Son las mismas pruebas de la sección Usuarios que la HU 4.3 (PU-574 a PU-580). 
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Automatizada en PU-574 |
-| PM-02 | Pendiente | | | Automatizada en PU-577 |
-| PM-03 | Pendiente | | | Automatizada en PU-578 |
-| PM-04 | Pendiente | | | Automatizada en PU-578 |
-| PM-05 | Pendiente | | | Automatizada en PU-579 (sin Firebase) |
-| PM-06 | Pendiente | | | Automatizada en PU-579 y PU-580 |
-| PM-07 | Pendiente | | | Automatizada en PU-579 |
-| PM-08 | Pendiente | | | Requiere el dispositivo sin conexión |
-| PM-09 | Pendiente | | | |
+| PM-01 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

@@ -113,9 +113,9 @@ Las pruebas de la HU 3.4 (PU-528 a PU-537) siguen cubriendo la opción en el det
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | |
+| PM-01 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

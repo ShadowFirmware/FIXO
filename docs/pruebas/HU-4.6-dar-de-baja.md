@@ -96,17 +96,15 @@ flutter test test/unitarias/admin/admin_users_test.dart
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Automatizada en PU-581 |
-| PM-02 | Pendiente | | | Automatizada en PU-581 (sin Firebase) |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | Requiere Firebase Authentication |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | Automatizada en PU-576 |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | Requiere viviendas reales |
-| PM-09 | Pendiente | | | Automatizada en PU-580 |
-| PM-10 | Pendiente | | | Requiere incidencias reales |
+| PM-01 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

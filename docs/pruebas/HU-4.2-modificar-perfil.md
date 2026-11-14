@@ -160,21 +160,19 @@ Pruebas propias de la pantalla del administrador, agregadas el 09/11/2026 (las a
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Automatizada en PU-582 |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | Automatizada en PU-583 |
-| PM-04 | Pendiente | | | Automatizada en PU-583 |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | Automatizada en PU-584 (sin Firebase) |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | |
-| PM-09 | Pendiente | | | |
-| PM-10 | Pendiente | | | |
-| PM-11 | Pendiente | | | Automatizada en PU-582 |
-| PM-12 | Pendiente | | | |
-| PM-13 | Pendiente | | | |
-| PM-14 | Pendiente | | | |
+| PM-01 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-12 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-13 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-14 | Aprobada | 30/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
