@@ -38,6 +38,35 @@ class NotificationRemoteDataSource {
     return [for (final doc in admins.docs) doc.id];
   }
 
+  /// Avisos de [userId], del más reciente al más antiguo, cada vez que
+  /// cambian. Se ordenan en la app para no necesitar un índice compuesto;
+  /// los que todavía no tienen fecha del servidor van primero.
+  Stream<List<NotificationModel>> watchFor(String userId) => _notifications
+      .where('usuarioId', isEqualTo: userId)
+      .snapshots()
+      .map((query) {
+        final notices = <NotificationModel>[];
+        for (final doc in query.docs) {
+          try {
+            notices.add(NotificationModel.fromMap(doc.id, doc.data()));
+          } on FormatException {
+            // Un aviso con datos inválidos no oculta los demás.
+            continue;
+          }
+        }
+        return notices..sort(newestFirst);
+      });
+
+  /// Orden de la lista: primero los más recientes.
+  static int newestFirst(AppNotification a, AppNotification b) {
+    final aDate = a.date;
+    final bDate = b.date;
+    if (aDate == null || bDate == null) {
+      return (aDate == null ? 0 : 1) - (bDate == null ? 0 : 1);
+    }
+    return bDate.compareTo(aDate);
+  }
+
   /// Agrega [notices] dentro de [transaction].
   void addNotices(
     Transaction transaction,

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/bars_visibility.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
-import '../../../../shared/widgets/placeholder_view.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
 import '../providers/technician_shell_view_model.dart';
 import 'technician_history_screen.dart';
 import 'technician_home_screen.dart';
@@ -66,7 +65,7 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
                 children: const [
                   TechnicianHomeScreen(),
                   TechnicianHistoryScreen(),
-                  _PendingTab(title: 'Avisos'),
+                  NotificationsScreen(),
                   TechnicianProfileScreen(),
                 ],
               ),
@@ -85,17 +84,3 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
   }
 }
 
-/// Pestaña que todavía no tiene pantalla propia.
-class _PendingTab extends StatelessWidget {
-  const _PendingTab({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: FixoAppBar(title: title),
-      body: PlaceholderView(title: title),
-    );
-  }
-}
