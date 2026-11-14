@@ -117,6 +117,42 @@ abstract final class NotificationNotices {
               'normalmente.',
   );
 
+  /// Al usuario: su cuenta se deshabilitó sin fecha de término porque se
+  /// validó su reporte número [reportsToDisable] (T 6.1.13). Solo el
+  /// administrador puede reactivarla.
+  static Map<String, dynamic> accountDisabled({
+    required String userId,
+    String? reportId,
+  }) => NotificationModel.newNotice(
+    userId: userId,
+    type: NotificationType.accountDisabled,
+    title: 'Cuenta deshabilitada',
+    message:
+        'Tu cuenta se deshabilitó de forma indefinida por acumular '
+        '$reportsToDisable reportes de conducta validados. Comunícate con la '
+        'administración para revisar tu caso.',
+    refId: reportId,
+  );
+
+  /// Avisos que corresponden al validar un reporte de conducta: la
+  /// advertencia siempre y, al llegar a [reportsToDisable], también la
+  /// deshabilitación. Así la HU 7.x no tiene que repetir la regla.
+  static List<Map<String, dynamic>> reportValidated({
+    required String userId,
+    required String reportId,
+    required int validatedReports,
+    String reason = '',
+  }) => [
+    conductWarning(
+      userId: userId,
+      reportId: reportId,
+      validatedReports: validatedReports,
+      reason: reason,
+    ),
+    if (validatedReports >= reportsToDisable)
+      accountDisabled(userId: userId, reportId: reportId),
+  ];
+
   /// "3 días", "1 día", "5 horas" o "30 minutos". Se redondea hacia arriba
   /// para no prometer menos tiempo del real.
   static String durationLabel(Duration duration) {
