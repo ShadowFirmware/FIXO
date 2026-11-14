@@ -28,15 +28,31 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AdminPage(
-      currentRoute: RouteNames.adminNotifications,
-      title: 'Avisos',
-      subtitle: 'Incidencias nuevas, cambios y reportes de conducta',
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: NotificationsList(viewModel: _viewModel),
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) => AdminPage(
+        currentRoute: RouteNames.adminNotifications,
+        title: 'Avisos',
+        subtitle: 'Incidencias nuevas, cambios y reportes de conducta',
+        actions: [
+          if (_viewModel.unreadCount > 0)
+            AdminPageAction(
+              key: const Key('notifications.markAll'),
+              icon: Icons.done_all_rounded,
+              label: 'Marcar todo como leído',
+              onPressed: () => markAllNotificationsRead(context, _viewModel),
+            ),
+        ],
+        body: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: NotificationsList(
+              viewModel: _viewModel,
+              onOpen: (notification) =>
+                  openNotification(context, _viewModel, notification),
+            ),
+          ),
         ),
       ),
     );

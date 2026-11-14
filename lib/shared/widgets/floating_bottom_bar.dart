@@ -9,6 +9,7 @@ class FloatingBottomBarItem {
     required this.icon,
     required this.selectedIcon,
     required this.label,
+    this.badge = 0,
   });
 
   final IconData icon;
@@ -16,6 +17,17 @@ class FloatingBottomBarItem {
 
   /// Etiqueta corta (idealmente una palabra de 6 a 9 letras).
   final String label;
+
+  /// Número sobre el ícono, por ejemplo los avisos sin leer. Con 0 no se
+  /// muestra.
+  final int badge;
+
+  FloatingBottomBarItem withBadge(int badge) => FloatingBottomBarItem(
+    icon: icon,
+    selectedIcon: selectedIcon,
+    label: label,
+    badge: badge,
+  );
 }
 
 /// Barra de navegación inferior flotante con indicador animado.
@@ -136,7 +148,9 @@ class _FloatingBottomBarButton extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: item.label,
+      label: item.badge > 0
+          ? '${item.label}, ${item.badge} sin leer'
+          : item.label,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -172,13 +186,18 @@ class _FloatingBottomBarButton extends StatelessWidget {
                 duration: _duration,
                 transitionBuilder: (child, animation) =>
                     ScaleTransition(scale: animation, child: child),
-                child: Icon(
-                  selected ? item.selectedIcon : item.icon,
+                child: Badge(
                   key: ValueKey(selected),
-                  size: 24,
-                  color: selected
-                      ? AppColors.white
-                      : AppColors.textSecondary.withValues(alpha: 0.6),
+                  isLabelVisible: item.badge > 0,
+                  backgroundColor: AppColors.orange,
+                  label: Text(item.badge > 9 ? '9+' : '${item.badge}'),
+                  child: Icon(
+                    selected ? item.selectedIcon : item.icon,
+                    size: 24,
+                    color: selected
+                        ? AppColors.white
+                        : AppColors.textSecondary.withValues(alpha: 0.6),
+                  ),
                 ),
               ),
               Flexible(

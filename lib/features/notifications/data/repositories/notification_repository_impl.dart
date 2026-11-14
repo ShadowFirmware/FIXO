@@ -22,6 +22,25 @@ class NotificationRepositoryImpl implements NotificationRepository {
         test: (e) => e is FirebaseException,
       );
 
+  @override
+  Future<void> markRead(String id) async {
+    try {
+      await _remote.markRead(id);
+    } on FirebaseException catch (e) {
+      throw _failureFor(e, NotificationFailure.updateFailed);
+    }
+  }
+
+  @override
+  Future<void> markAllRead(List<String> ids) async {
+    if (ids.isEmpty) return;
+    try {
+      await _remote.markAllRead(ids);
+    } on FirebaseException catch (e) {
+      throw _failureFor(e, NotificationFailure.updateFailed);
+    }
+  }
+
   static NotificationFailure _failureFor(
     FirebaseException e,
     NotificationFailure fallback,

@@ -67,6 +67,19 @@ class NotificationRemoteDataSource {
     return bDate.compareTo(aDate);
   }
 
+  /// Marca como leído el aviso [id].
+  Future<void> markRead(String id) =>
+      _notifications.doc(id).update(NotificationModel.markRead);
+
+  /// Marca como leídos los avisos [ids] en un solo lote.
+  Future<void> markAllRead(Iterable<String> ids) {
+    final batch = _firestore.batch();
+    for (final id in ids) {
+      batch.update(_notifications.doc(id), NotificationModel.markRead);
+    }
+    return batch.commit();
+  }
+
   /// Agrega [notices] dentro de [transaction].
   void addNotices(
     Transaction transaction,

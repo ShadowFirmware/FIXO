@@ -83,6 +83,17 @@ class AppNotification {
   /// Hora del servidor, o `null` mientras no llega a Firestore.
   final DateTime? date;
 
+  AppNotification copyWith({bool? read}) => AppNotification(
+    id: id,
+    userId: userId,
+    type: type,
+    title: title,
+    message: message,
+    refId: refId,
+    read: read ?? this.read,
+    date: date,
+  );
+
   /// ID de la incidencia a la que lleva el aviso, o `null` si no lleva a
   /// una.
   String? get incidentId {

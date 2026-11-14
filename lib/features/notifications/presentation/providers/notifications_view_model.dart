@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/errors/notification_failure.dart';
 import '../../../../core/utils/date_formats.dart';
+import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
 import '../../data/repositories/notification_repository_impl.dart';
 import '../../domain/entities/app_notification.dart';
@@ -62,23 +64,103 @@ class NotificationsViewModel extends ChangeNotifier {
       _notify();
       return;
     }
-    _subscription = _repository
-        .watchFor(user.uid)
-        .listen(
-          (notifications) {
-            _notifications = List.unmodifiable(notifications);
-            _state = NotificationsState.ready;
-            _errorMessage = null;
-            _notify();
-          },
-          onError: (Object error) {
-            _errorMessage = error is NotificationFailure
-                ? error.message
-                : NotificationFailure.loadFailed.message;
-            _state = NotificationsState.error;
-            _notify();
-          },
-        );
+    final Stream<List<AppNotification>> stream;
+    try {
+      stream = _repository.watchFor(user.uid);
+    } catch (_) {
+      _errorMessage = NotificationFailure.loadFailed.message;
+      _state = NotificationsState.error;
+      _notify();
+      return;
+    }
+    _subscription = stream.listen(
+      (notifications) {
+        _notifications = List.unmodifiable(notifications);
+        _state = NotificationsState.ready;
+        _errorMessage = null;
+        _notify();
+      },
+      onError: (Object error) {
+        _errorMessage = error is NotificationFailure
+            ? error.message
+            : NotificationFailure.loadFailed.message;
+        _state = NotificationsState.error;
+        _notify();
+      },
+    );
+  }
+
+  /// Marca [notification] como leído al abrirlo. Devuelve el mensaje de
+  /// error, o `null` si se marcó (o ya estaba leído).
+  Future<String?> open(AppNotification notification) async {
+    if (notification.read) return null;
+    // Se marca de inmediato en la lista; Firestore lo confirma después.
+    _replaceRead({notification.id});
+    try {
+      await _repository.markRead(notification.id);
+      return null;
+    } on NotificationFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return NotificationFailure.updateFailed.message;
+    }
+  }
+
+  bool _markingAll = false;
+  bool get isMarkingAll => _markingAll;
+
+  /// Marca como leídos todos los avisos. Devuelve el mensaje de error, o
+  /// `null` si se marcaron.
+  Future<String?> markAllRead() async {
+    final ids = [
+      for (final notification in _notifications)
+        if (!notification.read) notification.id,
+    ];
+    if (ids.isEmpty || _markingAll) return null;
+    _markingAll = true;
+    _notify();
+    try {
+      await _repository.markAllRead(ids);
+      _replaceRead(ids.toSet());
+      return null;
+    } on NotificationFailure catch (failure) {
+      return failure.message;
+    } catch (_) {
+      return NotificationFailure.updateFailed.message;
+    } finally {
+      _markingAll = false;
+      _notify();
+    }
+  }
+
+  void _replaceRead(Set<String> ids) {
+    _notifications = List.unmodifiable([
+      for (final notification in _notifications)
+        ids.contains(notification.id)
+            ? notification.copyWith(read: true)
+            : notification,
+    ]);
+    _notify();
+  }
+
+  /// Pantalla que abre [notification] según el rol del usuario, con sus
+  /// argumentos, o `null` si el aviso no lleva a otra pantalla (por
+  /// ejemplo, los de la cuenta).
+  (String, Object?)? destinationFor(AppNotification notification) {
+    final incidentId = notification.incidentId;
+    if (incidentId == null) return null;
+    return switch (_session.currentUser?.role) {
+      UserRole.resident => (RouteNames.incidentDetail, incidentId),
+      UserRole.technician => (RouteNames.technicianIncidentDetail, incidentId),
+      // El administrador no tiene un detalle por incidencia: las nuevas se
+      // asignan desde los reportes pendientes y las demás se consultan en
+      // el historial.
+      UserRole.admin =>
+        notification.type == NotificationType.newIncident
+            ? (RouteNames.adminPendingIncidents, null)
+            : (RouteNames.adminIncidentHistory, null),
+      null => null,
+    };
   }
 
   /// Cuándo llegó [notification], por ejemplo "Hace 5 min" o

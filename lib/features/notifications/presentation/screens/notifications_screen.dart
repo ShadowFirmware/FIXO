@@ -28,21 +28,43 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // El padding del MediaQuery ya incluye el alto de ambas barras.
-    final padding = MediaQuery.paddingOf(context);
-
     return Scaffold(
       backgroundColor: AppColors.surfaceAlt,
       extendBodyBehindAppBar: true,
-      appBar: const FixoAppBar(title: 'Avisos'),
-      body: NotificationsList(
-        viewModel: _viewModel,
-        padding: EdgeInsets.fromLTRB(
-          20,
-          padding.top + 16,
-          20,
-          padding.bottom + 24,
-        ),
+      appBar: FixoAppBar(
+        title: 'Avisos',
+        actions: [
+          ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) => _viewModel.unreadCount == 0
+                ? const SizedBox.shrink()
+                : FixoAppBarAction(
+                    key: const Key('notifications.markAll'),
+                    icon: Icons.done_all_rounded,
+                    tooltip: 'Marcar todo como leído',
+                    onPressed: () =>
+                        markAllNotificationsRead(context, _viewModel),
+                  ),
+          ),
+        ],
+      ),
+      // Dentro del cuerpo, el padding del MediaQuery ya incluye el alto de
+      // la barra superior y de la barra flotante.
+      body: Builder(
+        builder: (context) {
+          final padding = MediaQuery.paddingOf(context);
+          return NotificationsList(
+            viewModel: _viewModel,
+            onOpen: (notification) =>
+                openNotification(context, _viewModel, notification),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              padding.top + 16,
+              20,
+              padding.bottom + 24,
+            ),
+          );
+        },
       ),
     );
   }

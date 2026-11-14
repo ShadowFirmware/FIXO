@@ -264,3 +264,39 @@ class NotificationsList extends StatelessWidget {
     );
   }
 }
+
+/// Marca [notification] como leído y abre la pantalla a la que lleva, si
+/// lleva a una.
+Future<void> openNotification(
+  BuildContext context,
+  NotificationsViewModel viewModel,
+  AppNotification notification,
+) async {
+  final destination = viewModel.destinationFor(notification);
+  if (destination case (final route, final arguments)) {
+    Navigator.pushNamed(context, route, arguments: arguments);
+  }
+  final error = await viewModel.open(notification);
+  if (error != null && context.mounted) {
+    showNotificationsMessage(context, error);
+  }
+}
+
+/// Marca como leídos todos los avisos y avisa si falla.
+Future<void> markAllNotificationsRead(
+  BuildContext context,
+  NotificationsViewModel viewModel,
+) async {
+  final error = await viewModel.markAllRead();
+  if (!context.mounted) return;
+  showNotificationsMessage(
+    context,
+    error ?? 'Marcaste todos los avisos como leídos.',
+  );
+}
+
+void showNotificationsMessage(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
+}

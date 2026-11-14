@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/bars_visibility.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
+import '../../../notifications/presentation/providers/notifications_view_model.dart';
 import '../../../notifications/presentation/screens/notifications_screen.dart';
 import '../providers/technician_shell_view_model.dart';
 import 'technician_history_screen.dart';
@@ -42,16 +43,21 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
 
   final _viewModel = TechnicianShellViewModel();
 
+  /// Avisos del usuario: se escuchan desde que entra para mostrar en la
+  /// barra cuántos no ha leído (HU-6.1).
+  final _notifications = NotificationsViewModel();
+
   @override
   void dispose() {
     _viewModel.dispose();
+    _notifications.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _viewModel,
+      listenable: Listenable.merge([_viewModel, _notifications]),
       builder: (context, _) {
         final tab = _viewModel.currentTab;
         return Scaffold(
@@ -62,17 +68,22 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
               onVisibilityChanged: _viewModel.setBarsVisible,
               child: IndexedStack(
                 index: tab.index,
-                children: const [
-                  TechnicianHomeScreen(),
-                  TechnicianHistoryScreen(),
-                  NotificationsScreen(),
-                  TechnicianProfileScreen(),
+                children: [
+                  const TechnicianHomeScreen(),
+                  const TechnicianHistoryScreen(),
+                  NotificationsScreen(viewModel: _notifications),
+                  const TechnicianProfileScreen(),
                 ],
               ),
             ),
           ),
           bottomNavigationBar: FloatingBottomBar(
-            items: _items,
+            items: [
+              for (final (index, item) in _items.indexed)
+                index == TechnicianTab.notifications.index
+                    ? item.withBadge(_notifications.unreadCount)
+                    : item,
+            ],
             visible: _viewModel.barsVisible,
             selectedIndex: tab.index,
             onSelected: (index) =>
@@ -83,4 +94,3 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
     );
   }
 }
-
