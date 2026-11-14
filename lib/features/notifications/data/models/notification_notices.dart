@@ -52,6 +52,35 @@ abstract final class NotificationNotices {
     ];
   }
 
+  /// Reportes validados con los que la cuenta se deshabilita sin fecha de
+  /// término (HU-7.x).
+  static const reportsToDisable = 5;
+
+  /// Al usuario reportado: se validó un reporte de conducta en su contra
+  /// (T 6.1.10). [validatedReports] cuenta este reporte.
+  static Map<String, dynamic> conductWarning({
+    required String userId,
+    required String reportId,
+    required int validatedReports,
+    String reason = '',
+  }) {
+    final detail = reason.trim();
+    final left = reportsToDisable - validatedReports;
+    return NotificationModel.newNotice(
+      userId: userId,
+      type: NotificationType.conductWarning,
+      title: 'Advertencia por conducta',
+      message: [
+        'Se validó un reporte de conducta en tu contra.',
+        if (detail.isNotEmpty) 'Motivo: ${_shorten(detail)}',
+        'Llevas $validatedReports de $reportsToDisable reportes validados.',
+        if (left > 0)
+          'Al llegar a $reportsToDisable tu cuenta se deshabilitará.',
+      ].join(' '),
+      refId: reportId,
+    );
+  }
+
   /// "Residente", "Técnico" o "Administrador".
   static String roleLabel(UserRole role) => switch (role) {
     UserRole.resident => 'Residente',
