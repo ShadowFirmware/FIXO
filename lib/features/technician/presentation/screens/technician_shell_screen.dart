@@ -4,6 +4,7 @@ import '../../../../shared/widgets/bars_visibility.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
 import '../../../notifications/presentation/providers/notifications_view_model.dart';
 import '../../../notifications/presentation/screens/notifications_screen.dart';
+import '../../../notifications/presentation/widgets/notification_permission.dart';
 import '../providers/technician_shell_view_model.dart';
 import 'technician_history_screen.dart';
 import 'technician_home_screen.dart';
@@ -46,6 +47,16 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
   /// Avisos del usuario: se escuchan desde que entra para mostrar en la
   /// barra cuántos no ha leído (HU-6.1).
   final _notifications = NotificationsViewModel();
+
+  @override
+  void initState() {
+    super.initState();
+    // La primera vez que entra se pide el permiso de notificaciones, como
+    // en cualquier otra app (HU-6.1).
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => askNotificationsOnce(context),
+    );
+  }
 
   @override
   void dispose() {

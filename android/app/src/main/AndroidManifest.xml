@@ -2,6 +2,13 @@
     <!-- Firebase, Cloudinary y la reproducción de evidencias necesitan red.
          En debug Flutter lo agrega solo, pero en release hace falta aquí. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- HU-6.1: avisos como notificaciones del teléfono (Android 13+ pide
+         permiso la primera vez). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Fotos y videos de evidencias: se pide permiso la primera vez que se
+         abre la cámara. No es obligatorio tener cámara para instalar FIXO. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="fixo"
         android:name="${applicationName}"

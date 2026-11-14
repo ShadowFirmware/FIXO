@@ -28,11 +28,12 @@ Verificar que cada usuario reciba los avisos de las incidencias y de los reporte
 | T 6.1.8 | Aviso de rechazo con el motivo |
 | T 6.1.9 a T 6.1.13 | Avisos de reporte de conducta, advertencia, suspensión (con su duración), reactivación y deshabilitación indefinida |
 | T 6.1.14 | Destinatarios: el residente que registró la incidencia y el residente activo de la vivienda, sin repetir y sin cuentas dadas de baja; cada usuario solo ve sus avisos |
+| Permisos del teléfono | La primera vez que el usuario entra se explica para qué sirven las notificaciones y se pide el permiso, sin volver a insistir; en Avisos se ofrece activarlas, o se abren los ajustes si el sistema ya no pregunta. Mientras la app está abierta o en segundo plano, cada aviso nuevo aparece como notificación del teléfono y al tocarla se abre. La cámara pide permiso la primera vez que se usa para las evidencias |
 
 **No incluye**
 
 - El registro, la validación y las sanciones de los reportes de conducta (HU 7.x). Los avisos de T 6.1.9 a T 6.1.13 quedan listos en `NotificationNotices` para que esa HU solo los guarde. Lo único que ya se dispara es la reactivación al terminar una suspensión temporal, que se detecta al iniciar sesión.
-- Notificaciones push fuera de la app: el plan Spark no incluye Cloud Functions.
+- Notificaciones con la app cerrada (push con Firebase Cloud Messaging): el plan Spark no incluye Cloud Functions para enviarlas. Con la app cerrada, los avisos se ven al abrirla.
 - Reglas de seguridad de Firestore (entorno de desarrollo).
 
 ## 3. Criterios de aceptación cubiertos
@@ -74,13 +75,14 @@ Verificar que cada usuario reciba los avisos de las incidencias y de los reporte
 | Administrador | Administrador activo, con sesión en otro dispositivo o navegador |
 | Cambio de residente | Una incidencia registrada por un residente cuya vivienda después se asignó a otro |
 | Suspensión | Un usuario con `estadoCuenta: suspendida` y `suspendidaHasta` en el pasado |
+| Teléfono | Android 13 o más reciente, con FIXO recién instalada (sin permisos concedidos) |
 
 ## 7. Casos de prueba unitarios
 
 Para ejecutarlos:
 
 ```bash
-flutter test test/unitarias/notifications/notifications_test.dart
+flutter test test/unitarias/notifications/
 ```
 
 | ID | Tarea | Caso | Resultado esperado |
@@ -105,6 +107,15 @@ flutter test test/unitarias/notifications/notifications_test.dart
 | PU-636 | T 6.1.3 | Sin avisos y con error | Mensaje de que no hay avisos; con error, "Reintentar" vuelve a consultar |
 | PU-637 | T 6.1.3, T 6.1.5 | Sección "Avisos" del administrador | Muestra el aviso de la incidencia nueva y lleva a los reportes pendientes |
 | PU-638 | T 6.1.4 | Número de avisos sin leer en la barra | Muestra el número, "9+" con más de nueve y nada con cero |
+| PU-639 | Permisos | Cuándo se pide el permiso de notificaciones y cuándo se ofrece activarlo | Solo la primera vez y si el sistema todavía pregunta; el aviso en Avisos aparece si están desactivadas |
+| PU-640 | Permisos | Primer ingreso: "Activar" | Se explica para qué sirven, se pide el permiso del sistema y no se vuelve a preguntar |
+| PU-641 | Permisos | Primer ingreso: "Ahora no", permiso ya concedido o sin poder consultarlo | No se pide y no se insiste; sin poder consultarlo, la app sigue igual |
+| PU-642 | Permisos | Aviso en Avisos con las notificaciones desactivadas | "Activar" pide el permiso; si el sistema ya no pregunta, abre los ajustes; concedido, el aviso desaparece |
+| PU-643 | Permisos | Avisos que llegan con la sesión abierta | Solo se notifican los nuevos, sin leer y del usuario, una sola vez; al cerrar sesión se deja de escuchar |
+| PU-644 | Permisos | Tocar la notificación del teléfono | Se marca como leído y se abre la incidencia; la de otra persona se ignora |
+| PU-645 | Permisos | Datos que guarda la notificación | Se recupera el aviso para abrirlo; datos inválidos se ignoran |
+| PU-646 | Permisos | Abrir la cámara con el permiso concedido, negado o negado para siempre | Se pide antes de abrirla (no para la galería); si se niega, no se abre y se explica cómo activarla |
+| PU-647 | Permisos | El técnico niega la cámara al agregar evidencias | No se agrega nada y se muestra el mensaje |
 
 Las pruebas de las HU 3.5, 3.7, 4.9 y 4.10 siguen pasando: el contenido de sus avisos no cambió.
 
@@ -120,11 +131,14 @@ Las pruebas de las HU 3.5, 3.7, 4.9 y 4.10 siguen pasando: el contenido de sus a
 | PM-06 | Fin de suspensión | Iniciar sesión con la suspensión vencida | Entra; en Firestore la cuenta queda `activa` y aparece el aviso "Cuenta reactivada" |
 | PM-07 | Leídos y contador | Revisar la barra, abrir un aviso y usar "Marcar todo como leído" | El número baja al abrir cada aviso y desaparece al marcar todos |
 | PM-08 | Privacidad | Revisar los avisos con otra cuenta | Cada usuario solo ve los suyos |
+| PM-09 | Permiso al entrar | Instalar FIXO, iniciar sesión y elegir "Activar" (y en otro teléfono "Ahora no") | Aparece la explicación y luego el permiso del sistema; no se vuelve a preguntar; con "Ahora no", en Avisos se ofrece activarlas |
+| PM-10 | Notificación del teléfono | Con la app en segundo plano, asignar o rechazar una incidencia del residente | Llega la notificación; al tocarla se abre la incidencia y el aviso queda leído |
+| PM-11 | Permiso de la cámara | Agregar una evidencia con la cámara por primera vez; negar y volver a intentar | Se pide el permiso; negado, se explica cómo activarlo y la cámara no se abre |
 
 ## 9. Criterios de aprobación
 
 - Todas las pruebas unitarias pasan (`flutter test`).
-- Los casos manuales PM-01 a PM-08 se cumplen.
+- Los casos manuales PM-01 a PM-11 se cumplen.
 - No hay defectos abiertos de severidad alta.
 
 ## 10. Resultados
@@ -133,8 +147,8 @@ Las pruebas de las HU 3.5, 3.7, 4.9 y 4.10 siguen pasando: el contenido de sus a
 
 | Conjunto | Pruebas | Resultado |
 |---|---|---|
-| HU 6.1 (PU-619 a PU-638) | 20 | Aprobadas |
-| Proyecto completo (`flutter test`) | 344 | Aprobadas |
+| HU 6.1 (PU-619 a PU-647) | 29 | Aprobadas |
+| Proyecto completo (`flutter test`) | 353 | Aprobadas |
 
 ### Manuales
 
@@ -148,3 +162,6 @@ Las pruebas de las HU 3.5, 3.7, 4.9 y 4.10 siguen pasando: el contenido de sus a
 | PM-06 | Pendiente | | | Cubierto en automático por PU-629 |
 | PM-07 | Pendiente | | | Cubierto en automático por PU-631, PU-635 y PU-638 |
 | PM-08 | Pendiente | | | Cubierto en automático por PU-630 |
+| PM-09 | Pendiente | | | Cubierto en automático por PU-639 a PU-642 |
+| PM-10 | Pendiente | | | Cubierto en automático por PU-643 y PU-644; requiere un teléfono para ver la notificación |
+| PM-11 | Pendiente | | | Cubierto en automático por PU-646 y PU-647 |

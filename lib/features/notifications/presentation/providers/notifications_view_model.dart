@@ -150,10 +150,18 @@ class NotificationsViewModel extends ChangeNotifier {
   /// Pantalla que abre [notification] según el rol del usuario, con sus
   /// argumentos, o `null` si el aviso no lleva a otra pantalla (por
   /// ejemplo, los de la cuenta).
-  (String, Object?)? destinationFor(AppNotification notification) {
+  (String, Object?)? destinationFor(AppNotification notification) =>
+      destinationOf(_session.currentUser?.role, notification);
+
+  /// Igual que [destinationFor], para un usuario con el rol [role]. También
+  /// se usa al tocar la notificación del teléfono.
+  static (String, Object?)? destinationOf(
+    UserRole? role,
+    AppNotification notification,
+  ) {
     final incidentId = notification.incidentId;
     if (incidentId == null) return null;
-    return switch (_session.currentUser?.role) {
+    return switch (role) {
       UserRole.resident => (RouteNames.incidentDetail, incidentId),
       UserRole.technician => (RouteNames.technicianIncidentDetail, incidentId),
       // El administrador no tiene un detalle por incidencia: las nuevas se

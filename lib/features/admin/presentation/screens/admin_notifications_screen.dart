@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/routes/route_names.dart';
+import '../../../../core/services/app_permissions.dart';
 import '../../../notifications/presentation/providers/notifications_view_model.dart';
+import '../../../notifications/presentation/widgets/notification_permission.dart';
 import '../../../notifications/presentation/widgets/notification_widgets.dart';
 import '../widgets/admin_page.dart';
 
 /// HU-6.1 Recibir notificaciones: avisos del administrador.
 class AdminNotificationsScreen extends StatefulWidget {
-  const AdminNotificationsScreen({super.key, this.viewModel});
+  const AdminNotificationsScreen({
+    super.key,
+    this.viewModel,
+    this.permissions = const DeviceAppPermissions(),
+  });
 
   /// Solo para pruebas; normalmente la pantalla crea el suyo.
   final NotificationsViewModel? viewModel;
+
+  /// Permisos del teléfono, para el aviso de notificaciones desactivadas.
+  final AppPermissions permissions;
 
   @override
   State<AdminNotificationsScreen> createState() =>
@@ -49,6 +58,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
             constraints: const BoxConstraints(maxWidth: 760),
             child: NotificationsList(
               viewModel: _viewModel,
+              header: NotificationsPermissionBanner(
+                permissions: widget.permissions,
+              ),
               onOpen: (notification) =>
                   openNotification(context, _viewModel, notification),
             ),

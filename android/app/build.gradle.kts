@@ -9,12 +9,15 @@ plugins {
 
 android {
     namespace = "com.example.fixo"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_local_notifications necesita compilar con el SDK 37 o más.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Lo requiere flutter_local_notifications (HU-6.1).
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -49,4 +52,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

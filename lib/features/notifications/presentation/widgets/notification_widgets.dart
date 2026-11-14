@@ -209,9 +209,14 @@ class NotificationsList extends StatelessWidget {
     required this.viewModel,
     this.onOpen,
     this.padding = const EdgeInsets.all(20),
+    this.header,
   });
 
   final NotificationsViewModel viewModel;
+
+  /// Arriba de la lista, en todos los estados; por ejemplo, el aviso de
+  /// que las notificaciones del teléfono están desactivadas.
+  final Widget? header;
 
   /// Al tocar un aviso.
   final void Function(AppNotification notification)? onOpen;
@@ -219,6 +224,26 @@ class NotificationsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final header = this.header;
+    if (header == null) return _content(padding);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            padding.left,
+            padding.top,
+            padding.right,
+            0,
+          ),
+          child: header,
+        ),
+        Expanded(child: _content(padding.copyWith(top: 12))),
+      ],
+    );
+  }
+
+  Widget _content(EdgeInsets padding) {
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {

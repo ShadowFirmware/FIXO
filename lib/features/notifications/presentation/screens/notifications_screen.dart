@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/services/app_permissions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../providers/notifications_view_model.dart';
+import '../widgets/notification_permission.dart';
 import '../widgets/notification_widgets.dart';
 
 /// HU-6.1 Recibir notificaciones: pestaña Avisos del residente y del
 /// técnico.
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key, this.viewModel});
+  const NotificationsScreen({
+    super.key,
+    this.viewModel,
+    this.permissions = const DeviceAppPermissions(),
+  });
 
   /// Solo para pruebas; normalmente la pantalla crea el suyo.
   final NotificationsViewModel? viewModel;
+
+  /// Permisos del teléfono, para el aviso de notificaciones desactivadas.
+  final AppPermissions permissions;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -55,6 +64,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           final padding = MediaQuery.paddingOf(context);
           return NotificationsList(
             viewModel: _viewModel,
+            header: NotificationsPermissionBanner(
+              permissions: widget.permissions,
+            ),
             onOpen: (notification) =>
                 openNotification(context, _viewModel, notification),
             padding: EdgeInsets.fromLTRB(

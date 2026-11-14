@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_session.dart';
+import '../../../notifications/presentation/widgets/notification_permission.dart';
 import '../providers/pending_incidents_view_model.dart';
 import '../widgets/admin_page.dart';
 import '../widgets/pending_incident_widgets.dart';
@@ -27,6 +28,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   @override
   void initState() {
     super.initState();
+    // HU-6.1: la primera vez se pide el permiso de notificaciones.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => askNotificationsOnce(context),
+    );
     _viewModel.start();
   }
 
