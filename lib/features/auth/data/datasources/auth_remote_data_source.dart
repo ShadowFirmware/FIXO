@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
+import '../../../notifications/data/models/notification_notices.dart';
+import '../../domain/entities/app_user.dart';
 import '../models/user_model.dart';
 
 /// Acceso a Firebase Authentication y a la colección `usuarios`.
@@ -54,6 +56,33 @@ class AuthRemoteDataSource {
     await user.verifyBeforeUpdateEmail(email);
     await _firestore.collection(FirestoreCollections.users).doc(uid).update({
       'enlaceCorreoEnviado': true,
+    });
+  }
+
+  /// Si la suspensión temporal de [uid] ya terminó, reactiva la cuenta y le
+  /// avisa (HU-6.1), en una transacción para no avisar dos veces si inicia
+  /// sesión en dos dispositivos a la vez. Devuelve `true` si la reactivó.
+  Future<bool> reactivateExpiredSuspension(String uid, {DateTime? now}) {
+    final users = _firestore.collection(FirestoreCollections.users);
+    return _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(users.doc(uid));
+      final data = doc.data();
+      final until = data?['suspendidaHasta'];
+      final expired =
+          data?['estadoCuenta'] == AccountStatus.suspended.value &&
+          until is Timestamp &&
+          !until.toDate().isAfter(now ?? DateTime.now());
+      if (!expired) return false;
+      transaction
+        ..update(users.doc(uid), {
+          'estadoCuenta': AccountStatus.active.value,
+          'suspendidaHasta': null,
+        })
+        ..set(
+          _firestore.collection(FirestoreCollections.notifications).doc(),
+          NotificationNotices.accountReactivated(userId: uid),
+        );
+      return true;
     });
   }
 

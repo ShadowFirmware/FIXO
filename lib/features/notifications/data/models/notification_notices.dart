@@ -100,6 +100,23 @@ abstract final class NotificationNotices {
     refId: reportId,
   );
 
+  /// Al usuario: su cuenta volvió a estar activa (T 6.1.12), porque terminó
+  /// su suspensión temporal o porque el administrador reactivó una cuenta
+  /// deshabilitada ([byAdmin]).
+  static Map<String, dynamic> accountReactivated({
+    required String userId,
+    bool byAdmin = false,
+  }) => NotificationModel.newNotice(
+    userId: userId,
+    type: NotificationType.accountReactivated,
+    title: 'Cuenta reactivada',
+    message: byAdmin
+        ? 'El administrador reactivó tu cuenta. Ya puedes usar FIXO '
+              'normalmente.'
+        : 'Terminó la suspensión de tu cuenta. Ya puedes usar FIXO '
+              'normalmente.',
+  );
+
   /// "3 días", "1 día", "5 horas" o "30 minutos". Se redondea hacia arriba
   /// para no prometer menos tiempo del real.
   static String durationLabel(Duration duration) {
