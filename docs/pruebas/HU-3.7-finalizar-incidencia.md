@@ -118,11 +118,11 @@ Las pruebas de la HU 3.6 (PU-546 a PU-557) se actualizaron: registrar la soluci�
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | |
+| PM-01 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

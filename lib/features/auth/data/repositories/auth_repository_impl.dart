@@ -48,7 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await _remote.fetchUser(uid);
       if (user == null) throw AuthFailure.notRegistered;
       _ensureCanAccess(user);
-      return await _applyConfirmedEmail(user);
+      return await _applyConfirmedEmail(await _reactivateIfExpired(user));
     } on FormatException {
       await _remote.signOut();
       throw AuthFailure.notRegistered;
@@ -83,6 +83,19 @@ class AuthRepositoryImpl implements AuthRepository {
     }
     await _remote.confirmEmail(user.uid, pending);
     return user.copyWithEmail(pending);
+  }
+
+  /// Si [user] entra porque su suspensión temporal ya terminó, su cuenta
+  /// vuelve a quedar activa y recibe el aviso (HU-6.1). Si falla, entra
+  /// igual y se intenta en el siguiente inicio de sesión.
+  Future<UserModel> _reactivateIfExpired(UserModel user) async {
+    if (user.accountStatus != AccountStatus.suspended) return user;
+    try {
+      if (!await _remote.reactivateExpiredSuspension(user.uid)) return user;
+      return await _remote.fetchUser(user.uid) ?? user;
+    } on Exception {
+      return user;
+    }
   }
 
   /// Una suspensión temporal cuyo plazo ya terminó no bloquea el acceso

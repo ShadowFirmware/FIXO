@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/bars_visibility.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
+import '../../../notifications/presentation/providers/notifications_view_model.dart';
 import '../../../notifications/presentation/screens/notifications_screen.dart';
+import '../../../notifications/presentation/widgets/notification_permission.dart';
 import '../providers/resident_shell_view_model.dart';
 import 'incident_history_screen.dart';
 import 'profile_screen.dart';
@@ -42,16 +44,31 @@ class _ResidentShellScreenState extends State<ResidentShellScreen> {
 
   final _viewModel = ResidentShellViewModel();
 
+  /// Avisos del usuario: se escuchan desde que entra para mostrar en la
+  /// barra cuántos no ha leído (HU-6.1).
+  final _notifications = NotificationsViewModel();
+
+  @override
+  void initState() {
+    super.initState();
+    // La primera vez que entra se pide el permiso de notificaciones, como
+    // en cualquier otra app (HU-6.1).
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => askNotificationsOnce(context),
+    );
+  }
+
   @override
   void dispose() {
     _viewModel.dispose();
+    _notifications.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _viewModel,
+      listenable: Listenable.merge([_viewModel, _notifications]),
       builder: (context, _) {
         final tab = _viewModel.currentTab;
         return Scaffold(
@@ -68,14 +85,19 @@ class _ResidentShellScreenState extends State<ResidentShellScreen> {
                         _viewModel.selectTab(ResidentTab.history),
                   ),
                   const IncidentHistoryScreen(),
-                  const NotificationsScreen(),
+                  NotificationsScreen(viewModel: _notifications),
                   const ProfileScreen(),
                 ],
               ),
             ),
           ),
           bottomNavigationBar: FloatingBottomBar(
-            items: _items,
+            items: [
+              for (final (index, item) in _items.indexed)
+                index == ResidentTab.notifications.index
+                    ? item.withBadge(_notifications.unreadCount)
+                    : item,
+            ],
             visible: _viewModel.barsVisible,
             selectedIndex: tab.index,
             onSelected: (index) =>

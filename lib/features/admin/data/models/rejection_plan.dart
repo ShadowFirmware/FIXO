@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../incidents/domain/entities/incident.dart';
 import '../datasources/incident_admin_remote_data_source.dart';
+import '../../../notifications/data/models/notification_model.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 
 /// Reglas y datos del rechazo de una incidencia (HU-4.10), aplicados sobre
 /// el documento que se lee dentro de la transacción. Son funciones puras
@@ -34,13 +36,11 @@ abstract final class RejectionPlan {
     required String reportNumber,
     required String title,
     required String comment,
-  }) => {
-    'usuarioId': residentId,
-    'tipo': IncidentAdminRemoteDataSource.rejectedType,
-    'titulo': 'Incidencia $reportNumber rechazada',
-    'mensaje': 'Tu reporte "$title" fue rechazado. Motivo: $comment',
-    'refId': incidentId,
-    'leida': false,
-    'fecha': FieldValue.serverTimestamp(),
-  };
+  }) => NotificationModel.newNotice(
+    userId: residentId,
+    type: NotificationType.incidentRejected,
+    title: 'Incidencia $reportNumber rechazada',
+    message: 'Tu reporte "$title" fue rechazado. Motivo: $comment',
+    refId: incidentId,
+  );
 }

@@ -109,14 +109,12 @@ flutter test test/unitarias/resident/profile_view_model_test.dart test/unitarias
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Automatizada en PU-36 y PU-37 (ViewModel) |
-| PM-02 | Pendiente | | | Automatizada en PU-36, PU-39 y PU-40 (ViewModel) |
-| PM-03 | Pendiente | | | Automatizada en PU-36 y PU-43 |
-| PM-04 | Pendiente | | | Automatizada en PU-38 |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | Automatizada en PU-42 y PU-51 |
-| PM-07 | Pendiente | | | |
+| PM-01 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

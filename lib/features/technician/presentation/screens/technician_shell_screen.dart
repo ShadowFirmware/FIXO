@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/bars_visibility.dart';
-import '../../../../shared/widgets/fixo_app_bar.dart';
 import '../../../../shared/widgets/floating_bottom_bar.dart';
-import '../../../../shared/widgets/placeholder_view.dart';
+import '../../../notifications/presentation/providers/notifications_view_model.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
+import '../../../notifications/presentation/widgets/notification_permission.dart';
 import '../providers/technician_shell_view_model.dart';
 import 'technician_history_screen.dart';
 import 'technician_home_screen.dart';
@@ -43,16 +44,31 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
 
   final _viewModel = TechnicianShellViewModel();
 
+  /// Avisos del usuario: se escuchan desde que entra para mostrar en la
+  /// barra cuántos no ha leído (HU-6.1).
+  final _notifications = NotificationsViewModel();
+
+  @override
+  void initState() {
+    super.initState();
+    // La primera vez que entra se pide el permiso de notificaciones, como
+    // en cualquier otra app (HU-6.1).
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => askNotificationsOnce(context),
+    );
+  }
+
   @override
   void dispose() {
     _viewModel.dispose();
+    _notifications.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _viewModel,
+      listenable: Listenable.merge([_viewModel, _notifications]),
       builder: (context, _) {
         final tab = _viewModel.currentTab;
         return Scaffold(
@@ -63,17 +79,22 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
               onVisibilityChanged: _viewModel.setBarsVisible,
               child: IndexedStack(
                 index: tab.index,
-                children: const [
-                  TechnicianHomeScreen(),
-                  TechnicianHistoryScreen(),
-                  _PendingTab(title: 'Avisos'),
-                  TechnicianProfileScreen(),
+                children: [
+                  const TechnicianHomeScreen(),
+                  const TechnicianHistoryScreen(),
+                  NotificationsScreen(viewModel: _notifications),
+                  const TechnicianProfileScreen(),
                 ],
               ),
             ),
           ),
           bottomNavigationBar: FloatingBottomBar(
-            items: _items,
+            items: [
+              for (final (index, item) in _items.indexed)
+                index == TechnicianTab.notifications.index
+                    ? item.withBadge(_notifications.unreadCount)
+                    : item,
+            ],
             visible: _viewModel.barsVisible,
             selectedIndex: tab.index,
             onSelected: (index) =>
@@ -81,21 +102,6 @@ class _TechnicianShellScreenState extends State<TechnicianShellScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-/// Pestaña que todavía no tiene pantalla propia.
-class _PendingTab extends StatelessWidget {
-  const _PendingTab({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: FixoAppBar(title: title),
-      body: PlaceholderView(title: title),
     );
   }
 }

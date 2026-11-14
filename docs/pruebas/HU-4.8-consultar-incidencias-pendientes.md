@@ -165,22 +165,22 @@ flutter test test/unitarias/admin/pending_incidents_view_model_test.dart test/un
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | |
-| PM-09 | Pendiente | | | |
-| PM-10 | Pendiente | | | |
-| PM-11 | Pendiente | | | |
-| PM-12 | Pendiente | | | |
-| PM-13 | Pendiente | | | |
-| PM-14 | Pendiente | | | |
-| PM-15 | Pendiente | | | |
-| PM-16 | Pendiente | | | |
-| PM-17 | Pendiente | | | |
-| PM-18 | Pendiente | | | |
-| PM-19 | Pendiente | | | |
+| PM-01 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-12 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-13 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-14 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-15 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-16 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-17 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-18 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-19 | Aprobada | 02/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

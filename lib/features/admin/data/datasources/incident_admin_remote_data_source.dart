@@ -6,6 +6,9 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../notifications/data/datasources/notification_remote_data_source.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
+import '../../../notifications/domain/entities/notification_recipients.dart';
 import '../models/assignment_plan.dart';
 import '../models/rejection_plan.dart';
 
@@ -47,8 +50,11 @@ class IncidentAdminRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _notifications =>
       _firestore.collection(FirestoreCollections.notifications);
 
-  static const assignedType = 'incidencia_asignada';
-  static const rejectedType = 'incidencia_rechazada';
+  NotificationRemoteDataSource get _notifier =>
+      NotificationRemoteDataSource(firestore: _firestoreOverride);
+
+  static final assignedType = NotificationType.incidentAssigned.value;
+  static final rejectedType = NotificationType.incidentRejected.value;
 
   /// Escucha las incidencias en estado "Pendiente". Se ordenan en la app
   /// para no necesitar un índice compuesto en Firestore.
@@ -147,6 +153,15 @@ class IncidentAdminRemoteDataSource {
       final housingDoc = housingId.isEmpty
           ? null
           : await transaction.get(_housings.doc(housingId));
+      // Al que la registró y al residente activo de la vivienda, si pueden
+      // recibir avisos.
+      final residentIds = await _notifier.reachable(
+        transaction,
+        NotificationRecipients.residents(
+          createdBy: incident['creadaPor'] as String?,
+          activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+        ),
+      );
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
@@ -163,8 +178,7 @@ class IncidentAdminRemoteDataSource {
       );
       transaction.update(technicianRef, AssignmentPlan.technicianUpdate);
 
-      final residentId = incident['creadaPor'] as String?;
-      if (residentId != null && residentId.isNotEmpty) {
+      for (final residentId in residentIds) {
         transaction.set(
           _notifications.doc(),
           AssignmentPlan.residentNotice(
@@ -196,13 +210,29 @@ class IncidentAdminRemoteDataSource {
   }
 
   /// Rechaza la incidencia con el [comment] del administrador y avisa al
-  /// residente. No se asigna técnico.
+  /// residente que la registró y al residente activo de la vivienda. No se
+  /// asigna técnico.
   Future<void> reject({required String incidentId, required String comment}) {
     return _firestore.runTransaction((transaction) async {
       final incidentRef = _incidents.doc(incidentId);
       final incidentDoc = await transaction.get(incidentRef);
       RejectionPlan.validate(incidentDoc.data());
       final incident = incidentDoc.data()!;
+
+      // Las lecturas van antes de cualquier escritura de la transacción.
+      final housingId = incident['viviendaId'] as String? ?? '';
+      final housingDoc = housingId.isEmpty
+          ? null
+          : await transaction.get(_housings.doc(housingId));
+      // Al que la registró y al residente activo de la vivienda, si pueden
+      // recibir avisos.
+      final residentIds = await _notifier.reachable(
+        transaction,
+        NotificationRecipients.residents(
+          createdBy: incident['creadaPor'] as String?,
+          activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+        ),
+      );
 
       final reportNumber = Incident.formatReportNumber(
         (incident['folio'] as num?)?.toInt() ?? 0,
@@ -213,8 +243,8 @@ class IncidentAdminRemoteDataSource {
         RejectionPlan.incidentUpdate(comment: comment),
       );
 
-      final residentId = incident['creadaPor'] as String?;
-      if (residentId != null && residentId.isNotEmpty) {
+      // Con el motivo del rechazo.
+      for (final residentId in residentIds) {
         transaction.set(
           _notifications.doc(),
           RejectionPlan.residentNotice(

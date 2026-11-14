@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>FIXO usa la cámara para tomar fotos y videos de las evidencias de tus incidencias.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FIXO usa el micrófono para grabar el audio de los videos de evidencias.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FIXO usa tus fotos y videos para adjuntarlos como evidencias de tus incidencias.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

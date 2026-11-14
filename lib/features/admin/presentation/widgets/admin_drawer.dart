@@ -155,6 +155,11 @@ class AdminSection {
   static const all = [
     AdminSection(Icons.home_outlined, 'Inicio', RouteNames.adminHome),
     AdminSection(
+      Icons.notifications_none_rounded,
+      'Avisos',
+      RouteNames.adminNotifications,
+    ),
+    AdminSection(
       Icons.assignment_outlined,
       'Reportes pendientes',
       RouteNames.adminPendingIncidents,

@@ -116,9 +116,15 @@ class FakeNotifications implements NotificationRemoteDataSource {
     required String incidentId,
     required String reportNumber,
     required String title,
+    String typeLabel = '',
   }) {
     notices.add((adminIds: adminIds, incidentId: incidentId, title: title));
   }
+
+  // El resto del servicio de avisos no se usa al registrar incidencias.
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      super.noSuchMethod(invocation);
 }
 
 /// Repositorio que guarda en memoria lo que recibe.

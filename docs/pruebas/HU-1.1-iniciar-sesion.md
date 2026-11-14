@@ -178,16 +178,16 @@ Se ejecutan en la app con el proyecto real de Firebase y los datos de la secció
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | |
-| PM-09 | Pendiente | | | |
-| PM-10 | Pendiente | | | |
-| PM-11 | Pendiente | | | |
-| PM-12 | Pendiente | | | |
-| PM-13 | Pendiente | | | |
+| PM-01 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-12 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-13 | Aprobada | 19/10/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

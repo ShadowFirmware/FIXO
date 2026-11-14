@@ -102,6 +102,9 @@ class SolutionFormViewModel extends ChangeNotifier {
     List<EvidenceFile> picked;
     try {
       picked = await pick();
+    } on CameraPermissionDeniedException catch (e) {
+      picked = const [];
+      _evidenceMessage = e.message;
     } catch (_) {
       picked = const [];
       _evidenceMessage = 'No se pudo abrir la cámara o la galería.';

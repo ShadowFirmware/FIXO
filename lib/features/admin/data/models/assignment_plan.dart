@@ -4,6 +4,8 @@ import '../../../../core/utils/date_formats.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../datasources/incident_admin_remote_data_source.dart';
+import '../../../notifications/data/models/notification_model.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 
 /// Reglas de la asignación de un técnico (HU-4.9), aplicadas sobre los
 /// documentos que se leen dentro de la transacción. Son funciones puras
@@ -97,15 +99,13 @@ abstract final class AssignmentPlan {
     required String incidentId,
     required String title,
     required String message,
-  }) => {
-    'usuarioId': userId,
-    'tipo': IncidentAdminRemoteDataSource.assignedType,
-    'titulo': title,
-    'mensaje': message,
-    'refId': incidentId,
-    'leida': false,
-    'fecha': FieldValue.serverTimestamp(),
-  };
+  }) => NotificationModel.newNotice(
+    userId: userId,
+    type: NotificationType.incidentAssigned,
+    title: title,
+    message: message,
+    refId: incidentId,
+  );
 
   /// Un técnico con cuenta activa y estado Disponible. Nunca uno
   /// suspendido, desactivado, dado de baja o con otro rol.

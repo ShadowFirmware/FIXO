@@ -138,36 +138,34 @@ flutter test test/unitarias/admin/housing_admin_test.dart
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | |
-| PM-02 | Pendiente | | | Automatizada en PU-589 |
-| PM-03 | Pendiente | | | Automatizada en PU-589 |
-| PM-04 | Pendiente | | | Automatizada en PU-587 |
-| PM-05 | Pendiente | | | Automatizada en PU-587 (sin Firebase) |
-| PM-06 | Pendiente | | | |
-| PM-07 | Pendiente | | | Automatizada en PU-587 |
-| PM-08 | Pendiente | | | Automatizada en PU-587 |
-| PM-09 | Pendiente | | | Automatizada en PU-586 y PU-587 |
-| PM-10 | Pendiente | | | Automatizada en PU-586 |
-| PM-11 | Pendiente | | | |
-| PM-12 | Pendiente | | | Automatizada en PU-588 |
-| PM-13 | Pendiente | | | |
-| PM-14 | Pendiente | | | Automatizada en PU-588 |
-| PM-15 | Pendiente | | | |
-| PM-16 | Pendiente | | | Automatizada en PU-586 |
-| PM-17 | Pendiente | | | |
-| PM-18 | Pendiente | | | Automatizada en PU-586 |
-| PM-19 | Pendiente | | | |
-| PM-20 | Pendiente | | | |
-| PM-21 | Pendiente | | | |
-| PM-22 | Pendiente | | | |
-| PM-23 | Pendiente | | | |
-| PM-24 | Pendiente | | | |
-| PM-25 | Pendiente | | | |
-| PM-26 | Pendiente | | | |
-| PM-27 | Pendiente | | | |
-| PM-28 | Pendiente | | | Automatizada en PU-587 y PU-588 |
-| PM-29 | Pendiente | | | Automatizada en PU-589 |
+| PM-01 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-12 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-13 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-14 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-15 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-16 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-17 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-18 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-19 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-20 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-21 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-22 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-23 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-24 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-25 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-26 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-27 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-28 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-29 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

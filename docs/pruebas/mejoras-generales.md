@@ -89,18 +89,16 @@ flutter test test/unitarias/admin/admin_users_test.dart test/unitarias/admin/adm
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso. Aun así, cada caso debe ejecutarse en el dispositivo.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Automatizada en PU-591 (Usuarios y Residencias) |
-| PM-02 | Pendiente | | | |
-| PM-03 | Pendiente | | | Automatizada en PU-593 (estilo del tema) |
-| PM-04 | Pendiente | | | Automatizada en PU-574 y PU-577 |
-| PM-05 | Pendiente | | | Automatizada en PU-577 |
-| PM-06 | Pendiente | | | Automatizada en PU-577, PU-587 y PU-594 |
-| PM-07 | Pendiente | | | Automatizada en PU-580, PU-589 y PU-594 |
-| PM-08 | Pendiente | | | Automatizada en PU-578, PU-583, PU-587 y PU-595 |
-| PM-09 | Pendiente | | | Automatizada en PU-579 y PU-587 |
-| PM-10 | Pendiente | | | Automatizada en PU-580, PU-589 y PU-592 |
-| PM-11 | Pendiente | | | |
+| PM-01 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 09/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

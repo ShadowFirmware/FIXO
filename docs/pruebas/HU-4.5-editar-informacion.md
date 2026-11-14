@@ -107,20 +107,18 @@ flutter test test/unitarias/admin/admin_users_test.dart
 
 ### Manuales
 
-Las observaciones indican qué prueba automatizada ya cubre el caso con datos simulados. Aun así, cada caso debe ejecutarse en el dispositivo con Firebase real.
-
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Automatizada en PU-590 y PU-596 |
-| PM-02 | Pendiente | | | Automatizada en PU-576 (sin Firebase) |
-| PM-03 | Pendiente | | | |
-| PM-04 | Pendiente | | | Automatizada en PU-596 |
-| PM-05 | Pendiente | | | |
-| PM-06 | Pendiente | | | Automatizada en PU-590 |
-| PM-07 | Pendiente | | | |
-| PM-08 | Pendiente | | | Requiere viviendas reales |
-| PM-09 | Pendiente | | | Requiere viviendas reales |
-| PM-10 | Pendiente | | | Requiere incidencias reales |
-| PM-11 | Pendiente | | | Automatizada en PU-577 (formulario de registro) |
-| PM-12 | Pendiente | | | Automatizada en PU-580 (formulario de registro) |
-| PM-13 | Pendiente | | | Automatizada en PU-597 a PU-600 (sin Firebase); el enlace solo se puede probar con Firebase real |
+| PM-01 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-08 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-09 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-10 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-11 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-12 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-13 | Aprobada | 01/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

@@ -128,10 +128,10 @@ flutter test test/unitarias/communication/chat_test.dart
 
 | ID | Resultado | Fecha | Responsable | Observaciones |
 |---|---|---|---|---|
-| PM-01 | Pendiente | | | Cubierto en automático por PU-615 y PU-618 |
-| PM-02 | Pendiente | | | Cubierto en automático por PU-608 y PU-611 (con Firestore simulado) |
-| PM-03 | Pendiente | | | Cubierto en automático por PU-613 y PU-615 |
-| PM-04 | Pendiente | | | Cubierto en automático por PU-603 |
-| PM-05 | Pendiente | | | Cubierto en automático por PU-605 y PU-610 |
-| PM-06 | Pendiente | | | Cubierto en automático por PU-606, PU-612 y PU-616 |
-| PM-07 | Pendiente | | | Cubierto en automático por PU-614 y PU-615 |
+| PM-01 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-02 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-03 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-04 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-05 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-06 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |
+| PM-07 | Aprobada | 12/11/2026 | Luis Pablo Pérez Fuentes | Sin observaciones |

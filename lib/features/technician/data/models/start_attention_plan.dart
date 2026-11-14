@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../incidents/domain/entities/incident.dart';
+import '../../../notifications/data/models/notification_model.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 
 /// La incidencia no está asignada al técnico que quiere atenderla.
 class NotAssignedToTechnicianException implements Exception {
@@ -31,7 +33,7 @@ class AttentionNotAvailableException implements Exception {
 /// aplicadas sobre los documentos que se leen dentro de la transacción.
 /// Son funciones puras para poder probarlas sin Firestore.
 abstract final class StartAttentionPlan {
-  static const inProgressType = 'incidencia_en_proceso';
+  static final inProgressType = NotificationType.incidentInProgress.value;
 
   /// Solo el técnico asignado, con su cuenta activa, puede comenzarla, y
   /// solo si está Asignada.
@@ -88,13 +90,11 @@ abstract final class StartAttentionPlan {
     required String reportNumber,
     required String title,
     required String technicianName,
-  }) => {
-    'usuarioId': userId,
-    'tipo': inProgressType,
-    'titulo': 'Incidencia $reportNumber en proceso',
-    'mensaje': '$technicianName comenzó a atender "$title".',
-    'refId': incidentId,
-    'leida': false,
-    'fecha': FieldValue.serverTimestamp(),
-  };
+  }) => NotificationModel.newNotice(
+    userId: userId,
+    type: NotificationType.incidentInProgress,
+    title: 'Incidencia $reportNumber en proceso',
+    message: '$technicianName comenzó a atender "$title".',
+    refId: incidentId,
+  );
 }

@@ -96,6 +96,21 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     sentLinks[uid] = email;
   }
 
+  /// UIDs cuya suspensión vencida se reactivó al iniciar sesión.
+  final reactivated = <String>[];
+
+  @override
+  Future<bool> reactivateExpiredSuspension(String uid, {DateTime? now}) async {
+    final user = profiles[uid];
+    final until = user?.suspendedUntil;
+    if (user?.accountStatus != AccountStatus.suspended || until == null) {
+      return false;
+    }
+    if (until.isAfter(now ?? DateTime.now())) return false;
+    reactivated.add(uid);
+    return true;
+  }
+
   @override
   Future<String> signIn({
     required String email,
