@@ -47,6 +47,17 @@ class EvidenceStorageDataSource {
     List<EvidenceFile> files,
   ) => _uploadAll(files, folder: _incidentFolder(incidentId, 'despues'));
 
+  /// Sube las fotos, videos o capturas del chat de un reporte de conducta
+  /// (HU-7.1) a `fixo/reportesConducta/{reportId}`. Igual que
+  /// [uploadBefore].
+  Future<List<String>> uploadConductEvidence(
+    String reportId,
+    List<EvidenceFile> files,
+  ) => _uploadAll(
+    files,
+    folder: '${CloudinaryConfig.folder}/reportesConducta/$reportId',
+  );
+
   static String _incidentFolder(String incidentId, String stage) =>
       '${CloudinaryConfig.folder}/incidencias/$incidentId/$stage';
 

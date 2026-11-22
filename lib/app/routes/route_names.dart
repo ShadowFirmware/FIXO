@@ -11,6 +11,8 @@ abstract final class RouteNames {
   static const String registerIncident = '/resident/incidents/new';
   static const String incidentDetail = '/resident/incidents/detail';
   static const String editProfile = '/resident/profile/edit';
+  static const String reportTechnician =
+      '/resident/incidents/report-technician';
 
   // Técnico
   static const String technicianHome = '/technician';

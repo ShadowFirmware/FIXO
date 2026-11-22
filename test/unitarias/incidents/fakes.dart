@@ -96,6 +96,22 @@ class FakeEvidenceStorage implements EvidenceStorageDataSource {
         'https://storage/$incidentId/despues/${i + 1}.${files[i].extension}',
     ];
   }
+
+  /// Carpetas de los reportes de conducta que se subieron (HU-7.1).
+  final conductUploads = <String>[];
+
+  @override
+  Future<List<String>> uploadConductEvidence(
+    String reportId,
+    List<EvidenceFile> files,
+  ) async {
+    if (error != null) throw error!;
+    conductUploads.add(reportId);
+    return [
+      for (var i = 0; i < files.length; i++)
+        'https://storage/reportes/$reportId/${i + 1}.${files[i].extension}',
+    ];
+  }
 }
 
 /// Registra los avisos que se mandarían a los administradores.
@@ -123,8 +139,7 @@ class FakeNotifications implements NotificationRemoteDataSource {
 
   // El resto del servicio de avisos no se usa al registrar incidencias.
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Repositorio que guarda en memoria lo que recibe.
