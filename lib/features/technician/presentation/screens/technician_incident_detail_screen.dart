@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../conduct_reports/presentation/widgets/resident_conduct_panel.dart';
 import '../../../resident/presentation/screens/incident_detail_screen.dart';
 import '../../domain/entities/assigned_incident.dart';
 import '../providers/assigned_incident_detail_view_model.dart';
@@ -339,6 +340,14 @@ class _DetailBody extends StatelessWidget {
             ),
           ],
         ),
+      ],
+      // HU-7.2: al final de la vista y solo en incidencias resueltas.
+      footer: [
+        if (vm.showConductSection)
+          DetailSection(
+            title: 'Conducta del residente',
+            children: [ResidentConductPanel(viewModel: vm)],
+          ),
       ],
     );
   }

@@ -112,7 +112,127 @@ class FakeConductReportRemoteDataSource
     watchedIds.add(id);
     return changes.stream;
   }
+
+  // HU-7.2
+
+  /// Residentes que escribieron en el chat (UID → nombre).
+  Map<String, String> chatAuthors = const {};
+
+  /// Nombres de los usuarios en `usuarios`.
+  Map<String, String> names = const {};
+
+  /// Error al consultar el chat.
+  Object? chatError;
+
+  @override
+  Future<Map<String, String>> residentChatAuthors(String incidentId) async {
+    if (chatError != null) throw chatError!;
+    return chatAuthors;
+  }
+
+  @override
+  Future<bool> wroteInChat({
+    required String incidentId,
+    required String residentId,
+  }) async => chatAuthors.containsKey(residentId);
+
+  @override
+  Future<String?> userName(String uid) async => names[uid];
+
+  final residentReports =
+      <
+        ({
+          String incidentId,
+          String reporterId,
+          String residentId,
+          bool wroteInChat,
+          ConductReason reason,
+          List<String> evidence,
+          List<String> adminIds,
+        })
+      >[];
+
+  @override
+  Future<ConductReportModel> createResidentReport({
+    required String incidentId,
+    required String reporterId,
+    required String residentId,
+    required bool wroteInChat,
+    required ConductReason reason,
+    required String description,
+    required List<String> evidence,
+    List<String> adminIds = const [],
+  }) async {
+    if (createError != null) throw createError!;
+    residentReports.add((
+      incidentId: incidentId,
+      reporterId: reporterId,
+      residentId: residentId,
+      wroteInChat: wroteInChat,
+      reason: reason,
+      evidence: evidence,
+      adminIds: adminIds,
+    ));
+    return residentReport(residentId: residentId, reason: reason);
+  }
+
+  /// Controla lo que emite [watchByReporter].
+  final reporterChanges =
+      StreamController<List<ConductReportModel>>.broadcast();
+
+  @override
+  Stream<List<ConductReportModel>> watchByReporter({
+    required String incidentId,
+    required String reporterId,
+  }) => reporterChanges.stream;
 }
+
+/// Residente que registró la incidencia y otro que escribió en el chat.
+const registrant = ReportableResident(
+  id: 'uid-residente',
+  name: 'María López Hernández',
+  registeredIncident: true,
+);
+const chatResident = ReportableResident(
+  id: 'uid-residente-2',
+  name: 'Carlos Ruiz Soto',
+  wroteInChat: true,
+);
+
+const residentTarget = ResidentReportTarget(
+  incidentId: 'inc-1',
+  incidentNumber: 'INC-0007',
+  incidentTitle: 'Fuga en baño',
+  residents: [registrant],
+);
+
+/// Reporte del técnico contra un residente, como lo guardaría la
+/// transacción.
+ConductReportModel residentReport({
+  String residentId = 'uid-residente',
+  String residentName = 'María López Hernández',
+  int folio = 4,
+  ConductReason reason = ConductReason.insults,
+}) => ConductReportModel(
+  id: ConductReport.docIdFor(
+    incidentId: 'inc-1',
+    reporterId: 'uid-tecnico',
+    reportedId: residentId,
+  ),
+  folio: folio,
+  incidentId: 'inc-1',
+  incidentFolio: 7,
+  incidentTitle: 'Fuga en baño',
+  reporterId: 'uid-tecnico',
+  reporterName: 'Juan Pérez Ramírez',
+  reporterRole: UserRole.technician,
+  reportedId: residentId,
+  reportedName: residentName,
+  reportedRole: UserRole.resident,
+  reason: reason,
+  description: 'Me insultó cuando le expliqué la reparación.',
+  status: ConductReportStatus.pendingReview,
+);
 
 /// Repositorio que guarda en memoria lo que recibe.
 class FakeConductReportRepository implements ConductReportRepository {
@@ -150,5 +270,63 @@ class FakeConductReportRepository implements ConductReportRepository {
     return changes.stream;
   }
 
-  Future<void> close() => changes.close();
+  // HU-7.2
+
+  /// Residentes que devuelve [reportableResidents].
+  List<ReportableResident> residents = const [registrant];
+
+  /// Error de [reportableResidents].
+  ConductReportFailure? residentsError;
+
+  /// Si no es `null`, [reportableResidents] espera a que se complete.
+  Completer<void>? residentsGate;
+
+  final residentQueries = <({String incidentId, String createdBy})>[];
+
+  @override
+  Future<List<ReportableResident>> reportableResidents({
+    required String incidentId,
+    required String createdBy,
+  }) async {
+    residentQueries.add((incidentId: incidentId, createdBy: createdBy));
+    await residentsGate?.future;
+    if (residentsError != null) throw residentsError!;
+    return residents;
+  }
+
+  final residentReports =
+      <({String reporterId, NewResidentConductReport data})>[];
+
+  @override
+  Future<ConductReport> reportResident({
+    required String reporterId,
+    required NewResidentConductReport data,
+  }) async {
+    residentReports.add((reporterId: reporterId, data: data));
+    await gate?.future;
+    if (error != null) throw error!;
+    return residentReport(
+      residentId: data.resident.id,
+      residentName: data.resident.name,
+      reason: data.reason,
+    );
+  }
+
+  /// Controla lo que emite [watchOwnReports].
+  final reportsChanges = StreamController<List<ConductReport>>.broadcast();
+  final watchedReports = <({String incidentId, String reporterId})>[];
+
+  @override
+  Stream<List<ConductReport>> watchOwnReports({
+    required String incidentId,
+    required String reporterId,
+  }) {
+    watchedReports.add((incidentId: incidentId, reporterId: reporterId));
+    return reportsChanges.stream;
+  }
+
+  Future<void> close() async {
+    await changes.close();
+    await reportsChanges.close();
+  }
 }

@@ -9,13 +9,14 @@ import '../../../resident/presentation/screens/incident_detail_screen.dart';
 
 /// Acomoda el detalle de la incidencia: en el teléfono todo va en una
 /// columna; en pantallas anchas, [primary] a la izquierda y [secondary] a
-/// la derecha.
+/// la derecha. [footer] va al final, a todo lo ancho, en ambos casos.
 class AssignedDetailLayout extends StatelessWidget {
   const AssignedDetailLayout({
     super.key,
     required this.header,
     required this.primary,
     required this.secondary,
+    this.footer = const [],
   });
 
   /// Ancho a partir del cual se usan dos columnas.
@@ -26,6 +27,9 @@ class AssignedDetailLayout extends StatelessWidget {
   final Widget header;
   final List<Widget> primary;
   final List<Widget> secondary;
+
+  /// Lo último de la vista, como el reporte de conducta (HU-7.2).
+  final List<Widget> footer;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +64,7 @@ class AssignedDetailLayout extends StatelessWidget {
                     )
                   else
                     _column([...primary, ...secondary]),
+                  if (footer.isNotEmpty) ...[_gap, _column(footer)],
                 ],
               ),
             ),

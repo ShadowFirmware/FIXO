@@ -52,6 +52,37 @@ class ConductReportFailure implements Exception {
     'No se pudo consultar si ya reportaste al técnico.',
   );
 
+  // Técnico que reporta a un residente (HU-7.2)
+  static const notTechnician = ConductReportFailure(
+    'Solo los técnicos pueden reportar la conducta de un residente.',
+  );
+  static const notYourAttendedIncident = ConductReportFailure(
+    'Solo puedes reportar residentes de incidencias que atendiste.',
+  );
+  static const residentNotResolved = ConductReportFailure(
+    'Solo puedes reportar al residente cuando la incidencia esté Resuelta.',
+  );
+  static const notParticipant = ConductReportFailure(
+    'Solo puedes reportar al residente que registró la incidencia o '
+    'participó en su chat.',
+  );
+  static const noResidents = ConductReportFailure(
+    'No hay un residente que puedas reportar en esta incidencia.',
+  );
+  static const residentRequired = ConductReportFailure(
+    'Elige al residente que quieres reportar.',
+  );
+  static const duplicateResident = ConductReportFailure(
+    'Ya enviaste un reporte de conducta contra este residente para esta '
+    'incidencia.',
+  );
+  static const allResidentsReported = ConductReportFailure(
+    'Ya reportaste a los residentes de esta incidencia.',
+  );
+  static const residentsLoadFailed = ConductReportFailure(
+    'No se pudo consultar a quién puedes reportar. Inténtalo de nuevo.',
+  );
+
   @override
   String toString() => message;
 }

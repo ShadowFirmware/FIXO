@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_collections.dart';
+import '../../../auth/domain/entities/app_user.dart';
 import '../../../notifications/data/datasources/notification_remote_data_source.dart';
 import '../../domain/entities/conduct_report.dart';
 import '../models/conduct_report_model.dart';
 import '../models/conduct_report_plan.dart';
+import '../models/resident_report_plan.dart';
 
-/// Acceso a la colección `reportesConducta` (HU-7.1).
+/// Acceso a la colección `reportesConducta` (HU-7.1 y HU-7.2).
 class ConductReportRemoteDataSource {
   ConductReportRemoteDataSource({FirebaseFirestore? firestore})
     : _firestoreOverride = firestore;
@@ -109,6 +111,149 @@ class ConductReportRemoteDataSource {
       _notifications.addNotices(
         transaction,
         ConductReportPlan.notices(adminIds: adminIds, report: report),
+      );
+      return report;
+    });
+  }
+
+  // HU-7.2 Reportar la conducta de un residente.
+
+  /// Escucha los reportes que [reporterId] levantó en la incidencia
+  /// [incidentId]. Dos filtros de igualdad no necesitan índice compuesto.
+  Stream<List<ConductReportModel>> watchByReporter({
+    required String incidentId,
+    required String reporterId,
+  }) => _reports
+      .where('incidenciaId', isEqualTo: incidentId)
+      .where('reportanteId', isEqualTo: reporterId)
+      .snapshots()
+      .map(
+        (query) => [
+          for (final doc in query.docs) ?_tryParse(doc.id, doc.data()),
+        ],
+      );
+
+  /// Un reporte con datos inválidos no oculta los demás.
+  static ConductReportModel? _tryParse(String id, Map<String, dynamic> data) {
+    try {
+      return ConductReportModel.fromMap(id, data);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  CollectionReference<Map<String, dynamic>> _messages(String incidentId) =>
+      _firestore
+          .collection(FirestoreCollections.incidents)
+          .doc(incidentId)
+          .collection(FirestoreCollections.messages);
+
+  /// Residentes que escribieron en el chat de la incidencia (HU-5.1), con el
+  /// nombre que tenían en su último mensaje (UID → nombre).
+  Future<Map<String, String>> residentChatAuthors(String incidentId) async {
+    final messages = await _messages(incidentId)
+        .where('autorRol', isEqualTo: UserRole.resident.value)
+        .get();
+    return {
+      for (final doc in messages.docs)
+        if ((doc.data()['autorId'] as String?)?.isNotEmpty ?? false)
+          doc.data()['autorId'] as String:
+              (doc.data()['autorNombre'] as String?) ?? '',
+    };
+  }
+
+  /// `true` si el residente [residentId] envió mensajes en el chat de la
+  /// incidencia. Los mensajes no se editan ni se borran, así que se puede
+  /// revisar antes de la transacción.
+  Future<bool> wroteInChat({
+    required String incidentId,
+    required String residentId,
+  }) async {
+    final messages = await _messages(incidentId)
+        .where('autorId', isEqualTo: residentId)
+        .limit(1)
+        .get();
+    return messages.docs.isNotEmpty;
+  }
+
+  /// Nombre del usuario [uid], o `null` si no existe.
+  Future<String?> userName(String uid) async {
+    final doc = await _firestore
+        .collection(FirestoreCollections.users)
+        .doc(uid)
+        .get();
+    return doc.data()?['nombre'] as String?;
+  }
+
+  /// Registra el reporte del técnico [reporterId] contra el residente
+  /// [residentId] en una sola transacción: revisa las reglas de
+  /// [ResidentReportPlan], reserva el folio, guarda el reporte Pendiente de
+  /// revisión y avisa a los administradores [adminIds].
+  ///
+  /// No toca el perfil del residente: su estado de conducta y su cuenta
+  /// solo cambian cuando el administrador valida el reporte (HU-7.3 y
+  /// HU-7.4).
+  Future<ConductReportModel> createResidentReport({
+    required String incidentId,
+    required String reporterId,
+    required String residentId,
+    required bool wroteInChat,
+    required ConductReason reason,
+    required String description,
+    required List<String> evidence,
+    List<String> adminIds = const [],
+  }) {
+    final id = ConductReport.docIdFor(
+      incidentId: incidentId,
+      reporterId: reporterId,
+      reportedId: residentId,
+    );
+    final users = _firestore.collection(FirestoreCollections.users);
+
+    return _firestore.runTransaction((transaction) async {
+      final reportRef = _reports.doc(id);
+      final incidentDoc = await transaction.get(
+        _firestore.collection(FirestoreCollections.incidents).doc(incidentId),
+      );
+      final reporterDoc = await transaction.get(users.doc(reporterId));
+      final residentDoc = await transaction.get(users.doc(residentId));
+      final existing = await transaction.get(reportRef);
+      final counter = await transaction.get(_counter);
+      final incident = incidentDoc.data();
+      final reporter = reporterDoc.data();
+      final resident = residentDoc.data();
+      ResidentReportPlan.validate(
+        incident: incident,
+        reporter: reporter,
+        reporterId: reporterId,
+        resident: resident,
+        residentId: residentId,
+        wroteInChat: wroteInChat,
+        alreadyReported: existing.exists,
+      );
+
+      final folio =
+          ((counter.data()?['ultimoFolio'] as num?)?.toInt() ?? 0) + 1;
+      final report = ResidentReportPlan.build(
+        id: id,
+        folio: folio,
+        incidentId: incidentId,
+        incident: incident!,
+        reporterId: reporterId,
+        reporter: reporter!,
+        residentId: residentId,
+        resident: resident!,
+        reason: reason,
+        description: description,
+        evidence: evidence,
+      );
+
+      transaction
+        ..set(_counter, {'ultimoFolio': folio})
+        ..set(reportRef, report.toFirestore());
+      _notifications.addNotices(
+        transaction,
+        ResidentReportPlan.notices(adminIds: adminIds, report: report),
       );
       return report;
     });

@@ -21,6 +21,14 @@ enum ConductReason {
     'Lenguaje inapropiado',
     'Insultos, groserías o comentarios ofensivos',
   ),
+  // Motivos para reportar a un residente (HU-7.2).
+  insults('insultos', 'Insultos', 'Ofensas o agresiones verbales al técnico'),
+  rudeness('groserias', 'Groserías', 'Lenguaje vulgar o trato grosero'),
+  lackOfCooperation(
+    'falta_cooperacion',
+    'Falta de cooperación',
+    'No permitió el acceso, no estuvo presente o impidió el trabajo',
+  ),
   other(
     'otro',
     'Otro motivo',
@@ -39,7 +47,16 @@ enum ConductReason {
   final String hint;
 
   /// Motivos con los que el residente reporta al técnico (T 7.1.3).
-  static const forTechnician = values;
+  static const forTechnician = [
+    delay,
+    badAttitude,
+    poorWork,
+    inappropriateLanguage,
+    other,
+  ];
+
+  /// Motivos con los que el técnico reporta al residente (T 7.2.3).
+  static const forResident = [insults, rudeness, lackOfCooperation, other];
 
   static ConductReason? fromValue(String? value) {
     for (final reason in values) {
@@ -135,13 +152,84 @@ class ConductReport {
   static String formatReportNumber(int folio) =>
       'RC-${folio.toString().padLeft(4, '0')}';
 
-  /// Cada usuario puede levantar como máximo un reporte por incidencia
-  /// (T 7.1.6), así que el ID del documento se arma con ambos: si ya
-  /// existe, el reporte está duplicado.
+  /// Cada usuario puede levantar como máximo un reporte contra su
+  /// contraparte por incidencia, así que el ID del documento se arma con
+  /// ellos: si ya existe, el reporte está duplicado.
+  ///
+  /// El residente solo tiene un técnico por incidencia (T 7.1.6), así que
+  /// basta con la incidencia y él. El técnico puede tener más de un
+  /// residente (el que la registró y quien escribió en el chat), así que
+  /// se agrega [reportedId] (T 7.2.6).
   static String docIdFor({
     required String incidentId,
     required String reporterId,
-  }) => '${incidentId}_$reporterId';
+    String? reportedId,
+  }) => reportedId == null
+      ? '${incidentId}_$reporterId'
+      : '${incidentId}_${reporterId}_$reportedId';
+}
+
+/// Residente que el técnico puede reportar: el que registró la incidencia
+/// o quien escribió en su chat (T 7.2.5).
+class ReportableResident {
+  const ReportableResident({
+    required this.id,
+    required this.name,
+    this.registeredIncident = false,
+    this.wroteInChat = false,
+  });
+
+  final String id;
+  final String name;
+
+  /// Registró la incidencia.
+  final bool registeredIncident;
+
+  /// Envió mensajes en el chat de la incidencia.
+  final bool wroteInChat;
+
+  /// Por qué puede reportarlo, por ejemplo "Registró la incidencia".
+  String get participation => [
+    if (registeredIncident) 'Registró la incidencia',
+    if (wroteInChat) 'Participó en el chat',
+  ].join(' · ');
+}
+
+/// Incidencia resuelta y residentes que el técnico puede reportar, tal como
+/// los ve en el detalle. La transacción vuelve a revisar los datos.
+class ResidentReportTarget {
+  const ResidentReportTarget({
+    required this.incidentId,
+    required this.incidentNumber,
+    required this.incidentTitle,
+    required this.residents,
+  });
+
+  final String incidentId;
+  final String incidentNumber;
+  final String incidentTitle;
+
+  /// Residentes que todavía no reporta en esta incidencia.
+  final List<ReportableResident> residents;
+}
+
+/// Datos que captura el técnico en el formulario del reporte (HU-7.2).
+class NewResidentConductReport {
+  const NewResidentConductReport({
+    required this.incidentId,
+    required this.resident,
+    required this.reason,
+    required this.description,
+    this.evidence = const [],
+  });
+
+  final String incidentId;
+  final ReportableResident resident;
+  final ConductReason reason;
+  final String description;
+
+  /// Archivos del dispositivo, antes de subirse.
+  final List<EvidenceFile> evidence;
 }
 
 /// Datos que captura el residente en el formulario del reporte.

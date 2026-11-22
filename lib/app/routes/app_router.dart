@@ -17,6 +17,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/communication/presentation/screens/incident_chat_screen.dart';
 import '../../features/conduct_reports/domain/entities/conduct_report.dart';
+import '../../features/conduct_reports/presentation/screens/report_resident_screen.dart';
 import '../../features/conduct_reports/presentation/screens/report_technician_screen.dart';
 
 import '../../features/resident/presentation/screens/edit_profile_screen.dart';
@@ -51,6 +52,8 @@ abstract final class AppRouter {
     RouteNames.technicianEditProfile: {UserRole.technician},
     RouteNames.technicianIncidentDetail: {UserRole.technician},
     RouteNames.technicianRegisterSolution: {UserRole.technician},
+    // HU-7.2: el técnico reporta al residente de una incidencia resuelta.
+    RouteNames.reportResident: {UserRole.technician},
     RouteNames.adminHome: {UserRole.admin},
     RouteNames.adminProfile: {UserRole.admin},
     RouteNames.adminEditProfile: {UserRole.admin},
@@ -118,6 +121,13 @@ abstract final class AppRouter {
       case RouteNames.technicianRegisterSolution:
         return _page(
           RegisterSolutionScreen(item: settings.arguments! as AssignedIncident),
+          settings,
+        );
+      case RouteNames.reportResident:
+        return _page(
+          ReportResidentScreen(
+            target: settings.arguments! as ResidentReportTarget,
+          ),
           settings,
         );
       case RouteNames.adminHome:
