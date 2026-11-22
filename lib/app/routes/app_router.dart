@@ -16,6 +16,8 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/communication/presentation/screens/incident_chat_screen.dart';
+import '../../features/conduct_reports/domain/entities/conduct_report.dart';
+import '../../features/conduct_reports/presentation/screens/report_technician_screen.dart';
 
 import '../../features/resident/presentation/screens/edit_profile_screen.dart';
 import '../../features/resident/presentation/screens/incident_detail_screen.dart';
@@ -43,6 +45,8 @@ abstract final class AppRouter {
     RouteNames.incidentDetail: {UserRole.resident},
     // HU-2.2: el residente modifica su nombre y su teléfono.
     RouteNames.editProfile: {UserRole.resident},
+    // HU-7.1: el residente reporta al técnico de una incidencia resuelta.
+    RouteNames.reportTechnician: {UserRole.resident},
     RouteNames.technicianHome: {UserRole.technician},
     RouteNames.technicianEditProfile: {UserRole.technician},
     RouteNames.technicianIncidentDetail: {UserRole.technician},
@@ -85,6 +89,13 @@ abstract final class AppRouter {
         );
       case RouteNames.editProfile:
         return _page(const EditProfileScreen(), settings);
+      case RouteNames.reportTechnician:
+        return _page(
+          ReportTechnicianScreen(
+            target: settings.arguments! as ConductReportTarget,
+          ),
+          settings,
+        );
       case RouteNames.technicianHome:
         return _page(const TechnicianShellScreen(), settings);
       case RouteNames.technicianEditProfile:

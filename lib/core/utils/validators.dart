@@ -73,6 +73,19 @@ abstract final class Validators {
     return null;
   }
 
+  /// Descripción de lo ocurrido en un reporte de conducta (HU-7.1).
+  static String? conductDescription(String? value) {
+    final description = value?.trim() ?? '';
+    if (description.isEmpty) return 'Describe lo que ocurrió';
+    if (description.length < 10) {
+      return 'La descripción debe tener al menos 10 caracteres';
+    }
+    if (description.length > 500) {
+      return 'La descripción no debe pasar de 500 caracteres';
+    }
+    return null;
+  }
+
   /// Contraseña de una cuenta nueva que registra el administrador (HU-4.3
   /// y HU-4.4): mínimo 8 caracteres.
   static String? newPassword(String? value) {

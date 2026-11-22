@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/fixo_app_bar.dart';
+import '../../../conduct_reports/presentation/widgets/technician_conduct_panel.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../incidents/presentation/widgets/evidence_gallery.dart';
 import '../../../incidents/presentation/widgets/incident_status_view.dart';
@@ -10,22 +11,29 @@ import '../providers/incident_detail_view_model.dart';
 
 /// HU-2.4 Consultar detalles de la incidencia.
 class IncidentDetailScreen extends StatefulWidget {
-  const IncidentDetailScreen({super.key, required this.incidentId});
+  const IncidentDetailScreen({
+    super.key,
+    required this.incidentId,
+    this.viewModel,
+  });
 
   final String incidentId;
+
+  /// Solo para pruebas; normalmente la pantalla crea el suyo.
+  final IncidentDetailViewModel? viewModel;
 
   @override
   State<IncidentDetailScreen> createState() => _IncidentDetailScreenState();
 }
 
 class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
-  late final _viewModel = IncidentDetailViewModel(
-    incidentId: widget.incidentId,
-  );
+  late final _viewModel =
+      widget.viewModel ??
+      IncidentDetailViewModel(incidentId: widget.incidentId);
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (widget.viewModel == null) _viewModel.dispose();
     super.dispose();
   }
 
@@ -186,6 +194,14 @@ class _IncidentDetailBody extends StatelessWidget {
                     ),
                     EvidenceGallery(urls: viewModel.evidenceAfter),
                   ],
+                ),
+              ],
+              // HU-7.1: solo en incidencias resueltas.
+              if (viewModel.showConductSection) ...[
+                const SizedBox(height: 24),
+                DetailSection(
+                  title: 'Conducta del técnico',
+                  children: [TechnicianConductPanel(viewModel: viewModel)],
                 ),
               ],
               if (viewModel.isRejected) ...[
