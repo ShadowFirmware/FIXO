@@ -3,14 +3,38 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../technician/presentation/widgets/solution_form_widgets.dart';
 import '../../domain/entities/conduct_report.dart';
-import '../providers/report_technician_view_model.dart';
+import '../providers/conduct_report_form_view_model.dart';
 
-/// Incidencia y técnico que se reportan, de solo lectura: el residente solo
-/// puede reportar al técnico que atendió la incidencia.
+/// Incidencia y usuario que se reportan, de solo lectura.
 class ConductTargetBanner extends StatelessWidget {
-  const ConductTargetBanner({super.key, required this.target});
+  const ConductTargetBanner({
+    super.key,
+    required this.label,
+    required this.name,
+    required this.incidentNumber,
+    required this.incidentTitle,
+    required this.icon,
+    this.nameKey,
+  });
 
-  final ConductReportTarget target;
+  /// El residente solo puede reportar al técnico que atendió la incidencia
+  /// (HU-7.1).
+  ConductTargetBanner.technician({
+    super.key,
+    required ConductReportTarget target,
+  }) : label = 'Técnico reportado',
+       name = target.technicianName,
+       incidentNumber = target.incidentNumber,
+       incidentTitle = target.incidentTitle,
+       icon = Icons.engineering_outlined,
+       nameKey = const Key('reportTechnician.technician');
+
+  final String label;
+  final String name;
+  final String incidentNumber;
+  final String incidentTitle;
+  final IconData icon;
+  final Key? nameKey;
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +59,7 @@ class ConductTargetBanner extends StatelessWidget {
               color: AppColors.white.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
-              Icons.engineering_outlined,
-              color: AppColors.white,
-            ),
+            child: Icon(icon, color: AppColors.white),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -46,7 +67,7 @@ class ConductTargetBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Técnico reportado',
+                  label,
                   style: textTheme.labelMedium?.copyWith(
                     color: AppColors.white.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w600,
@@ -55,8 +76,8 @@ class ConductTargetBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  target.technicianName,
-                  key: const Key('reportTechnician.technician'),
+                  name,
+                  key: nameKey,
                   style: textTheme.titleMedium?.copyWith(
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,
@@ -64,7 +85,7 @@ class ConductTargetBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${target.incidentNumber} · ${target.incidentTitle}',
+                  '$incidentNumber · $incidentTitle',
                   style: textTheme.bodySmall?.copyWith(
                     color: AppColors.white.withValues(alpha: 0.85),
                   ),
@@ -90,10 +111,14 @@ class ConductReasonSelector extends StatelessWidget {
     required this.reasons,
     required this.selected,
     required this.onSelected,
+    this.keyPrefix = 'reportTechnician',
   });
 
   final List<ConductReason> reasons;
   final ConductReason? selected;
+
+  /// Inicio de las claves de las fichas, para las pruebas.
+  final String keyPrefix;
 
   /// `null` deshabilita las fichas, por ejemplo mientras se envía.
   final ValueChanged<ConductReason>? onSelected;
@@ -111,7 +136,7 @@ class ConductReasonSelector extends StatelessWidget {
           children: [
             for (final reason in reasons)
               ChoiceChip(
-                key: Key('reportTechnician.reason.${reason.value}'),
+                key: Key('$keyPrefix.reason.${reason.value}'),
                 label: Text(reason.label),
                 selected: selected == reason,
                 onSelected: onSelected == null
@@ -137,7 +162,7 @@ class ConductReasonSelector extends StatelessWidget {
 class ConductEvidencePicker extends StatelessWidget {
   const ConductEvidencePicker({super.key, required this.viewModel});
 
-  final ReportTechnicianViewModel viewModel;
+  final ConductReportFormViewModel viewModel;
 
   Future<void> _showSources(BuildContext context) async {
     final vm = viewModel;
@@ -210,7 +235,7 @@ class ConductEvidencePicker extends StatelessWidget {
           icon: const Icon(Icons.add_a_photo_outlined),
           label: Text(
             'Agregar evidencia (${evidence.length}/'
-            '${ReportTechnicianViewModel.maxEvidence})',
+            '${ConductReportFormViewModel.maxEvidence})',
           ),
         ),
         if (message != null) ...[
@@ -251,7 +276,17 @@ class _SourceTile extends StatelessWidget {
 /// Explica que el reporte no tiene consecuencias hasta que el administrador
 /// lo valida.
 class ConductReviewNotice extends StatelessWidget {
-  const ConductReviewNotice({super.key});
+  const ConductReviewNotice({
+    super.key,
+    this.reported = 'del técnico',
+    this.limit = 'Solo puedes enviar un reporte por incidencia.',
+  });
+
+  /// De quién es la cuenta que no cambia, por ejemplo "del residente".
+  final String reported;
+
+  /// Cuántos reportes se pueden enviar.
+  final String limit;
 
   @override
   Widget build(BuildContext context) {
@@ -272,8 +307,7 @@ class ConductReviewNotice extends StatelessWidget {
             child: Text(
               'Tu reporte quedará Pendiente de revisión. El administrador lo '
               'revisará y solo contará como antecedente si lo valida; '
-              'mientras tanto no cambia nada en la cuenta del técnico. Solo '
-              'puedes enviar un reporte por incidencia.',
+              'mientras tanto no cambia nada en la cuenta $reported. $limit',
               style: textTheme.bodySmall?.copyWith(
                 color: AppColors.textPrimary,
               ),

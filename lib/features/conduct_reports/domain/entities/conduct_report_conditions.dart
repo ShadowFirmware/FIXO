@@ -33,6 +33,30 @@ abstract final class ConductReportConditions {
     return null;
   }
 
+  /// Por qué [technician] no puede reportar a los residentes de
+  /// [incident], o `null` si puede (T 7.2.5). No revisa a quién se reporta
+  /// ni si ya existe el reporte (T 7.2.6).
+  static ConductReportFailure? checkForTechnician(
+    Incident incident, {
+    required AppUser? technician,
+  }) {
+    if (technician == null || technician.role != UserRole.technician) {
+      return ConductReportFailure.notTechnician;
+    }
+    if (technician.accountStatus != AccountStatus.active) {
+      return ConductReportFailure.accountNotActive;
+    }
+    if (incident.technicianId != technician.uid) {
+      return ConductReportFailure.notYourAttendedIncident;
+    }
+    // Mientras la incidencia esté Pendiente, Asignada o En proceso (o si se
+    // rechazó) no se puede reportar.
+    if (incident.status != IncidentStatus.resolved) {
+      return ConductReportFailure.residentNotResolved;
+    }
+    return null;
+  }
+
   /// Igual que [check], y además que [technicianId] sea el técnico que
   /// atendió la incidencia.
   static ConductReportFailure? checkTarget(

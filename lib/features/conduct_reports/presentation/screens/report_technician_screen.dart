@@ -127,7 +127,7 @@ class _ReportTechnicianScreenState extends State<ReportTechnicianScreen> {
                 builder: (context, _) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ConductTargetBanner(target: widget.target),
+                    ConductTargetBanner.technician(target: widget.target),
                     const SizedBox(height: 20),
                     ConductFormSection(
                       title: 'Motivo del reporte',
