@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../features/admin/presentation/providers/admin_users_view_model.dart';
+import '../../features/admin/presentation/screens/admin_conduct_reports_screen.dart';
 import '../../features/admin/presentation/screens/admin_edit_profile_screen.dart';
 import '../../features/admin/presentation/screens/admin_home_screen.dart';
 import '../../features/admin/presentation/screens/admin_housings_screen.dart';
@@ -65,6 +66,8 @@ abstract final class AppRouter {
     RouteNames.adminIncidentHistory: {UserRole.admin},
     RouteNames.adminStatistics: {UserRole.admin},
     RouteNames.adminNotifications: {UserRole.admin},
+    // HU-7.3: el administrador revisa y valida los reportes de conducta.
+    RouteNames.adminConductReports: {UserRole.admin},
     RouteNames.incidentChat: {UserRole.resident, UserRole.technician},
   };
 
@@ -159,6 +162,14 @@ abstract final class AppRouter {
         return _page(const AdminStatisticsScreen(), settings);
       case RouteNames.adminNotifications:
         return _page(const AdminNotificationsScreen(), settings);
+      case RouteNames.adminConductReports:
+        // Al tocar el aviso de un reporte se recibe su ID para abrirlo.
+        return _page(
+          AdminConductReportsScreen(
+            initialReportId: settings.arguments as String?,
+          ),
+          settings,
+        );
       case RouteNames.incidentChat:
         return _page(
           IncidentChatScreen(incidentId: settings.arguments! as String),

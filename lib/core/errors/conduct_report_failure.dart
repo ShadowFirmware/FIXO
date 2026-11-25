@@ -83,6 +83,30 @@ class ConductReportFailure implements Exception {
     'No se pudo consultar a quién puedes reportar. Inténtalo de nuevo.',
   );
 
+  // Administrador que revisa los reportes (HU-7.3)
+  static const reportsLoadFailed = ConductReportFailure(
+    'No se pudieron cargar los reportes de conducta. Inténtalo de nuevo.',
+  );
+  static const notAdmin = ConductReportFailure(
+    'Solo un administrador activo puede revisar reportes de conducta.',
+  );
+  static const reportNotFound = ConductReportFailure(
+    'El reporte de conducta ya no existe.',
+  );
+  static const alreadyReviewed = ConductReportFailure(
+    'Este reporte ya fue revisado. Solo se pueden validar o rechazar los '
+    'reportes pendientes de revisión.',
+  );
+  static const invalidDecision = ConductReportFailure(
+    'El reporte solo se puede marcar como Validado o Rechazado.',
+  );
+  static const reviewFailed = ConductReportFailure(
+    'No se pudo guardar la revisión del reporte. Inténtalo de nuevo.',
+  );
+  static const reviewNetwork = ConductReportFailure(
+    'No hay conexión a internet. La revisión no se guardó.',
+  );
+
   @override
   String toString() => message;
 }

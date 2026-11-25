@@ -170,6 +170,11 @@ class AdminSection {
       RouteNames.adminIncidentHistory,
     ),
     AdminSection(
+      Icons.flag_outlined,
+      'Reportes de conducta',
+      RouteNames.adminConductReports,
+    ),
+    AdminSection(
       Icons.bar_chart_rounded,
       'Estadísticas',
       RouteNames.adminStatistics,
