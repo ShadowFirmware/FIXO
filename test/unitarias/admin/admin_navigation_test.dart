@@ -20,6 +20,7 @@ void main() {
     'Inicio',
     'Reportes pendientes',
     'Historial de incidencias',
+    'Reportes de conducta',
     'Estadísticas',
     'Usuarios',
     'Residencias',

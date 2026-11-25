@@ -615,11 +615,12 @@ void main() {
         RouteNames.adminIncidentHistory,
         null,
       ));
+      // HU-7.3: el aviso de un reporte de conducta abre ese reporte.
       expect(
         admin.destinationFor(
           notice('n4', type: NotificationType.conductReport, refId: 'rep-1'),
         ),
-        isNull,
+        (RouteNames.adminConductReports, 'rep-1'),
       );
     });
 
