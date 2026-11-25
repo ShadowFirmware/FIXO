@@ -106,6 +106,9 @@ class ConductReport {
     required this.status,
     this.evidence = const [],
     this.createdAt,
+    this.reviewedAt,
+    this.reviewerId,
+    this.reviewerName,
   });
 
   /// ID del documento: uno por usuario e incidencia (ver [docIdFor]).
@@ -139,6 +142,15 @@ class ConductReport {
 
   /// Hora del servidor, o `null` mientras no llega a Firestore.
   final DateTime? createdAt;
+
+  /// Cuándo y quién lo marcó como Validado o Rechazado (HU-7.3); `null`
+  /// mientras está Pendiente de revisión.
+  final DateTime? reviewedAt;
+  final String? reviewerId;
+  final String? reviewerName;
+
+  /// Solo un reporte Pendiente de revisión se puede validar o rechazar.
+  bool get isPendingReview => status == ConductReportStatus.pendingReview;
 
   /// Número de reporte para mostrar, por ejemplo "RC-0003".
   String get reportNumber => formatReportNumber(folio);

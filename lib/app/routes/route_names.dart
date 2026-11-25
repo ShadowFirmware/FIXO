@@ -35,6 +35,7 @@ abstract final class RouteNames {
   static const String adminIncidentHistory = '/admin/incidents/history';
   static const String adminStatistics = '/admin/statistics';
   static const String adminNotifications = '/admin/notifications';
+  static const String adminConductReports = '/admin/conduct-reports';
 
   // Comunicación
   static const String incidentChat = '/incidents/chat';

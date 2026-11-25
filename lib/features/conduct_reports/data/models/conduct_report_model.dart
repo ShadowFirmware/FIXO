@@ -23,6 +23,9 @@ class ConductReportModel extends ConductReport {
     required super.status,
     super.evidence,
     super.createdAt,
+    super.reviewedAt,
+    super.reviewerId,
+    super.reviewerName,
   });
 
   /// Lanza [FormatException] si el motivo, el estado o algún rol no son
@@ -61,10 +64,15 @@ class ConductReportModel extends ConductReport {
           ? (data['evidencias'] as List).whereType<String>().toList()
           : const [],
       createdAt: (data['fechaCreacion'] as Timestamp?)?.toDate(),
+      reviewedAt: (data['fechaRevision'] as Timestamp?)?.toDate(),
+      reviewerId: data['revisadoPorId'] as String?,
+      reviewerName: data['revisadoPorNombre'] as String?,
     );
   }
 
-  /// Campos del documento. `fechaCreacion` la pone el servidor al guardar.
+  /// Campos del documento al registrarlo (HU-7.1 y HU-7.2). `fechaCreacion`
+  /// la pone el servidor al guardar. Los datos de la revisión los agrega el
+  /// administrador después (HU-7.3, `ConductReviewPlan`).
   Map<String, dynamic> toFirestore() => {
     'folio': folio,
     'incidenciaId': incidentId,

@@ -159,6 +159,16 @@ class NotificationsViewModel extends ChangeNotifier {
     UserRole? role,
     AppNotification notification,
   ) {
+    // HU-7.3: el aviso de un reporte de conducta abre ese reporte para que
+    // el administrador lo revise.
+    final reportId = notification.refId;
+    if (role == UserRole.admin &&
+        notification.type == NotificationType.conductReport &&
+        reportId != null &&
+        reportId.isNotEmpty) {
+      return (RouteNames.adminConductReports, reportId);
+    }
+
     final incidentId = notification.incidentId;
     if (incidentId == null) return null;
     return switch (role) {
