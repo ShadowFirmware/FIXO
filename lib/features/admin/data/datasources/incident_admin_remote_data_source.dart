@@ -7,9 +7,12 @@ import '../../../housing/data/models/housing_model.dart';
 import '../../../incidents/data/models/incident_model.dart';
 import '../../../incidents/domain/entities/incident.dart';
 import '../../../notifications/data/datasources/notification_remote_data_source.dart';
+import '../../../notifications/data/models/notification_model.dart';
+import '../../../notifications/data/models/notification_notices.dart';
 import '../../../notifications/domain/entities/app_notification.dart';
 import '../../../notifications/domain/entities/notification_recipients.dart';
 import '../models/assignment_plan.dart';
+import '../models/conduct_sanction_plan.dart';
 import '../models/rejection_plan.dart';
 
 /// La incidencia ya no está pendiente (otro administrador la atendió).
@@ -255,6 +258,125 @@ class IncidentAdminRemoteDataSource {
             comment: comment,
           ),
         );
+      }
+    });
+  }
+
+  /// Reasigna una incidencia activa (Asignada o En proceso) a otro técnico
+  /// disponible. Al terminar, si el técnico anterior ya no tiene incidencias
+  /// activas, se le aplica la suspensión que estaba diferida (HU-7.4).
+  Future<void> reassign({
+    required String incidentId,
+    required String newTechnicianId,
+  }) {
+    return _firestore.runTransaction((transaction) async {
+      final incidentRef = _incidents.doc(incidentId);
+      final newTechRef = _users.doc(newTechnicianId);
+      final incidentDoc = await transaction.get(incidentRef);
+      final newTechDoc = await transaction.get(newTechRef);
+
+      final incident = incidentDoc.data();
+      final newTech = newTechDoc.data();
+      if (incident == null) throw const IncidentNotPendingException();
+      final status = incident['estado'] as String?;
+      if (status != IncidentStatus.assigned.value &&
+          status != IncidentStatus.inProgress.value) {
+        throw const IncidentNotPendingException();
+      }
+      if (!AssignmentPlan.canReceiveAssignment(newTech, now: DateTime.now())) {
+        throw const TechnicianUnavailableException();
+      }
+
+      final oldTechId = incident['tecnicoId'] as String?;
+      // Lecturas antes de escrituras.
+      final housingId = incident['viviendaId'] as String? ?? '';
+      final housingDoc = housingId.isEmpty
+          ? null
+          : await transaction.get(_housings.doc(housingId));
+      final residentIds = await _notifier.reachable(
+        transaction,
+        NotificationRecipients.residents(
+          createdBy: incident['creadaPor'] as String?,
+          activeResidentId: housingDoc?.data()?['residenteActivoId'] as String?,
+        ),
+      );
+
+      final reportNumber = Incident.formatReportNumber(
+        (incident['folio'] as num?)?.toInt() ?? 0,
+      );
+      final title = incident['nombre'] as String? ?? '';
+      final newTechName = newTech?['nombre'] as String? ?? 'Técnico';
+
+      transaction.update(incidentRef, {'tecnicoId': newTechnicianId});
+      transaction.update(newTechRef, AssignmentPlan.technicianUpdate);
+
+      for (final residentId in residentIds) {
+        transaction.set(
+          _notifications.doc(),
+          NotificationModel.newNotice(
+            userId: residentId,
+            type: NotificationType.incidentAssigned,
+            title: 'Incidencia $reportNumber reasignada',
+            message:
+                '$newTechName atenderá "$title".',
+            refId: incidentId,
+          ),
+        );
+      }
+      transaction.set(
+        _notifications.doc(),
+        AssignmentPlan.technicianNotice(
+          technicianId: newTechnicianId,
+          incidentId: incidentId,
+          reportNumber: reportNumber,
+          title: title,
+          typeLabel:
+              IncidentType.fromValue(incident['tipo'] as String?)?.label ??
+              IncidentType.other.label,
+          housingLabel: _labelOf(housingDoc) ?? 'Sin registrar',
+          description: incident['detalles'] as String? ?? '',
+          estimatedTime: (incident['horaEstimada'] as Timestamp?)?.toDate() ??
+              DateTime.now(),
+        ),
+      );
+
+      // Si el técnico anterior ya no tiene incidencias activas, aplicar la
+      // suspensión diferida.
+      if (oldTechId != null && oldTechId != newTechnicianId) {
+        final remaining = await _incidents
+            .where('tecnicoId', isEqualTo: oldTechId)
+            .where(
+              'estado',
+              whereIn: [
+                IncidentStatus.assigned.value,
+                IncidentStatus.inProgress.value,
+              ],
+            )
+            .get();
+        final stillActive = remaining.docs
+            .where((d) => d.id != incidentId)
+            .isNotEmpty;
+        if (!stillActive) {
+          final oldTechDoc = await transaction.get(_users.doc(oldTechId));
+          final changes = ConductSanctionPlan.applyPendingSuspension(
+            oldTechDoc.data(),
+            now: DateTime.now(),
+          );
+          if (changes.isNotEmpty) {
+            transaction.update(_users.doc(oldTechId), changes);
+            final until = changes['suspendidaHasta'];
+            if (until is Timestamp) {
+              transaction.set(
+                _notifications.doc(),
+                NotificationNotices.accountSuspended(
+                  userId: oldTechId,
+                  from: DateTime.now(),
+                  until: until.toDate(),
+                ),
+              );
+            }
+          }
+        }
       }
     });
   }
