@@ -154,4 +154,12 @@ class FakeIncidentAdminRemoteDataSource
     if (actionError != null) throw actionError!;
     lastComment = comment;
   }
+
+  @override
+  Future<void> reassign({
+    required String incidentId,
+    required String newTechnicianId,
+  }) async {
+    if (actionError != null) throw actionError!;
+  }
 }
